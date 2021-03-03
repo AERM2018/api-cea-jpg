@@ -7,8 +7,13 @@ const Municipality = db.define('Municipality',{
         primaryKey : true,
         autoIncrement : true
     },
+    id_state : {
+        type : DataTypes.INTEGER,
+        allowNull : false
+    },
     municipality : {
-        type : DataTypes.STRING
+        type : DataTypes.STRING,
+        unique : true
     }
 },{
     timestamps : false

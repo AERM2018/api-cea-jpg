@@ -7,13 +7,22 @@ const Campus = db.define('Campus',{
         autoIncrement : true
     },
     id_municipality : {
-        type : DataTypes.INTEGER
+        type : DataTypes.INTEGER,
+        allowNull : false
     },
     campus_name : {
-        type : DataTypes.STRING(100)
+        type : DataTypes.STRING(100),
+        allowNull : false,
+        validate : {
+            notEmpty : true
+        }
     },
     address : {
-        type : DataTypes.STRING(100)
+        type : DataTypes.STRING(100),
+        allowNull : false,
+        validate : {
+            notEmpty : true
+        }
     }
 },{
     timestamps : false

@@ -7,7 +7,11 @@ const State =  db.define('states',{
         autoIncrement : true
     },
     state : {
-        type : DataTypes.STRING
+        type : DataTypes.STRING(20),
+        allowNull : false,
+        validate : {
+            notEmpty : true
+        }
     }
 },{
     timestamps : false
