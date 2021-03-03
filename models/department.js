@@ -1,18 +1,18 @@
 const { DataTypes } = require("sequelize");
 const { db } = require("../database/connection");
 
-const Municipality = db.define('Municipality',{
-    id_municipality : {
+const Department = db.define('departments',{
+    id_department: {
         type : DataTypes.INTEGER,
         primaryKey : true,
         autoIncrement : true
     },
-    municipality : {
+    department_name : {
         type : DataTypes.STRING,
-        unique:true
+        allowNull: false
     }
+
 },{
     timestamps : false
 })
-
-module.exports = Municipality
+module.exports = Department;

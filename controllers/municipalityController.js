@@ -8,7 +8,7 @@ const addMunicipality = async( req, res  ) => {
         await municipality.save();
     }catch(err){
         console.log(err)
-        return res.state(500).json({
+        return res.status(500).json({
             msg : "Hable con el administrador"
         })
     }

@@ -1,18 +1,18 @@
 const { DataTypes } = require("sequelize");
 const { db } = require("../database/connection");
 
-const Municipality = db.define('Municipality',{
-    id_municipality : {
+const Major = db.define('majors',{
+    id_major: {
         type : DataTypes.INTEGER,
         primaryKey : true,
         autoIncrement : true
     },
-    municipality : {
+    major_name : {
         type : DataTypes.STRING,
-        unique:true
+        allowNull: false
     }
+
 },{
     timestamps : false
 })
-
-module.exports = Municipality
+module.exports = Major;
