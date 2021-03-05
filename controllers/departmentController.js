@@ -3,16 +3,15 @@ const Department = require('../models/department')
 
 
 const getAllDepartments = async (req, res) => {
-    const Departments = await Department.findAll();
+    const departments = await Department.findAll();
 
     return res.status(200).json({
-        Departments
+        departments
     })
 }
 
 const createDepartment = async (req, res) => {
     const { body } = req;
-
     try {
 
         const department = new Department(body);

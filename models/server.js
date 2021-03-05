@@ -3,8 +3,9 @@ const cors = require('cors');
 const statesRouter = require('../routes/states');
 const municipalitiesRouter = require('../routes/municipalities');
 const campusRouter = require('../routes/campus');
-const majorsRouter=require('../routes/majors')
-const departmentsRouter=require('../routes/departments')
+const majorsRouter=require('../routes/majors');
+const departmentsRouter=require('../routes/departments');
+const employeesRouter=require('../routes/employees');
 
 
 class Server{
@@ -25,7 +26,7 @@ class Server{
             campus : `/${this.base}/campus`,
             majors : `/${this.base}/majors`,
             departments: `/${this.base}/departments`,
-
+            employees: `/${this.base}/employees`
         }
         this.routes();
     }
@@ -41,6 +42,7 @@ class Server{
         this.app.use(this.apiPaths.campus, campusRouter)
         this.app.use(this.apiPaths.majors, majorsRouter)
         this.app.use(this.apiPaths.departments, departmentsRouter)
+        this.app.use(this.apiPaths.employees, employeesRouter)
     }
     listen(){
         this.app.listen( this.port, () => {
