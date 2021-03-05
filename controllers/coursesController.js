@@ -21,7 +21,7 @@ const createCourse = async (req, res = response) => {
     try {
 
         // Check if the major exist
-        const [course_id] = await sequelize.query(`SELECT * FROM majors WHERE id_major = ${body['id_major']}`)
+        const [course_id] = await db.query(`SELECT * FROM majors WHERE id_major = ${body['id_major']}`)
         if (course_id.length < 1) {
             return res.status(404).json({
                 ok: false,

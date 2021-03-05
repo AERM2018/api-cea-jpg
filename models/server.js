@@ -4,6 +4,8 @@ const statesRouter = require('../routes/states');
 const municipalitiesRouter = require('../routes/municipalities');
 const campusRouter = require('../routes/campus');
 const coursesRouter = require('../routes/courses');
+const scholarshipRouter = require('../routes/scholarships');
+const gradesRouter = require('../routes/grades');
 
 
 class Server{
@@ -23,7 +25,10 @@ class Server{
             states : `/${this.base}/states`,
             municipalities : `/${this.base}/municipalities`,
             campus : `/${this.base}/campus`,
-            courses : `/${this.base}/courses`
+            courses : `/${this.base}/courses`,
+            scholarships : `/${this.base}/scholarships`,
+            grades : `/${this.base}/grades`,
+
         }
         this.routes();
     }
@@ -41,6 +46,8 @@ class Server{
         this.app.use(this.apiPaths.municipalities, municipalitiesRouter);
         this.app.use(this.apiPaths.campus, campusRouter);
         this.app.use(this.apiPaths.courses, coursesRouter);
+        this.app.use(this.apiPaths.scholarships, scholarshipRouter);
+        this.app.use(this.apiPaths.grades, gradesRouter);
 
     }
     listen(){

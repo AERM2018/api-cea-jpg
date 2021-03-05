@@ -25,7 +25,8 @@ const Campus = db.define('Campus',{
         }
     }
 },{
-    timestamps : false
+    timestamps : false,
+    freezeTableName : true
 })
 
 
