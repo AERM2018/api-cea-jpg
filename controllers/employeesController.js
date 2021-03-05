@@ -18,13 +18,15 @@ const createEmployee = async (req, res) => {
     const { user_type, email, password } = body;
     const { day, start_hour, finish_hour } = body;
     const {name, surname, rfc, curp, mobile_number, active }=body;
-    try {
+    let id_user,id_employee,id_time_table
+    try { 
         const user = new User({user_type,email,password});
         const newUser=await user.save()
-        const { id_user } = newUser.toJSON();
-        
+        const userJson = newUser.toJSON();
+        id_user = userJson['id_user']
+        console.log(id_user)
     } catch (error) {
-        
+        console.log(error)
         return res.status(500).json({
             msg: "Hable con el administrador",
         })
@@ -32,7 +34,8 @@ const createEmployee = async (req, res) => {
     try {
         const time_table= new Time_tables({day,start_hour,finish_hour})
         const newTimeTable = await time_table.save();
-        const { id_time_table }= newTimeTable.toJSON();
+        const newTimeTableJson=newTimeTable.toJSON(); 
+        id_time_table = newTimeTableJson[id_time_table]
     } catch (error) {
         
         return res.status(500).json({
@@ -43,7 +46,8 @@ const createEmployee = async (req, res) => {
     try {
         const employee = new Employee({id_user,name, surname, rfc, curp, mobile_number, email, active });
         const newEmployee = await employee.save();
-        const { id_employee } =newEmployee.toJSON();
+        const newEmployeeJson=newEmployee.toJSON();
+        id_employee=newEmployeeJson[id_employee]
     } catch (error) {
         return res.status(500).json({
             msg: "Hable con el administrador",
@@ -51,7 +55,7 @@ const createEmployee = async (req, res) => {
     }
 
     try {
-        const emp_tim = new Emp_tim(id_employee,id_time_table);
+        const emp_tim = new Emp_tim({id_employee,id_time_table});
         await emp_tim.save();
     } catch (error) {
         
@@ -61,6 +65,7 @@ const createEmployee = async (req, res) => {
         msg: "empleado creado correctamente"
     })
 
+   
 
 
 }

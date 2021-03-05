@@ -6,7 +6,7 @@ const campusRouter = require('../routes/campus');
 const majorsRouter=require('../routes/majors');
 const departmentsRouter=require('../routes/departments');
 const employeesRouter=require('../routes/employees');
-
+const groupsRouter=require('../routes/groups')
 
 class Server{
 
@@ -26,7 +26,8 @@ class Server{
             campus : `/${this.base}/campus`,
             majors : `/${this.base}/majors`,
             departments: `/${this.base}/departments`,
-            employees: `/${this.base}/employees`
+            employees: `/${this.base}/employees`,
+            groups: `/${this.base}/groups`,
         }
         this.routes();
     }
@@ -43,6 +44,7 @@ class Server{
         this.app.use(this.apiPaths.majors, majorsRouter)
         this.app.use(this.apiPaths.departments, departmentsRouter)
         this.app.use(this.apiPaths.employees, employeesRouter)
+        this.app.use(this.apiPaths.groups, groupsRouter)
     }
     listen(){
         this.app.listen( this.port, () => {
