@@ -6,6 +6,7 @@ const getAllMajors = async (req, res) => {
     const majors = await Major.findAll();
 
     return res.status(200).json({
+        ok:true,
         majors
     })
 }
@@ -41,7 +42,10 @@ const updateMajor = async (req, res) => {
         }
         
         await major.update(body);
-        res.json( major )
+        res.status(200).json({
+            ok:true,
+            msg:"El materia se actualizo correctamente"
+        })
     
     
     } catch (error) {
@@ -63,7 +67,10 @@ const deleteMajor = async (req, res) => {
         }
         
         await major.destroy(body);
-        res.json(major)
+        res.status(200).json({
+            ok:true,
+            msg:"La materia se elimino correctamente"
+        })
     
 
 }

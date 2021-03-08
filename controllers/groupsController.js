@@ -19,7 +19,7 @@ const createGroup = async (req, res) => {
     const { day, start_hour, finish_hour } = body;
     let id_group,id_time_table
     try { 
-        const group = new Group({id_major,name_group,entry_year,entry_year});
+        const group = new Group({id_major,name_group,entry_year,end_year});
         const newGroup=await group.save()
         const groupJson = newGroup.toJSON();
         id_group= groupJson['id_group']
@@ -35,9 +35,10 @@ const createGroup = async (req, res) => {
         const time_table= new Time_tables({day,start_hour,finish_hour})
         const newTimeTable = await time_table.save();
         const newTimeTableJson=newTimeTable.toJSON(); 
-        id_time_table = newTimeTableJson[id_time_table]
+        id_time_table = newTimeTableJson['id_time_table']
+        console.log(id_time_table)
     } catch (error) {
-        
+        console.log(error)
         return res.status(500).json({
             msg: "Hable con el administrador",
         })
@@ -47,6 +48,7 @@ const createGroup = async (req, res) => {
         const gro_tim = new Gro_tim({id_group,id_time_table});
         await gro_tim.save();
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             msg: "Hable con el administrador",
         })

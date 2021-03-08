@@ -18,6 +18,7 @@ const Gro_tim = db.define('gro_tim',{
    
 
 },{
-    timestamps : false
+    timestamps : false,
+    freezeTableName :true
 })
 module.exports = Gro_tim;

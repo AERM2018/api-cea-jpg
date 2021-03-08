@@ -6,6 +6,7 @@ const getAllDepartments = async (req, res) => {
     const departments = await Department.findAll();
 
     return res.status(200).json({
+        ok:true,
         departments
     })
 }
@@ -22,6 +23,7 @@ const createDepartment = async (req, res) => {
         })
     }
     res.status(201).json({
+        ok:true,
         msg: "department creado correctamente"
     })
 
@@ -40,7 +42,10 @@ const updateDepartament = async (req, res) => {
         }
         
         await department.update(body);
-        res.json( department )
+        res.status(200).json({
+            ok:true,
+            msg:"El departamento se actualizo correctamente"
+        })
     
     
     } catch (error) {
@@ -62,7 +67,10 @@ const deleteDepartament = async (req, res) => {
         }
         
         await department.destroy(body);
-        res.json(department)
+        res.status(200).json({
+            ok:true,
+            msg:"El departamento se elimino correctamente"
+        })
     
 
 }

@@ -5,10 +5,14 @@ const Cou_tea = require('../models/cou_tea');
 
 
 
+
 const getAllTeachers = async (req, res) => {
-    const teachers = await Teacher.findAll();
+    const teachers = await Teacher.findAll({
+        where:{'active':1}
+    });
 
     return res.status(200).json({
+        ok:true,
         teachers
     })
 }
@@ -17,7 +21,7 @@ const createTeacher = async (req, res) => {
     const { body } = req;
     const { user_type, email, password } = body;
     const { id_courses, status, start_date ,end_date } = body;
-    const {name, surname, rfc, curp, mobile_number, id_ext_cou, courses, active }=body;
+    const {name, surname, rfc, mobile_number, id_ext_cou, courses, active }=body;
     let id_user,id_teacher
     try { 
         const user = new User({user_type,email,password});
@@ -35,7 +39,7 @@ const createTeacher = async (req, res) => {
         const teacher = new Teacher({id_user,name, surname, rfc, mobile_number, id_ext_cou, courses, active});
         const newTeacher = await teacher.save();
         const newTeacherJson=newTeacher.toJSON();
-        id_teacher=newTeacherJson[id_teacher]
+        id_teacher=newTeacherJson['id_teacher']
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -43,11 +47,9 @@ const createTeacher = async (req, res) => {
         })
     }
     try {
-        console.log(id_courses)
         id_courses.forEach(async id_course => {
             const cou_tea= new Cou_tea({id_course, id_teacher:1, status, start_date ,end_date})
             await cou_tea.save();
-            console.log(id_course+" creado")
         });
         
     } catch (error) {
@@ -72,12 +74,15 @@ const updateTeacher = async (req, res) => {
         const teacher = await Teacher.findByPk(id);
         if(!teacher){
             return res.status(404).json({
-                msg: "No existe un empleado con el id "+id,
+                msg: "No existe un maestro con el id "+id,
             });
         }
         
         await teacher.update(body);
-        res.json( teacher )
+        res.status(200).json({
+            ok:true,
+            msg:"El maestro se actualizo correctamente"
+        })
     
     
     } catch (error) {
@@ -89,8 +94,6 @@ const updateTeacher = async (req, res) => {
 }
 const deleteTeacher = async (req, res) => {
     const { id } = req.params;
-    const { body } = req;
- 
         const teacher = await Teacher.findByPk(id);
         if(!teacher){
             return res.status(404).json({
@@ -98,8 +101,11 @@ const deleteTeacher = async (req, res) => {
             });
         }
         
-        await teacher.destroy(body);
-        res.json(employee)
+        await teacher.update({active:0})
+        res.status(200).json({
+            ok:true,
+            msg:"El maestro se elimino correctamente"
+        })
     
 
 }

@@ -3,7 +3,7 @@ const { db } = require("../database/connection");
 
 const Student = db.define('students',{
     id_student: {
-        type : DataTypes.INTEGER,
+        type : DataTypes.STRING,
         primaryKey : true,
         autoIncrement : true
     },

@@ -1,14 +1,17 @@
 const User = require('../models/user');
 const Employee = require('../models/employee');
 const Time_tables = require('../models/time_tables');
-
+const Emp_tim = require('../models/emp_tim');
 
 
 
 const getAllEmployees = async (req, res) => {
-    const employees = await Employee.findAll();
+    const employees = await Employee.findAll({
+        where:{'active':1}
+    });
 
     return res.status(200).json({
+        ok:true,
         employees
     })
 }
@@ -35,9 +38,9 @@ const createEmployee = async (req, res) => {
         const time_table= new Time_tables({day,start_hour,finish_hour})
         const newTimeTable = await time_table.save();
         const newTimeTableJson=newTimeTable.toJSON(); 
-        id_time_table = newTimeTableJson[id_time_table]
+        id_time_table = newTimeTableJson['id_time_table']
     } catch (error) {
-        
+        console.log(error)
         return res.status(500).json({
             msg: "Hable con el administrador",
         })
@@ -47,8 +50,9 @@ const createEmployee = async (req, res) => {
         const employee = new Employee({id_user,name, surname, rfc, curp, mobile_number, email, active });
         const newEmployee = await employee.save();
         const newEmployeeJson=newEmployee.toJSON();
-        id_employee=newEmployeeJson[id_employee]
+        id_employee=newEmployeeJson['id_employee']
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             msg: "Hable con el administrador",
         })
@@ -58,10 +62,11 @@ const createEmployee = async (req, res) => {
         const emp_tim = new Emp_tim({id_employee,id_time_table});
         await emp_tim.save();
     } catch (error) {
-        
+        console.log(error)
     }
 
     res.status(201).json({
+        ok:true,
         msg: "empleado creado correctamente"
     })
 
@@ -81,7 +86,10 @@ const updateEmployee = async (req, res) => {
         }
         
         await employee.update(body);
-        res.json( employee )
+        res.status(200).json({
+            ok:true,
+            msg:"El empleado se actualizo correctamente"
+        })
     
     
     } catch (error) {
@@ -93,7 +101,7 @@ const updateEmployee = async (req, res) => {
 }
 const deleteEmployee = async (req, res) => {
     const { id } = req.params;
-    const { body } = req;
+    
  
         const employee = await Employee.findByPk(id);
         if(!employee){
@@ -102,8 +110,11 @@ const deleteEmployee = async (req, res) => {
             });
         }
         
-        await employee.destroy(body);
-        res.json(employee)
+        await employee.update({active:0})
+        res.status(200).json({
+            ok:true,
+            msg:"El trabajador se elimino correctamente"
+        })
     
 
 }

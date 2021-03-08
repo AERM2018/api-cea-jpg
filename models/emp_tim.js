@@ -15,7 +15,8 @@ const Emp_tim =  db.define('emp_tim',{
         type : DataTypes.INTEGER
     }
 },{
-    timestamps : false
+    timestamps : false,
+    freezeTableName :true
 }
 )
 

@@ -25,6 +25,7 @@ const Group = db.define('groupss',{
     }
 
 },{
-    timestamps : false
+    timestamps : false,
+    freezeTableName :true
 })
 module.exports = Group;
