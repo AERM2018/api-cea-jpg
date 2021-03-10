@@ -1,26 +1,24 @@
 const { DataTypes } = require("sequelize");
 const { db } = require("../database/connection");
 
-const Municipality = db.define('Municipality',{
-    id_municipality : {
+const Gro_tim = db.define('gro_tim',{
+    id_gro_tim: {
         type : DataTypes.INTEGER,
         primaryKey : true,
         autoIncrement : true
     },
-    id_state : {
+    id_group : {
         type : DataTypes.INTEGER,
-        allowNull : false
+        allowNull: false
     },
-    municipality : {
+    id_time_table : {
         type : DataTypes.STRING,
-<<<<<<< HEAD
-        unique : true
-=======
-        unique:true
->>>>>>> Johan
+        allowNull: false
     }
-},{
-    timestamps : false
-})
+   
 
-module.exports = Municipality
+},{
+    timestamps : false,
+    freezeTableName :true
+})
+module.exports = Gro_tim;
