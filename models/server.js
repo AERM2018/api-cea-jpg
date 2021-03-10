@@ -6,6 +6,7 @@ const campusRouter = require('../routes/campus');
 const coursesRouter = require('../routes/courses');
 const scholarshipRouter = require('../routes/scholarships');
 const gradesRouter = require('../routes/grades');
+const authRouter = require('../routes/auth');
 
 
 class Server{
@@ -22,6 +23,7 @@ class Server{
         this.middlewares();
         this.base = 'api-ale/v1'
         this.apiPaths = {
+            auth : `/${this.base}/auth/login`,
             states : `/${this.base}/states`,
             municipalities : `/${this.base}/municipalities`,
             campus : `/${this.base}/campus`,
@@ -42,6 +44,7 @@ class Server{
 
 
     routes(){
+        this.app.use(this.apiPaths.auth,authRouter);
         this.app.use(this.apiPaths.states, statesRouter);
         this.app.use(this.apiPaths.municipalities, municipalitiesRouter);
         this.app.use(this.apiPaths.campus, campusRouter);

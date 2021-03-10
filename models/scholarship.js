@@ -8,13 +8,7 @@ const Scholarship = db.define('Scholarship',{
         primaryKey : true,
         autoIncrement : true,
     },
-    id_student : {
-        type : DataTypes.STRING(15),
-        allowNull : false,
-        validate : {
-            notEmpty : true
-        }
-    },
+   
     scholarship_name : {
         type : DataTypes.STRING(15),
         allowNull : false,

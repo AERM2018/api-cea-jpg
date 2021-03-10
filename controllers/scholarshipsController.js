@@ -2,15 +2,14 @@ const { response } = require("express")
 const Scholarship = require("../models/scholarship")
 const { db } = require('../database/connection')
 const { QueryTypes } = require('sequelize');
+const Sch_stu = require("../models/sch_stu");
+const { getScholarships } = require("../queries/queries");
 
 const getAllScholarships = async( req, res = response ) => {
     try {
-        const scholarships = await Scholarship.findAll({
-            attributes : {
-                exclude : ['id','createdAt','updatedAt']
-            }
-        })
+        const scholarships = await db.query(getScholarships,{ type : QueryTypes.SELECT});
 
+        console.log(scholarships)
         res.status(200).json({
             ok : true,
             scholarships
@@ -26,7 +25,7 @@ const getAllScholarships = async( req, res = response ) => {
 
 const createScholarship = async( req, res = response ) => {
     const { body } = req;
-    const { id_student } = body;
+    const { id_student, scholarship_name, percentage, reason, observations } = body;
 
     try {
         //Modificar una vez tenga el modelo student
@@ -38,9 +37,13 @@ const createScholarship = async( req, res = response ) => {
             });
         }
     
-        const scholarship = new Scholarship(body);
-        await scholarship.save();
+        const scholarship = new Scholarship({scholarship_name, percentage, reason, observations}); 
+        const newSch = await scholarship.save();
+        const id_scholarship = newSch.toJSON()['id_scholarship'];
     
+        const sch_stu = new Sch_stu({id_scholarship,id_student});
+        await sch_stu.save()
+
         res.status(201).json({
             ok : true,
             msg : 'La beca se creo correctamente.'
@@ -58,11 +61,10 @@ const createScholarship = async( req, res = response ) => {
 
 const updateScholarship = async( req, res = response ) => {
     const { id_scholarship } = req.params
-    const { body } = req;
-    const { id_student } = body;
+    const { id_student } = req.body;
 
     try {
-
+        // Check if the scholarship exists
         const scholarship = await Scholarship.findByPk(id_scholarship);
         if(!scholarship){
             return res.status(404).json({
@@ -73,11 +75,11 @@ const updateScholarship = async( req, res = response ) => {
 
         if( scholarship.toJSON().id_student != id_student){
             //Modificar una vez tenga el modelo student
-            const [student] = db.query(`SELECT * FROM students WHERE id_student = ${id_student}`);
+            const student = db.query(`SELECT * FROM students WHERE id_student = :id`,{ replacements : {'id':id_student}, type : QueryTypes.SELECT});
             if(student.length < 1){
                 return res.status(404).json({
                     ok : false,
-                    msg : `El estudiante con id ${id_student} no existe, verifiquelo por favor.`
+                    msg : `No se le puede asignar la beca al el estudiante con id ${id_student} debido a que no existe, verifiquelo por favor.`
                 });
             }
         }
@@ -85,7 +87,7 @@ const updateScholarship = async( req, res = response ) => {
         await Scholarship.update(body,{where:{'id_scholarship':id_scholarship}})
         res.status(200).json({
             ok : true,
-            msg : 'La beca se actualizo correctamente.'
+            msg : `La beca con id ${id_scholarship} se actualizo correctamente.`
         })
     } catch ( err) {
         console.log(err)
@@ -99,6 +101,7 @@ const updateScholarship = async( req, res = response ) => {
 const deleteScholarship = async( req, res = response ) => {
     const { id_scholarship } = req.params
     try {
+        // Check if the scholarship exists
         const scholarship = await Scholarship.findByPk(id_scholarship);
         if(!scholarship){
             return res.status(404).json({
@@ -111,7 +114,7 @@ const deleteScholarship = async( req, res = response ) => {
 
         res.status(200).json({
             ok : true,
-            msg : 'La beca se eliminó correctamente.'
+            msg : `La beca con id ${id_scholarship} se elimino correctamente`
         })
     } catch ( err ) {
         console.log(err)
