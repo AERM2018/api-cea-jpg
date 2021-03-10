@@ -24,7 +24,8 @@ const Cou_tea =  db.define('Cou_teas',{
         type : DataTypes.DATE
     }
 },{
-    timestamps : false
+    timestamps : false,
+    freezeTableName :true
 }
 )
 

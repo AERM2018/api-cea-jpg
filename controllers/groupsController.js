@@ -1,7 +1,7 @@
 const Gro_tim = require('../models/gro_tim');
 const Group = require('../models/group');
 const Time_tables = require('../models/time_tables');
-
+const Major= require('../models/major');
 
 
 
@@ -19,6 +19,12 @@ const createGroup = async (req, res) => {
     const { day, start_hour, finish_hour } = body;
     let id_group,id_time_table
     try { 
+        const major = await Major.findByPk(id_major);
+        if(!major){
+            return res.status(404).json({
+                msg: "No existe una carrera con el id "+id_major,
+            });
+        }
         const group = new Group({id_major,name_group,entry_year,end_year});
         const newGroup=await group.save()
         const groupJson = newGroup.toJSON();

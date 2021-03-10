@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const Student = require('../models/student');
-
+const bcrypt = require('bcryptjs');
 
 
 
@@ -18,15 +18,16 @@ const getAllStudents = async (req, res) => {
 
 const createStudent = async (req, res) => {
     const { body } = req;
-    const { user_type, email, password } = body;
-    const {id_student,name, surname, group_chief, curp,status, mobile_number,mobile_back_number,address,start_date,end_date,complete_documents }=body;
+    const { user_type, email } = body;
+    const {id_student,name, surname, group_chief, curp, status, mobile_number, mobile_back_number,address,start_date,end_date,complete_documents }=body;
     let id_user
     try { 
-        const user = new User({user_type,email,password});
+        const user = new User({user_type,email,password:"123456"});
         const newUser=await user.save()
         const userJson = newUser.toJSON();
         id_user = userJson['id_user']
-        console.log(id_user)
+       
+
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -36,6 +37,12 @@ const createStudent = async (req, res) => {
     try {
         const student = new Student({id_student,id_user,name, surname, group_chief, curp,status, mobile_number,mobile_back_number,address,start_date,end_date,complete_documents });
         await student.save();
+        // password
+        const user = await User.findByPk(id_user);
+        const salt = bcrypt.genSaltSync();
+        const pass = bcrypt.hashSync(id_student,salt)
+        console.log(pass)
+        await user.update({password:pass});
         
     } catch (error) {
         console.log(error)
