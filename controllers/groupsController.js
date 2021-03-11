@@ -28,6 +28,7 @@ const createGroup = async (req, res) => {
         const major = await Major.findByPk(id_major);
         if (!major) {
             return res.status(404).json({
+                ok:false,
                 msg: "No existe una carrera con el id " + id_major,
             });
         }
@@ -35,11 +36,12 @@ const createGroup = async (req, res) => {
         const newGroup = await group.save()
         const groupJson = newGroup.toJSON();
         id_group = groupJson['id_group']
-        console.log(id_group)
+        
 
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok:false,
             msg: "Hable con el administrador",
         })
     }
@@ -48,10 +50,11 @@ const createGroup = async (req, res) => {
         const newTimeTable = await time_table.save();
         const newTimeTableJson = newTimeTable.toJSON();
         id_time_table = newTimeTableJson['id_time_table']
-        console.log(id_time_table)
+
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok:false,
             msg: "Hable con el administrador",
         })
     }
@@ -62,6 +65,7 @@ const createGroup = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok:false,
             msg: "Hable con el administrador",
         })
     }
@@ -81,6 +85,7 @@ const updateGroup = async (req, res) => {
         const group = await Group.findByPk(id);
         if (!group) {
             return res.status(404).json({
+                ok:false,
                 msg: "No existe un grupo con el id " + id,
             });
         }
@@ -101,6 +106,7 @@ const updateGroup = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok:false,
             msg: "Hable con el administrador"
         })
     }
@@ -112,6 +118,7 @@ const deleteGroup = async (req, res) => {
     const group = await Group.findByPk(id);
     if (!group) {
         return res.status(404).json({
+            ok:false,
             msg: "No existe un grupo con el id " + id,
         });
     }

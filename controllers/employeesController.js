@@ -30,6 +30,7 @@ const createEmployee = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok:false,
             msg: "Hable con el administrador",
         })
     }
@@ -41,6 +42,7 @@ const createEmployee = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok:false,
             msg: "Hable con el administrador",
         })
     }
@@ -74,6 +76,10 @@ const createEmployee = async (req, res) => {
         await emp_tim.save();
     } catch (error) {
         console.log(error)
+        return res.status(500).json({
+            ok:false,
+            msg: "Hable con el administrador",
+        })
     }
 
     res.status(201).json({
@@ -89,6 +95,7 @@ const updateEmployee = async (req, res) => {
         const employee = await Employee.findByPk(id);
         if (!employee) {
             return res.status(404).json({
+                ok:false,
                 msg: "No existe un empleado con el id " + id,
             });
         }
@@ -106,6 +113,7 @@ const updateEmployee = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok:false,
             msg: "Hable con el administrador"
         })
     }
@@ -117,6 +125,7 @@ const deleteEmployee = async (req, res) => {
     const employee = await Employee.findByPk(id);
     if (!employee) {
         return res.status(404).json({
+            ok:false,
             msg: "No existe un empleado con el id " + id,
         });
     }

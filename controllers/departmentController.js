@@ -25,6 +25,7 @@ const createDepartment = async (req, res) => {
 
     } catch (error) {
         return res.status(500).json({
+            ok:false,
             msg: "Hable con el administrador",
         })
     }
@@ -69,6 +70,7 @@ const updateDepartament = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok:false,
             msg: "Hable con el administrador"
         })
     }
@@ -80,6 +82,7 @@ const deleteDepartament = async (req, res) => {
     const department = await Department.findByPk(id);
     if (!department) {
         return res.status(404).json({
+            ok:false,
             msg: "No existe un department con el id " + id,
         });
     }
