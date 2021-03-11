@@ -28,6 +28,7 @@ const createMajor = async (req, res) => {
 
     } catch (error) {
         return res.status(500).json({
+            ok:false,
             msg: "Hable con el administrador",
         })
     }
@@ -53,6 +54,7 @@ const updateMajor = async (req, res) => {
         const major = await Major.findByPk(id);
         if (!major) {
             return res.status(404).json({
+                ok:false,
                 msg: "No existe una Major con el id " + id,
             });
         }
@@ -84,6 +86,7 @@ const deleteMajor = async (req, res) => {
     const major = await Major.findByPk(id);
     if (!major) {
         return res.status(404).json({
+            ok:false,
             msg: "No existe una Major con el id " + id,
         });
     }
