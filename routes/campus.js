@@ -1,28 +1,37 @@
 const { Router } = require('express');
-const { check } = require('express-validator');
+const { check, param } = require('express-validator');
 const { getAllCampus, createCampus, updateCampus, deleteCampus } = require('../controllers/campusController');
+const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
 const campusRouter = Router();
 
-campusRouter.get('/', getAllCampus);
+campusRouter.get('/', [
+    validateJWT
+], getAllCampus);
 
 campusRouter.post('/', [
-    check('id_municipality', 'El id de municipio es numero y es obligatorio').isNumeric(),
+    check('id_municipality', 'El id de municipio es obligatorio y es numero obligatorio').isNumeric(),
     check('campus_name','El nombre del campus es obligatorio').not().isEmpty(),
     check('address','La dirección del campus es obligatorio').not().isEmpty(),
-    validateFields
+    validateFields,
+    validateJWT
 ] ,createCampus);
 
 campusRouter.put('/:id',[
-    check('id_municipality', 'El id de municipio es numero y es obligatorio').isNumeric(),
+    param('id','El id del campus es obligatorio y debe der ser numero entero ').isNumeric(),
+    check('id_municipality', 'El id de municipio es obligatorio y es numero obligatorio').isNumeric(),
     check('campus_name','El nombre del campus es obligatorio').not().isEmpty(),
     check('address','La dirección del campus es obligatorio').not().isEmpty(),
-    validateFields
+    validateFields,
+    validateJWT
 ],
 updateCampus);
 
-campusRouter.delete( '/:id', deleteCampus)
+campusRouter.delete( '/:id', [
+    param('id','El id del campus es obligatorio y debe der ser numero entero ').isNumeric(),
+    validateJWT
+],deleteCampus)
 
 
 module.exports = campusRouter;

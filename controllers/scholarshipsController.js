@@ -4,123 +4,128 @@ const { db } = require('../database/connection')
 const { QueryTypes } = require('sequelize');
 const Sch_stu = require("../models/sch_stu");
 const { getScholarships } = require("../queries/queries");
+const Student = require("../models/student");
 
-const getAllScholarships = async( req, res = response ) => {
+const getAllScholarships = async (req, res = response) => {
     try {
-        const scholarships = await db.query(getScholarships,{ type : QueryTypes.SELECT});
+        const scholarships = await db.query(getScholarships, { type: QueryTypes.SELECT });
 
         console.log(scholarships)
         res.status(200).json({
-            ok : true,
+            ok: true,
             scholarships
         })
-    } catch ( err ) {
+    } catch (err) {
         console.log(err)
         return res.status(500).json({
-            msg : "Hable con el administrador"
+            msg: "Hable con el administrador"
         })
     }
 }
 
 
-const createScholarship = async( req, res = response ) => {
+const createScholarship = async (req, res = response) => {
     const { body } = req;
     const { id_student, scholarship_name, percentage, reason, observations } = body;
 
     try {
-        //Modificar una vez tenga el modelo student
-        const student = await db.query(`SELECT * FROM students WHERE id_student = :id`,{replacements:{id:id_student},type:QueryTypes.SELECT});
-        if(student.length < 1){
+        // check if the student exists
+        const student = await Student.findOne({
+            where: { 'id_student': id_student }
+        });
+        if (!student) {
             return res.status(404).json({
-                ok : false,
-                msg : `El estudiante con id ${id_student} no existe, verifiquelo por favor.`
+                ok: false,
+                msg: `El estudiante con id ${id_student} no existe, verifiquelo por favor.`
             });
         }
-    
-        const scholarship = new Scholarship({scholarship_name, percentage, reason, observations}); 
+
+        const scholarship = new Scholarship({ scholarship_name, percentage, reason, observations });
         const newSch = await scholarship.save();
         const id_scholarship = newSch.toJSON()['id_scholarship'];
-    
-        const sch_stu = new Sch_stu({id_scholarship,id_student});
+
+        const sch_stu = new Sch_stu({ id_scholarship, id_student });
         await sch_stu.save()
 
         res.status(201).json({
-            ok : true,
-            msg : 'La beca se creo correctamente.'
+            ok: true,
+            msg: 'La beca se creo correctamente.'
         })
-    } catch ( err) {
+    } catch (err) {
         console.log(err)
         res.status(500).json({
-            ok : false,
-            msg : 'Hable con el adminstrador.'
+            ok: false,
+            msg: 'Hable con el adminstrador.'
         })
     }
 
 }
 
 
-const updateScholarship = async( req, res = response ) => {
+const updateScholarship = async (req, res = response) => {
     const { id_scholarship } = req.params
     const { id_student } = req.body;
 
     try {
         // Check if the scholarship exists
         const scholarship = await Scholarship.findByPk(id_scholarship);
-        if(!scholarship){
+        if (!scholarship) {
             return res.status(404).json({
-                ok : false,
-                msg : `La beca con id ${id_scholarship} no existe, verifiquelo por favor.`
+                ok: false,
+                msg: `La beca con id ${id_scholarship} no existe, verifiquelo por favor.`
             });
         }
 
-        if( scholarship.toJSON().id_student != id_student){
-            //Modificar una vez tenga el modelo student
-            const student = db.query(`SELECT * FROM students WHERE id_student = :id`,{ replacements : {'id':id_student}, type : QueryTypes.SELECT});
-            if(student.length < 1){
+        if (scholarship.toJSON().id_student != id_student) {
+            // check if the student exists
+            const student = await Student.findOne({
+                where: { 'id_student': id_student }
+            });
+            if (!student) {
                 return res.status(404).json({
-                    ok : false,
-                    msg : `No se le puede asignar la beca al el estudiante con id ${id_student} debido a que no existe, verifiquelo por favor.`
+                    ok: false,
+                    msg: `El estudiante con id ${id_student} no existe, verifiquelo por favor.`
                 });
             }
         }
-    
-        await Scholarship.update(body,{where:{'id_scholarship':id_scholarship}})
+
+        await Scholarship.update(body, { where: { 'id_scholarship': id_scholarship } })
         res.status(200).json({
-            ok : true,
-            msg : `La beca con id ${id_scholarship} se actualizo correctamente.`
+            ok: true,
+            msg: `La beca con id ${id_scholarship} se actualizo correctamente.`
         })
-    } catch ( err) {
+    } catch (err) {
         console.log(err)
         res.status(500).json({
-            ok : false,
-            msg : 'Hable con el adminstrador.'
+            ok: false,
+            msg: 'Hable con el adminstrador.'
         })
     }
 }
 
-const deleteScholarship = async( req, res = response ) => {
+const deleteScholarship = async (req, res = response) => {
     const { id_scholarship } = req.params
     try {
         // Check if the scholarship exists
         const scholarship = await Scholarship.findByPk(id_scholarship);
-        if(!scholarship){
+        if (!scholarship) {
             return res.status(404).json({
-                ok : false,
-                msg : `La beca con id ${id_scholarship} no existe, verifiquelo por favor.`
+                ok: false,
+                msg: `La beca con id ${id_scholarship} no existe, verifiquelo por favor.`
             });
         }
 
         await scholarship.destroy();
 
         res.status(200).json({
-            ok : true,
-            msg : `La beca con id ${id_scholarship} se elimino correctamente`
+            ok: true,
+            msg: `La beca con id ${id_scholarship} se elimino correctamente`
         })
-    } catch ( err ) {
+    } catch (err) {
         console.log(err)
         res.status(500).json({
-            ok : false,
-            msg : 'Hable con el adminstrador.'
+            ok: false,
+            msg: 'Hable con el adminstrador.'
         })
     }
 }

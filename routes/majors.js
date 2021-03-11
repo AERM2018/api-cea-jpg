@@ -1,26 +1,32 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const {getAllMajors,deleteMajor,updateMajor,createMajor} = require('../controllers/majorController');
+const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
 const majorsRouter = Router();
 
-majorsRouter.get('/', getAllMajors);
+majorsRouter.get('/', [
+    validateJWT
+], getAllMajors);
 majorsRouter.post( '/', [
     check('major_name','el nombre de la carrera es obligatario').notEmpty().isString(),
-    validateFields
+    validateFields,
+    validateJWT
 
 ] ,createMajor);
 majorsRouter.put( '/:id', [
-    param('id','el id de la carrera tiene que ser un numero').isNumeric(),
+    param('id','el id de la carrera es obligatorio y debe de ser un numero entero').isNumeric(),
     check('major_name','el nombre de la carrera es obligatario').notEmpty().isString(),
-    validateFields
+    validateFields,
+    validateJWT
 
 ] , updateMajor);
 
 majorsRouter.delete( '/:id',[
-    param('id','el id de la carrera tiene que ser un numero').isNumeric(),
-    validateFields
+    param('id','el id de la carrera es obligatorio y debe de ser un numero entero').isNumeric(),
+    validateFields,
+    validateJWT
 ], deleteMajor);
 
 module.exports = majorsRouter;

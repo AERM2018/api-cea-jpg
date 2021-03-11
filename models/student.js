@@ -49,7 +49,7 @@ const Student = db.define('students',{
     },
     end_date : {
         type : DataTypes.DATE,
-        allowNull: false
+        
     },
     complete_documents : {
         type : DataTypes.TINYINT,

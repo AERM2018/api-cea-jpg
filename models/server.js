@@ -28,14 +28,13 @@ class Server{
         this.middlewares();
         this.base = 'api-ale/v1'
         this.apiPaths = {
-            auth : `/${this.base}/auth/login`,
+            auth : `/${this.base}/auth`,
             states : `/${this.base}/states`,
             municipalities : `/${this.base}/municipalities`,
             campus : `/${this.base}/campus`,
             courses : `/${this.base}/courses`,
             scholarships : `/${this.base}/scholarships`,
             grades : `/${this.base}/grades`,
-
             majors : `/${this.base}/majors`,
             departments: `/${this.base}/departments`,
             employees: `/${this.base}/employees`,

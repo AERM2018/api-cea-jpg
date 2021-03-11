@@ -1,7 +1,6 @@
 const User = require('../models/user');
 const Teacher = require('../models/teacher');
 const Cou_tea = require('../models/cou_tea');
-const { createJWT } = require("../helpers/jwt");
 const bcrypt = require('bcryptjs');
 
 
@@ -10,15 +9,10 @@ const getAllTeachers = async (req, res) => {
     const teachers = await Teacher.findAll({
         where:{'active':1}
     });
-    let token;
-    if(req.revaToken){
-        const {id_user, user_type, id_role} = req
-        token = await createJWT(id_user, user_type, id_role)
-    }
+    
     return res.status(200).json({
         ok:true,
-        teachers,
-        token
+        teachers
     })
 }
 
@@ -36,6 +30,7 @@ const createTeacher = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok : false,
             msg: "Hable con el administrador",
         })
     }
@@ -56,6 +51,7 @@ const createTeacher = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok : false,
             msg: "Hable con el administrador",
         })
     }
@@ -68,11 +64,13 @@ const createTeacher = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok : false,
             msg: "Hable con el administrador",
         })
     }
 
     res.status(201).json({
+        ok: true,
         msg: "Maestro creado correctamente"
     })
 
@@ -87,6 +85,7 @@ const updateTeacher = async (req, res) => {
         const teacher = await Teacher.findByPk(id);
         if(!teacher){
             return res.status(404).json({
+                ok : false,
                 msg: "No existe un maestro con el id "+id,
             });
         }
@@ -94,21 +93,17 @@ const updateTeacher = async (req, res) => {
         
         await teacher.update(body);
 
-        let token;
-        if(req.revaToken){
-            const {id_user, user_type, id_role} = req
-            token = await createJWT(id_user, user_type, id_role)
-        }
+        
         res.status(200).json({
             ok:true,
-            msg:"El maestro se actualizo correctamente",
-            token
+            msg:"El maestro se actualizo correctamente"
         })
     
     
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok : false,
             msg : "Hable con el administrador"
         })
     }
@@ -124,15 +119,9 @@ const deleteTeacher = async (req, res) => {
         
         await teacher.update({active:0})
 
-        let token;
-        if(req.revaToken){
-            const {id_user, user_type, id_role} = req
-            token = await createJWT(id_user, user_type, id_role)
-        }
         res.status(200).json({
             ok:true,
-            msg:"El maestro se elimino correctamente",
-            token
+            msg:"El maestro se elimino correctamente"
         })
     
 

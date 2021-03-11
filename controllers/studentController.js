@@ -26,11 +26,10 @@ const createStudent = async (req, res) => {
         const newUser=await user.save()
         const userJson = newUser.toJSON();
         id_user = userJson['id_user']
-       
-
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok : false,
             msg: "Hable con el administrador",
         })
     }  
@@ -41,12 +40,12 @@ const createStudent = async (req, res) => {
         const user = await User.findByPk(id_user);
         const salt = bcrypt.genSaltSync();
         const pass = bcrypt.hashSync(id_student,salt)
-        console.log(pass)
         await user.update({password:pass});
         
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok : false,
             msg: "Hable con el administrador",
         })
     }
@@ -66,6 +65,7 @@ const updateStudent = async (req, res) => {
         const student = await Student.findByPk(id);
         if(!student){
             return res.status(404).json({
+                ok : false,
                 msg: "No existe un estudiante con el id "+id,
             });
         }
@@ -80,6 +80,7 @@ const updateStudent = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
+            ok : false,
             msg : "Hable con el administrador"
         })
     }
@@ -90,6 +91,7 @@ const deleteStudent = async (req, res) => {
         const student = await Student.findByPk(id);
         if(!student){
             return res.status(404).json({
+                ok : false,
                 msg: "No existe un alumno con el id "+id,
             });
         }

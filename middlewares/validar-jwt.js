@@ -11,13 +11,11 @@ const validateJWT = ( req, res = response, next) => {
     }
 
     try {
-        const {id_user,user_type,id_role,exp} = verify(token,process.env.SECRET_JWT)
-        if(exp-moment().unix() <= 45){
+        const {id_user,user_type,id_role} = verify(token,process.env.SECRET_JWT)
+        
             req.id_user = id_user;
             req.user_type = user_type;
             req.id_role = id_role;
-            req.revaToken = true
-        }
         next()
         
     } catch (error) {
@@ -28,5 +26,6 @@ const validateJWT = ( req, res = response, next) => {
     }
 
 }
+
 
 module.exports = validateJWT

@@ -1,13 +1,18 @@
 const { response } = require("express")
 const Course = require("../models/courses")
 const { db } = require("../database/connection")
+const { QueryTypes } = require("sequelize")
+const { getScholarships } = require("../queries/queries")
+const Major = require("../models/major")
 
 const getAllCourses = async (req, res = response) => {
 
     
-    const [courses] = await db.query(
-        `SELECT cou.id_course, maj.major_name, cou.course_name FROM courses cou LEFT JOIN majors maj ON cou.id_major = maj.id_major`
+    const courses = await db.query(
+    getScholarships,{ type : QueryTypes.SELECT}
     )
+    
+    
     res.status(200).json({
         ok: true,
         courses
@@ -21,8 +26,10 @@ const createCourse = async (req, res = response) => {
     try {
 
         // Check if the major exist
-        const [course_id] = await db.query(`SELECT * FROM majors WHERE id_major = ${body['id_major']}`)
-        if (course_id.length < 1) {
+        const course_id = await Major.findOne({
+            where : { 'id_major' : body.id_major }
+        })
+        if (!course_id) {
             return res.status(404).json({
                 ok: false,
                 msg: 'La carrera seleccionada no existe'
@@ -58,6 +65,17 @@ const updateCourse = async (req, res = response) => {
             return res.status(404).json({
                 ok : false,
                 msg : `El curso con id ${id} no existe, verifiquelo por favor.`
+            })
+        }
+
+        // Check if the major exist
+        const course_id = await Major.findOne({
+            where : { 'id_major' : body.id_major }
+        })
+        if (!course_id) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'La carrera seleccionada no existe'
             })
         }
 

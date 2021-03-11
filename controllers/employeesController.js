@@ -2,18 +2,12 @@ const User = require('../models/user');
 const Employee = require('../models/employee');
 const Time_tables = require('../models/time_tables');
 const Emp_tim = require('../models/emp_tim');
-const { createJWT } = require("../helpers/jwt");
 const bcrypt = require('bcryptjs');
 
 const getAllEmployees = async (req, res) => {
     const employees = await Employee.findAll({
         where: { 'active': 1 }
     });
-    let token;
-    if (req.revaToken) {
-        const { id_user, user_type, id_role } = req
-        token = await createJWT(id_user, user_type, id_role)
-    }
 
     return res.status(200).json({
         ok: true,
@@ -87,9 +81,6 @@ const createEmployee = async (req, res) => {
         msg: "empleado creado correctamente"
     })
 
-
-
-
 }
 const updateEmployee = async (req, res) => {
     const { id } = req.params;
@@ -104,11 +95,7 @@ const updateEmployee = async (req, res) => {
 
         await employee.update(body);
 
-        let token;
-        if (req.revaToken) {
-            const { id_user, user_type, id_role } = req
-            token = await createJWT(id_user, user_type, id_role)
-        }
+        
         res.status(200).json({
             ok: true,
             msg: "El empleado se actualizo correctamente",
@@ -135,11 +122,7 @@ const deleteEmployee = async (req, res) => {
     }
 
     await employee.update({ active: 0 })
-    let token;
-    if (req.revaToken) {
-        const { id_user, user_type, id_role } = req
-        token = await createJWT(id_user, user_type, id_role)
-    }
+    
 
     res.status(200).json({
         ok: true,
