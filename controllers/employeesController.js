@@ -2,28 +2,34 @@ const User = require('../models/user');
 const Employee = require('../models/employee');
 const Time_tables = require('../models/time_tables');
 const Emp_tim = require('../models/emp_tim');
-
-
+const { createJWT } = require("../helpers/jwt");
+const bcrypt = require('bcryptjs');
 
 const getAllEmployees = async (req, res) => {
     const employees = await Employee.findAll({
         where: { 'active': 1 }
     });
+    let token;
+    if (req.revaToken) {
+        const { id_user, user_type, id_role } = req
+        token = await createJWT(id_user, user_type, id_role)
+    }
 
     return res.status(200).json({
         ok: true,
-        employees
+        employees,
+        token
     })
 }
 
 const createEmployee = async (req, res) => {
     const { body } = req;
-    const { user_type, email} = body;
+    const { user_type, email } = body;
     const { day, start_hour, finish_hour } = body;
     const { name, surname, rfc, curp, mobile_number, active } = body;
     let id_user, id_employee, id_time_table
     try {
-        const user = new User({ user_type, email, password:"123456" });
+        const user = new User({ user_type, email, password: "12345678" });
         const newUser = await user.save()
         const userJson = newUser.toJSON();
         id_user = userJson['id_user']
@@ -46,17 +52,22 @@ const createEmployee = async (req, res) => {
     }
 
     try {
-        const employee = new Employee({ id_user, name, surname, rfc, curp, mobile_number, active });
+        //creation of id_employee
+        const name1 = name.split(" ")
+        const name2 = surname.split(" ")
+        id_employee = `ale${id_user}.${name1[0]}.${name2[0]}`
+        //creating employee
+        const employee = new Employee({ id_employee, id_user, name, surname, rfc, curp, mobile_number, active });
         const newEmployee = await employee.save();
         const newEmployeeJson = newEmployee.toJSON();
         id_employee = newEmployeeJson['id_employee']
         const user = await User.findByPk(id_user);
-        // password
+        // creation of password
         const salt = bcrypt.genSaltSync();
-        const pass = bcrypt.hashSync(id_employee,salt)
+        const pass = bcrypt.hashSync(id_employee, salt)
 
-        await user.update({password:pass});
-        
+        await user.update({ password: pass });
+
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -92,9 +103,16 @@ const updateEmployee = async (req, res) => {
         }
 
         await employee.update(body);
+
+        let token;
+        if (req.revaToken) {
+            const { id_user, user_type, id_role } = req
+            token = await createJWT(id_user, user_type, id_role)
+        }
         res.status(200).json({
             ok: true,
-            msg: "El empleado se actualizo correctamente"
+            msg: "El empleado se actualizo correctamente",
+            token
         })
 
 
@@ -117,9 +135,16 @@ const deleteEmployee = async (req, res) => {
     }
 
     await employee.update({ active: 0 })
+    let token;
+    if (req.revaToken) {
+        const { id_user, user_type, id_role } = req
+        token = await createJWT(id_user, user_type, id_role)
+    }
+
     res.status(200).json({
         ok: true,
-        msg: "El trabajador se elimino correctamente"
+        msg: "El trabajador se elimino correctamente",
+        token
     })
 
 
