@@ -39,7 +39,7 @@ const createTeacher = async (req, res) => {
         const newTeacher = await teacher.save();
         const newTeacherJson=newTeacher.toJSON();
         id_teacher=newTeacherJson['id_teacher']
-        // password
+        // create password
         const user = await User.findByPk(id_user);
         const salt = bcrypt.genSaltSync();
         const pass = bcrypt.hashSync(id_teacher,salt)

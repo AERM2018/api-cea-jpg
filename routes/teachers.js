@@ -28,7 +28,7 @@ teachersRouter.post('/',[
 
 
 teachersRouter.put('/:id',[
-    param('id','el id tiene que ser un numero').isInt(),
+    param('id','el id del maestro tiene que ser una cadena de texto y es obligatoria ').isString().notEmpty(),
     check('name','el nombre del estudiante es obligatorio').notEmpty().isString(),
     check('surname','Los apellidos son obligatorios').notEmpty().isString(),
     check('rfc','el RFC es obligatorio').notEmpty().isString(),
@@ -40,7 +40,7 @@ teachersRouter.put('/:id',[
 
 ], updateTeacher);
 teachersRouter.delete('/:id',[
-    param('id','el id tiene que ser un numero').isInt(),
+    param('id','el id del maestro tiene que ser una cadena de texto y es obligatoria ').isString().notEmpty(),
     validateFields
 ], deleteTeacher);
 

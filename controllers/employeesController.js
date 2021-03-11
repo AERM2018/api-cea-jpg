@@ -46,20 +46,17 @@ const createEmployee = async (req, res) => {
     }
 
     try {
-        const employee = new Employee({ id_user, name, surname, rfc, curp, mobile_number, email, active });
+        const employee = new Employee({ id_user, name, surname, rfc, curp, mobile_number, active });
         const newEmployee = await employee.save();
         const newEmployeeJson = newEmployee.toJSON();
         id_employee = newEmployeeJson['id_employee']
         const user = await User.findByPk(id_user);
         // password
-        const user = await User.findByPk(id_user);
         const salt = bcrypt.genSaltSync();
         const pass = bcrypt.hashSync(id_employee,salt)
 
         await user.update({password:pass});
         
-
-        await user.update({password:id_employee});
     } catch (error) {
         console.log(error)
         return res.status(500).json({

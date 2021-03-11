@@ -9,7 +9,10 @@ const Emp_tim =  db.define('emp_tim',{
         autoIncrement : true
     },
     id_employee : {
-        type : DataTypes.INTEGER
+        type : DataTypes.STRING(30),
+        validate : {
+            notEmpty : false
+        }
     },
     id_time_table : {
         type : DataTypes.INTEGER

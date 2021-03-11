@@ -23,7 +23,7 @@ employeesRouter.post('/',[
 ], createEmployee);
 employeesRouter.put('/:id',[
     //ID CHECARSE
-    param('id','el id del empleado es obligatorio').isInt(),
+    param('id','el id del empleado es una cadena de texto y es obligatorio').isString().notEmpty(),
     check('name','el nombre del estudiante es obligatorio').notEmpty().isString(),
     check('surname','Los apellidos son obligatorios').notEmpty().isString(),
     check('rfc','el RFC es obligatorio').notEmpty().isString(),
@@ -35,7 +35,7 @@ employeesRouter.put('/:id',[
 ], updateEmployee);
 employeesRouter.delete('/:id', [
     //SAME 
-    param('id','el id del empleado es obligatorio').isInt(),
+    param('id','el id del empleado es una cadena de texto y es obligatorio').isString().notEmpty(),
     validateFields
 
 ],deleteEmployee);

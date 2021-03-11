@@ -36,14 +36,9 @@ const createMunicipality = async( req, res  ) => {
         })
     } catch (err) {
         console.log(err)
-<<<<<<< HEAD
         res.status(500).json({
             ok: false,
             msg: 'Hable con el administrador'
-=======
-        return res.status(500).json({
-            msg : "Hable con el administrador"
->>>>>>> Johan
         })
     }
 

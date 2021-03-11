@@ -3,9 +3,11 @@ const { db } = require("../database/connection");
 
 const Teacher = db.define('teachers',{
     id_teacher: {
-        type : DataTypes.INTEGER,
+        type : DataTypes.STRING(30),
         primaryKey : true,
-        autoIncrement : true
+        validate : {
+            notEmpty : true
+        }
     },
     id_user : {
         type : DataTypes.INTEGER,

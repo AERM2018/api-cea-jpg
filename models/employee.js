@@ -3,9 +3,11 @@ const { db } = require("../database/connection");
 
 const Employees = db.define('employees',{
     id_employee: {
-        type : DataTypes.INTEGER,
+        type : DataTypes.STRING(30),
         primaryKey : true,
-        autoIncrement : true
+        validate : {
+            notEmpty : true
+        }
     },
     id_user : {
         type : DataTypes.INTEGER,
@@ -28,10 +30,6 @@ const Employees = db.define('employees',{
         allowNull: false
     },
     mobile_number : {
-        type : DataTypes.STRING,
-        allowNull: false
-    },
-    email : {
         type : DataTypes.STRING,
         allowNull: false
     },

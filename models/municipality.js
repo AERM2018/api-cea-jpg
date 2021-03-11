@@ -13,11 +13,7 @@ const Municipality = db.define('Municipality',{
     },
     municipality : {
         type : DataTypes.STRING,
-<<<<<<< HEAD
         unique : true
-=======
-        unique:true
->>>>>>> Johan
     }
 },{
     timestamps : false

@@ -12,7 +12,10 @@ const Cou_tea =  db.define('Cou_tea',{
         type : DataTypes.INTEGER
     },
     id_teacher : {
-        type : DataTypes.INTEGER
+        type : DataTypes.STRING,
+        validate : {
+            notEmpty : true
+        }
     },
     status : {
         type : DataTypes.STRING
