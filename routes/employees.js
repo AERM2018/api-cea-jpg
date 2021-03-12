@@ -7,7 +7,7 @@ const { validateFields } = require('../middlewares/validateFields');
 const employeesRouter = Router();
 
 employeesRouter.get('/',[ 
-    validateJWT
+    //validateJWT
 ], getAllEmployees);
 employeesRouter.post('/',[
     check('user_type','el tipo de usuario es obligatorio').notEmpty().isString(),
@@ -19,9 +19,10 @@ employeesRouter.post('/',[
     check('mobile_number','el numero de telefono es obligatorio').notEmpty().isString(),
     check('active','al campo activo es obligatorio').isInt().exists({checkNull:true}),
     // Checar como guardar los horarios
-    check('day', 'el dia es obligatorio').notEmpty().isInt(),
+    check('time_tables','los horarios deben de estar contenidos en un array').isArray(),
+    /* check('day', 'el dia es obligatorio').notEmpty().isInt(),
     check('start_hour', 'la hora de inicio es obligatoria').notEmpty(),
-    check('finish_hour','la hora de fin es obligatoria').notEmpty(),
+    check('finish_hour','la hora de fin es obligatoria').notEmpty(), */
     validateFields,
     validateJWT
 
@@ -36,7 +37,7 @@ employeesRouter.put('/:id',[
     check('mobile_number','el numero de telefono es obligatorio').notEmpty().isString(),
     check('active','al campo activo es obligatorio').isInt().exists({checkNull:true}),
     validateFields,
-    validateJWT
+   // validateJWT
 
 ], updateEmployee);
 employeesRouter.delete('/:id', [

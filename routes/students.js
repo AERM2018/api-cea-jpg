@@ -24,6 +24,7 @@ studentsRouter.post('/',[
     check('start_date','la fecha de inicio es obligatoria').notEmpty().isDate(),
     check('end_date','la fecha de fin es obligatoria').exists({checkNull:false}),
     check('complete_documents','falta el campo de los documentos del alumno').notEmpty().isInt(),
+    check('id_group','falta el campo del id del alumno').isInt().exists({checkNull:false}),
     validateFields,
     validateJWT
 

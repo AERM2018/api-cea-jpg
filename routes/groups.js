@@ -16,9 +16,10 @@ groupsRouter.post( '/',[
     check('entry_year','el año de entrada es obligatorio').notEmpty().isDate(),
     check('end_year','el año de salida es obligatorio').notEmpty().isDate(),
     // checar como guardar horario
-    check('day', 'el dia es obligatorio').notEmpty().isInt(),
+  /*   check('day', 'el dia es obligatorio').notEmpty().isInt(),
     check('start_hour', 'la hora de inicio es obligatoria').notEmpty(),
-    check('finish_hour','la hora de fin es obligatoria').notEmpty(),
+    check('finish_hour','la hora de fin es obligatoria').notEmpty(), */
+    check('time_tables','los horarios deben de estar contenidos en un array').isArray(),
     validateFields,
     validateJWT
     
