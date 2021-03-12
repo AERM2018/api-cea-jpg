@@ -1,8 +1,8 @@
 const User = require('../models/user');
 const Student = require('../models/student');
 const bcrypt = require('bcryptjs');
-
-
+const Group = require('../models/group')
+const Stu_gro = require ('../models/stu_gro')
 
 
 const getAllStudents = async (req, res) => {
@@ -19,6 +19,7 @@ const getAllStudents = async (req, res) => {
 const createStudent = async (req, res) => {
     const { body } = req;
     const { user_type, email } = body;
+    const {id_group} = body;
     const {id_student,name, surname, group_chief, curp, status, mobile_number, mobile_back_number,address,start_date,end_date,complete_documents }=body;
     let id_user
     try { 
@@ -42,6 +43,24 @@ const createStudent = async (req, res) => {
         const pass = bcrypt.hashSync(id_student,salt)
         await user.update({password:pass});
         
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            ok : false,
+            msg: "Hable con el administrador",
+        })
+    }
+    try {
+        const group = await Group.findByPk(id_group);
+        if (!group) {
+            return res.status(404).json({
+                ok: false,
+                msg: "No existe una grupo con el id " + id_major,
+            });
+        }
+        const stu_gro= new Stu_gro({id_student,id_group})
+        await stu_gro.save();
+
     } catch (error) {
         console.log(error)
         return res.status(500).json({

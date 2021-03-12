@@ -22,13 +22,14 @@ const getAllGroups = async (req, res) => {
 const createGroup = async (req, res) => {
     const { body } = req;
     const { id_major, name_group, entry_year, end_year } = body;
-    const { day, start_hour, finish_hour } = body;
+    const { time_tables } = body;
     let id_group, id_time_table
+    let ids_emp_tim
     try {
         const major = await Major.findByPk(id_major);
         if (!major) {
             return res.status(404).json({
-                ok:false,
+                ok: false,
                 msg: "No existe una carrera con el id " + id_major,
             });
         }
@@ -36,36 +37,53 @@ const createGroup = async (req, res) => {
         const newGroup = await group.save()
         const groupJson = newGroup.toJSON();
         id_group = groupJson['id_group']
-        
+
 
     } catch (error) {
         console.log(error)
         return res.status(500).json({
-            ok:false,
+            ok: false,
             msg: "Hable con el administrador",
         })
     }
     try {
-        const time_table = new Time_tables({ day, start_hour, finish_hour })
-        const newTimeTable = await time_table.save();
-        const newTimeTableJson = newTimeTable.toJSON();
-        id_time_table = newTimeTableJson['id_time_table']
+        ids_emp_tim = time_tables.map(async (x) => {
+            let { day, start_hour, finish_hour } = x;
+            const time = await Time_tables.findAll({
+                where: { 'day': day, 'start_hour': start_hour, 'finish_hour': finish_hour }
+            });
+            if (time.length < 1) {
+                const time_table = new Time_tables({ day, start_hour, finish_hour })
+                const newTime_Table = await time_table.save();
+                const newTime_tableJson = newTime_Table.toJSON();
+                id_time_table = newTime_tableJson['id_time_table']
+                return id_time_table;
+            } else {
+                return time[0].id_time_table
+            }
+
+        })
 
     } catch (error) {
         console.log(error)
         return res.status(500).json({
-            ok:false,
+            ok: false,
             msg: "Hable con el administrador",
         })
     }
 
     try {
-        const gro_tim = new Gro_tim({ id_group, id_time_table });
-        await gro_tim.save();
+        ids_emp_tim.forEach(async (x) => {
+            id_time_table = await x
+            const gro_tim = new Gro_tim({ id_group, id_time_table });
+            await gro_tim.save();
+
+        });
+
     } catch (error) {
         console.log(error)
         return res.status(500).json({
-            ok:false,
+            ok: false,
             msg: "Hable con el administrador",
         })
     }
@@ -85,7 +103,7 @@ const updateGroup = async (req, res) => {
         const group = await Group.findByPk(id);
         if (!group) {
             return res.status(404).json({
-                ok:false,
+                ok: false,
                 msg: "No existe un grupo con el id " + id,
             });
         }
@@ -106,7 +124,7 @@ const updateGroup = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
-            ok:false,
+            ok: false,
             msg: "Hable con el administrador"
         })
     }
@@ -118,7 +136,7 @@ const deleteGroup = async (req, res) => {
     const group = await Group.findByPk(id);
     if (!group) {
         return res.status(404).json({
-            ok:false,
+            ok: false,
             msg: "No existe un grupo con el id " + id,
         });
     }
