@@ -26,7 +26,7 @@ class Server{
         this.app = express();
         this.port = process.env.port || 4000
         this.middlewares();
-        this.base = 'api-ale/v1'
+        this.base = 'https://alejandria.edu.mx/api-ale/v1'
         this.apiPaths = {
             auth : `/${this.base}/auth`,
             states : `/${this.base}/states`,
