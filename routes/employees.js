@@ -7,7 +7,7 @@ const { validateFields } = require('../middlewares/validateFields');
 const employeesRouter = Router();
 
 employeesRouter.get('/',[ 
-    //validateJWT
+    validateJWT
 ], getAllEmployees);
 employeesRouter.post('/',[
     check('user_type','el tipo de usuario es obligatorio').notEmpty().isString(),
@@ -37,7 +37,7 @@ employeesRouter.put('/:id',[
     check('mobile_number','el numero de telefono es obligatorio').notEmpty().isString(),
     check('active','al campo activo es obligatorio').isInt().exists({checkNull:true}),
     validateFields,
-   // validateJWT
+   validateJWT
 
 ], updateEmployee);
 employeesRouter.delete('/:id', [
