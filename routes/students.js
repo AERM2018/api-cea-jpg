@@ -8,7 +8,6 @@ const studentsRouter = Router();
 
 studentsRouter.get('/', [
     validateJWT
-    
 ], getAllStudents);
 studentsRouter.post('/',[
     check('id_student','La matricula del estudiante es obligatoria').notEmpty().isString(),
