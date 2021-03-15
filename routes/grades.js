@@ -31,7 +31,7 @@ gradesRouter.put( '/:id_course', [
 
 gradesRouter.delete( '/:id_course', [
     check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    check('id_student',"El id del estudiante es obligatorio").isString().notEmpty(),
+    check('id_student',"El id del estudiante es obligatorio y debe tener como máximo 15 caracteres").isString().notEmpty().isLength( { max : 15} ),
     validateFields,
     validateJWT
 ], deleteGradeByStudentId)

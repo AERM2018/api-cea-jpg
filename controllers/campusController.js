@@ -1,15 +1,14 @@
+const { QueryTypes } = require("sequelize")
 const { db } = require("../database/connection")
 const Campus = require("../models/campus")
 const Municipality = require("../models/municipality")
+const { getCampus } =  require('../queries/queries')
 
 const getAllCampus = async (req, res) => {
 
-    Municipality.hasOne(Campus, { foreignKey: "id_municipality" })
-    Campus.belongsTo(Municipality, { foreignKey: "id_municipality" })
-    const campus = await Campus.findAll({ attributes: { exclude: ['id', 'createdAt', 'updatedAt'] }, include: [Municipality] })
-    // const [campus] = await db.query('SELECT cam.id_campus, mun.municipality, cam.campus_name, cam.address FROM campus cam LEFT JOIN municipalities mun ON cam.id_municipality = mun.id_municipality')
+    const campus = await db.query(getCampus, { type : QueryTypes.SELECT})
     res.status(200).json({
-        msg: "get all campus",
+        ok : true,
         campus
     })
 }

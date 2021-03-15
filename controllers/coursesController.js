@@ -2,14 +2,14 @@ const { response } = require("express")
 const Course = require("../models/courses")
 const { db } = require("../database/connection")
 const { QueryTypes } = require("sequelize")
-const { getScholarships } = require("../queries/queries")
+const { getCourses } = require("../queries/queries")
 const Major = require("../models/major")
 
 const getAllCourses = async (req, res = response) => {
 
     
     const courses = await db.query(
-    getScholarships,{ type : QueryTypes.SELECT}
+        getCourses,{ type : QueryTypes.SELECT}
     )
     
     
