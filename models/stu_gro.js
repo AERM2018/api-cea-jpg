@@ -2,7 +2,7 @@ const {DataTypes} = require('sequelize');
 const {db} = require('../database/connection');
 
 const Stu_gro = db.define('stu_gro',{
-    id_stu_gto : {
+    id_stu_gro : {
         type : DataTypes.INTEGER,
         primaryKey : true,
         autoIncrement : true,
@@ -18,6 +18,10 @@ const Stu_gro = db.define('stu_gro',{
         type : DataTypes.INTEGER,
         allowNull : false,
     }
+}
+,{
+    timestamps : false,
+    freezeTableName : true
 })
 
 

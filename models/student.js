@@ -28,15 +28,15 @@ const Student = db.define('students',{
         allowNull: false
     },
     status : {
-        type : DataTypes.STRING,
+        type : DataTypes.INTEGER,
         allowNull: false
     },
     mobile_number : {
-        type : DataTypes.INTEGER,
+        type : DataTypes.STRING,
         allowNull: false
     },
     mobile_back_number : {
-        type : DataTypes.INTEGER,
+        type : DataTypes.STRING,
         allowNull: false
     },
     address : {

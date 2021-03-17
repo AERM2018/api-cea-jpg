@@ -1,9 +1,9 @@
 const User = require('../models/user');
 const Student = require('../models/student');
 const bcrypt = require('bcryptjs');
-const Group = require('../models/group')
-const Stu_gro = require ('../models/stu_gro')
-
+const Group = require('../models/group');
+const Stu_gro = require ('../models/stu_gro');
+const Cam_use =require('../models/cam_use');
 
 const getAllStudents = async (req, res) => {
     const students = await Student.findAll({
@@ -19,7 +19,7 @@ const getAllStudents = async (req, res) => {
 const createStudent = async (req, res) => {
     const { body } = req;
     const { user_type, email } = body;
-    const {id_group} = body;
+    const {id_group, id_campus} = body;
     const {id_student,name, surname, group_chief, curp, status, mobile_number, mobile_back_number,address,start_date,end_date,complete_documents }=body;
     let id_user
     try { 
@@ -35,6 +35,7 @@ const createStudent = async (req, res) => {
         })
     }  
     try {
+        //matricula
         const student = new Student({id_student,id_user,name, surname, group_chief, curp,status, mobile_number,mobile_back_number,address,start_date,end_date,complete_documents });
         await student.save();
         // password
@@ -68,6 +69,19 @@ const createStudent = async (req, res) => {
             msg: "Hable con el administrador",
         })
     }
+    try {
+        //campus
+         const cam_use = new Cam_use({id_campus,id_user});
+         await cam_use.save();
+ 
+ 
+     } catch (error) {
+         console.log(error)
+         return res.status(500).json({
+             ok: false,
+             msg: "Hable con el administrador",
+         })
+     }
 
     res.status(201).json({
         ok:true,
@@ -104,6 +118,7 @@ const updateStudent = async (req, res) => {
         })
     }
 }
+
 const deleteStudent = async (req, res) => {
     const { id } = req.params;
  
