@@ -7,6 +7,5 @@ const authRouter = Router();
 authRouter.get('/login', login)
 authRouter.get('/renew', validateJWT, revalidateJWT)
 // Eliminar
-authRouter.post("/signUp", signup)
 
 module.exports = authRouter;
