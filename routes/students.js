@@ -17,14 +17,14 @@ studentsRouter.post('/',[
     check('surname','Los apellidos son obligatorios').notEmpty().isString(),
     check('group_chief','el campo de jefe de grupo se tiene que llenar').notEmpty().isInt(),
     check('curp','el CURP es obligatorio').notEmpty().isString(),
-    check('status','el estatus del alumno es obligatorio').isNumeric().exists({checkNull:true}),
+    check('status','el estatus del alumno es obligatorio').isInt().exists({checkNull:true}),
     check('mobile_number','el numero de telefono es obligatorio').notEmpty().isString(),
     check('mobile_back_number','el numero de telefono es obligatorio').isString(),
     check('address','el domicilio es obligatorio').notEmpty().isString(),
     check('start_date','la fecha de inicio es obligatoria').notEmpty().isDate(),
-    check('end_date','la fecha de fin es obligatoria').exists({checkNull:false}),
+    check('end_date','la fecha de fin es obligatoria').notEmpty().isDate(),
     check('complete_documents','falta el campo de los documentos del alumno').notEmpty().isInt(),
-    check('id_group','falta el campo del id del alumno').isInt().exists({checkNull:false}),
+    check('id_group','falta el campo del id del alumno').isInt().exists({checkNull:true}),
     validateFields,
     validateJWT
 
@@ -35,13 +35,13 @@ studentsRouter.put('/:id',[
     check('surname','Los apellidos son obligatorios').notEmpty().isString(),
     check('group_chief','el campo de jefe de grupo se tiene que llenar').notEmpty().isString(),
     check('curp','el CURP es obligatorio').notEmpty().isString(),
-    check('status','el estatus del alumno es obligatorio').notEmpty().isString(),
+    check('status','el estatus del alumno es obligatorio').isInt().exists({checkNull:true}),
     check('mobile_number','el numero de telefono es obligatorio').notEmpty().isInt(),
     check('mobile_back_number','el numero de telefono es obligatorio').notEmpty().isInt(),
     check('address','el domicilio es obligatorio').notEmpty().isString(),
     check('start_date','la fecha de inicio es obligatoria').notEmpty().isDate(),
     check('end_date','la fecha de fin es obligatoria').notEmpty().isDate(),
-    check('complete_documents','falta el campo de los documentos del alumno').notEmpty().isInt(),
+    check('complete_documents','falta el campo de los documentos del alumno').isInt().exists({checkNull:true}),
     validateFields,
     validateJWT
 

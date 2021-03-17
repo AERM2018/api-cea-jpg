@@ -2,6 +2,7 @@ const Gro_tim = require('../models/gro_tim');
 const Group = require('../models/group');
 const Time_tables = require('../models/time_tables');
 const Major = require('../models/major');
+const Stu_gro = require('../models/stu_gro');
 const { createJWT } = require("../helpers/jwt");
 
 
@@ -89,6 +90,7 @@ const createGroup = async (req, res) => {
     }
 
     res.status(201).json({
+        ok:true,
         msg: "Grupo creado correctamente"
     })
 
@@ -109,15 +111,11 @@ const updateGroup = async (req, res) => {
         }
 
         await group.update(body);
-        let token;
-        if (req.revaToken) {
-            const { id_user, user_type, id_role } = req
-            token = await createJWT(id_user, user_type, id_role)
-        }
+      
         res.status(200).json({
             ok: true,
             msg: "El grupo se actualizo correctamente",
-            token
+   
         })
 
 
@@ -132,7 +130,7 @@ const updateGroup = async (req, res) => {
 const deleteGroup = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
-
+    
     const group = await Group.findByPk(id);
     if (!group) {
         return res.status(404).json({
@@ -140,17 +138,33 @@ const deleteGroup = async (req, res) => {
             msg: "No existe un grupo con el id " + id,
         });
     }
+    
+    const stu_gro = await Stu_gro.findAll({
+        where: {id_group:id}
+    })
+    stu_gro.forEach(async (grupo)=>{
+        await grupo.destroy()
+    })
+
+    const gro_tim= await Gro_tim.findAll({
+        where: {id_group:id}
+    })
+    gro_tim.forEach(async (grupo)=>
+    {
+        await grupo.destroy()
+    })
+
+    
+    
 
     await group.destroy(body);
-    let token;
-    if (req.revaToken) {
-        const { id_user, user_type, id_role } = req
-        token = await createJWT(id_user, user_type, id_role)
-    }
+
+
+    
     res.status(200).json({
         ok: true,
-        msg: "El trabajador se elimino correctamente",
-        token
+        msg: "El grupo se elimino correctamente",
+     
     })
 
 }

@@ -18,7 +18,7 @@ teachersRouter.post('/',[
     check('surname','Los apellidos son obligatorios').notEmpty().isString(),
     check('rfc','El RFC es obligatorio').notEmpty().isString(),
     check('mobile_number','El numero de telefono es obligatorio').notEmpty().isString(),
-    check('id_ext_cou','El id de curso extracurricular es obligatorio').isInt(),
+    check('id_ext_cou','El id de curso extracurricular es obligatorio'),
     check('courses','El campo curso son obligatorios').isInt().exists({checkNull:true}),
     check('active','el campo activo es obligatorio').isInt().exists({checkNull:true}),
     check('id_courses', 'Los ids de los cursos son obligatoris y deben de estar contenidos en un array').notEmpty().isArray(),
@@ -40,7 +40,7 @@ teachersRouter.put('/:id',[
     check('id_ext_cou','El id de curso extracurricular es obligatorio').isInt(),
     check('courses','El campo curso son obligatorios').isInt().exists({checkNull:true}),
     check('active','el campo activo es obligatorio').isInt().exists({checkNull:true}),
-    // 
+    
     
     validateFields,
     validateJWT
