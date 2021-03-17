@@ -24,7 +24,7 @@ class Server{
 
     constructor(){
         this.app = express();
-        this.port = process.env.port
+        this.port = process.env.PORT
         this.middlewares();
         this.base = 'api-ale/v1'
         this.apiPaths = {
