@@ -2,7 +2,7 @@ const User = require('../models/user');
 const Teacher = require('../models/teacher');
 const Cou_tea = require('../models/cou_tea');
 const bcrypt = require('bcryptjs');
-
+const Cam_use =require('../models/cam_use');
 
 
 const getAllTeachers = async (req, res) => {
@@ -19,7 +19,7 @@ const getAllTeachers = async (req, res) => {
 const createTeacher = async (req, res) => {
     const { body } = req;
     const { user_type, email } = body;
-    const { id_courses, status, start_date ,end_date } = body;
+    const { id_courses, status, start_date ,end_date ,id_campus } = body;
     const {name, surname, rfc, mobile_number, id_ext_cou, courses, active }=body;
     let id_user,id_teacher
     try { 
@@ -68,6 +68,20 @@ const createTeacher = async (req, res) => {
             msg: "Hable con el administrador",
         })
     }
+
+    try {
+        //campus
+         const cam_use = new Cam_use({id_campus,id_user});
+         await cam_use.save();
+ 
+ 
+     } catch (error) {
+         console.log(error)
+         return res.status(500).json({
+             ok: false,
+             msg: "Hable con el administrador",
+         })
+     }
 
     res.status(201).json({
         ok: true,

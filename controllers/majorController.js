@@ -1,18 +1,13 @@
 const Major = require('../models/major')
-const { createJWT } = require("../helpers/jwt");
 
 
 const getAllMajors = async (req, res) => {
     const majors = await Major.findAll();
-    let token;
-    if (req.revaToken) {
-        const { id_user, user_type, id_role } = req
-        token = await createJWT(id_user, user_type, id_role)
-    }
+  
+    
     return res.status(200).json({
         ok: true,
-        majors,
-        token
+        majors
     })
 }
 
@@ -33,15 +28,11 @@ const createMajor = async (req, res) => {
         })
     }
 
-    let token;
-    if (req.revaToken) {
-        const { id_user, user_type, id_role } = req
-        token = await createJWT(id_user, user_type, id_role)
-    }
+    
     res.status(201).json({
         ok: true,
-        msg: "Major creado correctamente",
-        token
+        msg: "Major creado correctamente"
+    
     })
 
 
@@ -60,15 +51,10 @@ const updateMajor = async (req, res) => {
         }
 
         await major.update(body);
-        let token;
-        if (req.revaToken) {
-            const { id_user, user_type, id_role } = req
-            token = await createJWT(id_user, user_type, id_role)
-        }
+        
         res.status(200).json({
             ok: true,
-            msg: "El materia se actualizo correctamente",
-            token
+            msg: "El materia se actualizo correctamente"
         })
 
 
@@ -92,15 +78,10 @@ const deleteMajor = async (req, res) => {
     }
 
     await major.destroy(body);
-    let token;
-    if (req.revaToken) {
-        const { id_user, user_type, id_role } = req
-        token = await createJWT(id_user, user_type, id_role)
-    }
     res.status(200).json({
         ok: true,
         msg: "La materia se elimino correctamente",
-        token
+        
     })
 
 

@@ -21,6 +21,7 @@ const signup = async( req, res = response ) => {
 const login = async( req, res = response ) => {
     let user;
     let passValidation;
+    console.log(req.body)
     const { id, password } = req.body;
     if( id === 'admin'){
         user = await User.findOne( {
