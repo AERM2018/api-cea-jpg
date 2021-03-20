@@ -11,13 +11,13 @@ const validateJWT = ( req, res = response, next) => {
     }
 
     try {
-        const {id_user,user_type,id_role} = verify(token,process.env.SECRET_JWT)
+        const {id_user,user_type,id_role,email} = verify(token,process.env.SECRET_JWT)
         
             req.id_user = id_user;
             req.user_type = user_type;
             req.id_role = id_role;
             req.email = email
-            
+
         next()
         
     } catch (error) {
