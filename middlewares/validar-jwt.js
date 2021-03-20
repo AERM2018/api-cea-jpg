@@ -16,6 +16,8 @@ const validateJWT = ( req, res = response, next) => {
             req.id_user = id_user;
             req.user_type = user_type;
             req.id_role = id_role;
+            req.email = email
+            
         next()
         
     } catch (error) {
