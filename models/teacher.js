@@ -32,14 +32,15 @@ const Teacher = db.define('teachers',{
     },
     id_ext_cou : {
         type : DataTypes.INTEGER,
+        defaultValue : null
     },
     courses : {
         type : DataTypes.TINYINT,
-        allowNull: false
+        defaultValue : 0
     },
     active : {
         type : DataTypes.TINYINT,
-        allowNull: false
+        defaultValue : true
     },
    
 

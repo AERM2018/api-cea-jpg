@@ -18,12 +18,10 @@ const getAllTeachers = async (req, res) => {
 
 const createTeacher = async (req, res) => {
     const { body } = req;
-    const { user_type, email } = body;
-    const { id_courses, status, start_date ,end_date ,id_campus } = body;
-    const {name, surname, rfc, mobile_number, id_ext_cou, courses, active }=body;
+    const {name, surname, rfc, mobile_number, email, id_campus }=body;
     let id_user,id_teacher
     try { 
-        const user = new User({user_type,email,password:"1234576"});
+        const user = new User({user_type : 'teacher ',email,password:"1234576"});
         const newUser=await user.save()
         const userJson = newUser.toJSON();
         id_user = userJson['id_user']
@@ -38,7 +36,7 @@ const createTeacher = async (req, res) => {
         const name1 =name.split(" ");
         const name2 = surname.split(" ");
         id_teacher=`ale${id_user}.${name1[0]}.${name2[0]}`
-        const teacher = new Teacher({id_teacher, id_user,name, surname, rfc, mobile_number, id_ext_cou, courses, active});
+        const teacher = new Teacher({id_teacher, id_user,name, surname, rfc, mobile_number});
         const newTeacher = await teacher.save();
         const newTeacherJson=newTeacher.toJSON();
         id_teacher=newTeacherJson['id_teacher']
@@ -55,19 +53,19 @@ const createTeacher = async (req, res) => {
             msg: "Hable con el administrador",
         })
     }
-    try {
-        id_courses.forEach(async id_course => {
-            const cou_tea= new Cou_tea({id_course, id_teacher, status, start_date ,end_date})
-            await cou_tea.save();
-        });
+    // try {
+    //     id_courses.forEach(async id_course => {
+    //         const cou_tea= new Cou_tea({id_course, id_teacher, status, start_date ,end_date})
+    //         await cou_tea.save();
+    //     });
         
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok : false,
-            msg: "Hable con el administrador",
-        })
-    }
+    // } catch (error) {
+    //     console.log(error)
+    //     return res.status(500).json({
+    //         ok : false,
+    //         msg: "Hable con el administrador",
+    //     })
+    // }
 
     try {
         //campus

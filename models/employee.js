@@ -35,7 +35,7 @@ const Employees = db.define('employees',{
     },
     active : {
         type : DataTypes.TINYINT,
-        allowNull: false
+        defaultValue : true
     },
 
 

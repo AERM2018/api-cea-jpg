@@ -20,13 +20,13 @@ const getAllEmployees = async (req, res) => {
 
 const createEmployee = async (req, res) => {
     const { body } = req;
-    const { user_type, email } = body;
+    const {  email } = body;
     const { time_tables, id_campus  } = body;
-    const { name, surname, rfc, curp, mobile_number, active } = body;
+    const { name, surname, rfc, curp, mobile_number} = body;
     let id_user, id_employee
     let ids_emp_tim
     try {
-        const user = new User({ user_type, email, password: "12345678" });
+        const user = new User({ user_type : 'employee', email, password: "12345678" });
         const newUser = await user.save()
         const userJson = newUser.toJSON();
         id_user = userJson['id_user']
@@ -69,7 +69,7 @@ const createEmployee = async (req, res) => {
         const name2 = surname.split(" ")
         id_employee = `ale${id_user}.${name1[0]}.${name2[0]}`
         //creating employee
-        const employee = new Employee({ id_employee, id_user, name, surname, rfc, curp, mobile_number, active });
+        const employee = new Employee({ id_employee, id_user, name, surname, rfc, curp, mobile_number });
         const newEmployee = await employee.save();
         const newEmployeeJson = newEmployee.toJSON();
         id_employee = newEmployeeJson['id_employee']

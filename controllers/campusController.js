@@ -6,7 +6,7 @@ const { getCampus } =  require('../queries/queries')
 
 const getAllCampus = async (req, res) => {
 
-    const campus = await db.query(getCampus, { type : QueryTypes.SELECT})
+    const campus = await Campus.findAll()
     res.status(200).json({
         ok : true,
         campus
