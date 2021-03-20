@@ -15,16 +15,22 @@ const getAllCampus = async (req, res) => {
 
 const createCampus = async (req, res) => {
     const { body } = req;
-    const { id_municipality } = body;
+    const { state, municipality } = body    
 
     try {
 
         // Check if the municipality exist
-        const municipality = await Municipality.findByPk(id_municipality)
-        if (!municipality) {
+        const campusMun = await Municipality.findOne({
+            where : {
+                state,
+                municipality
+            }
+        })
+
+        if(campusMun){
             return res.status(404).json({
                 ok: false,
-                msg: `El municipio con id ${id_municipality} no existe`
+                msg: `Un campus con ese municipio y estado ya existe.`
             })
         }
 
@@ -50,15 +56,6 @@ const updateCampus = async (req, res) => {
     const { body } = req;
 
     try {
-        // Check if the record exists before updating
-        const campus = await Campus.findByPk(id)
-        if (!campus) {
-            return res.status(404).json({
-                ok: false,
-                msg: `El municipio con id ${id} no existe, verifiquelo por favor.`
-            })
-        }
-
         // Update record in the database
         await Campus.update(body, {
             where: { 'id_campus': id }

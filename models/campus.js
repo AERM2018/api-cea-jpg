@@ -6,10 +6,6 @@ const Campus = db.define('Campus',{
         primaryKey : true,
         autoIncrement : true
     },
-    id_municipality : {
-        type : DataTypes.INTEGER,
-        allowNull : false
-    },
     campus_name : {
         type : DataTypes.STRING(100),
         allowNull : false,
@@ -19,6 +15,20 @@ const Campus = db.define('Campus',{
     },
     address : {
         type : DataTypes.STRING(100),
+        allowNull : false,
+        validate : {
+            notEmpty : true
+        }
+    },
+    state : {
+        type : DataTypes.STRING(50),
+        allowNull : false,
+        validate : {
+            notEmpty : true
+        }
+    },
+    municipality : {
+        type : DataTypes.STRING(50),
         allowNull : false,
         validate : {
             notEmpty : true
