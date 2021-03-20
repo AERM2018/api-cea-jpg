@@ -122,10 +122,11 @@ const updateTeacher = async (req, res) => {
 }
 const deleteTeacher = async (req, res) => {
     const { id } = req.params;
+    try {
         const teacher = await Teacher.findByPk(id);
         if(!teacher){
             return res.status(404).json({
-                msg: "No existe un empleado con el id "+id,
+                msg: "No existe un maestro con el id "+id,
             });
         }
         
@@ -135,6 +136,13 @@ const deleteTeacher = async (req, res) => {
             ok:true,
             msg:"El maestro se elimino correctamente"
         })
+    } catch ( error ) {
+        console.log(error)
+        return res.status(500).json({
+            ok : false,
+            msg : "Hable con el administrador"
+        })
+    }
     
 
 }

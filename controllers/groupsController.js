@@ -124,41 +124,45 @@ const deleteGroup = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
     
-    const group = await Group.findByPk(id);
-    if (!group) {
-        return res.status(404).json({
+    try {
+        
+        const group = await Group.findByPk(id);
+        if (!group) {
+            return res.status(404).json({
+                ok: false,
+                msg: "No existe un grupo con el id " + id,
+            });
+        }
+        
+        const stu_gro = await Stu_gro.findAll({
+            where: {id_group:id}
+        })
+        stu_gro.forEach(async (grupo)=>{
+            await grupo.destroy()
+        })
+    
+        const gro_tim= await Gro_tim.findAll({
+            where: {id_group:id}
+        })
+        gro_tim.forEach(async (grupo)=>
+        {
+            await grupo.destroy()
+        })
+    
+        await group.destroy(body);
+        
+        res.status(200).json({
+            ok: true,
+            msg: "El grupo se elimino correctamente",
+         
+        })
+    } catch ( error ) {
+        console.log(error)
+        return res.status(500).json({
             ok: false,
-            msg: "No existe un grupo con el id " + id,
-        });
+            msg: "Hable con el administrador"
+        })
     }
-    
-    const stu_gro = await Stu_gro.findAll({
-        where: {id_group:id}
-    })
-    stu_gro.forEach(async (grupo)=>{
-        await grupo.destroy()
-    })
-
-    const gro_tim= await Gro_tim.findAll({
-        where: {id_group:id}
-    })
-    gro_tim.forEach(async (grupo)=>
-    {
-        await grupo.destroy()
-    })
-
-    
-    
-
-    await group.destroy(body);
-
-
-    
-    res.status(200).json({
-        ok: true,
-        msg: "El grupo se elimino correctamente",
-     
-    })
 
 }
 

@@ -166,22 +166,31 @@ const updateEmployee = async (req, res) => {
 }
 const deleteEmployee = async (req, res) => {
     const { id } = req.params;
-    const employee = await Employee.findByPk(id);
-    if (!employee) {
-        return res.status(404).json({
+    try {
+        
+        const employee = await Employee.findByPk(id);
+        if (!employee) {
+            return res.status(404).json({
+                ok: false,
+                msg: "No existe un empleado con el id " + id,
+            });
+        }
+    
+        await employee.update({ active: 0 })
+    
+    
+        res.status(200).json({
+            ok: true,
+            msg: "El trabajador se elimino correctamente",
+    
+        })
+    } catch ( error ) {
+        console.log(error)
+        return res.status(500).json({
             ok: false,
-            msg: "No existe un empleado con el id " + id,
-        });
+            msg: "Hable con el administrador"
+        })
     }
-
-    await employee.update({ active: 0 })
-
-
-    res.status(200).json({
-        ok: true,
-        msg: "El trabajador se elimino correctamente",
-
-    })
 
 
 }

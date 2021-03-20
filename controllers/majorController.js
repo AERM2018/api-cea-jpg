@@ -22,6 +22,7 @@ const createMajor = async (req, res) => {
 
 
     } catch (error) {
+        console.log( error )
         return res.status(500).json({
             ok:false,
             msg: "Hable con el administrador",
@@ -69,20 +70,27 @@ const deleteMajor = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
 
-    const major = await Major.findByPk(id);
-    if (!major) {
-        return res.status(404).json({
-            ok:false,
-            msg: "No existe una Major con el id " + id,
-        });
+    try {
+        const major = await Major.findByPk(id);
+        if (!major) {
+            return res.status(404).json({
+                ok:false,
+                msg: "No existe una Major con el id " + id,
+            });
+        }
+    
+        await major.destroy(body);
+        res.status(200).json({
+            ok: true,
+            msg: "La materia se elimino correctamente",
+            
+        })
+    } catch ( err ) {
+        console.log(err)
+        return res.state(500).json({
+            msg: "Hable con el administrador"
+        })
     }
-
-    await major.destroy(body);
-    res.status(200).json({
-        ok: true,
-        msg: "La materia se elimino correctamente",
-        
-    })
 
 
 }

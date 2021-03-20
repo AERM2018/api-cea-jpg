@@ -8,11 +8,7 @@ const getAllStates = async( req, res ) => {
             attributes : { exclude : ['id','createdAt','updatedAt']}
         })
 
-        let token;
-        if(req.revaToken){
-            const {id_user, user_type, id_role} = req
-            token = await createJWT(id_user, user_type, id_role)
-        }
+        
         return res.status(200).json({
             states,
             token
@@ -36,11 +32,7 @@ const createState = async( req, res  ) => {
         })
     }
 
-    let token;
-        if(req.revaToken){
-            const {id_user, user_type, id_role} = req
-            token = await createJWT(id_user, user_type, id_role)
-        }
+    
     res.status(201).json({
         msg : "Estado creado correctamente",
         token
@@ -66,11 +58,7 @@ const updateState = async( req, res ) => {
             where: { 'id_state': id }
         })
 
-        let token;
-        if(req.revaToken){
-            const {id_user, user_type, id_role} = req
-            token = await createJWT(id_user, user_type, id_role)
-        }
+        
         return res.status(200).json({
             ok : true,
             msg : 'Estado actualizado correctamente',
@@ -103,12 +91,7 @@ const deleteState = async( req, res ) => {
         // Delete the record of the course
         await state.destroy()
     
-        let token;
-        if(req.revaToken){
-            const {id_user, user_type, id_role} = req
-            token = await createJWT(id_user, user_type, id_role)
-        }
-
+        
         res.status(200).json({
             ok : true,
             msg : 'Estado eliminado correctamente',

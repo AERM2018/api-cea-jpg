@@ -122,6 +122,7 @@ const updateStudent = async (req, res) => {
 const deleteStudent = async (req, res) => {
     const { id } = req.params;
  
+    try {
         const student = await Student.findByPk(id);
         if(!student){
             return res.status(404).json({
@@ -135,6 +136,13 @@ const deleteStudent = async (req, res) => {
             ok:true,
             msg:"El alumno se elimino correctamente"
         })
+    } catch ( error ) {
+        console.log(error)
+        return res.status(500).json({
+            ok : false,
+            msg : "Hable con el administrador"
+        })
+    }
     
 
 }
