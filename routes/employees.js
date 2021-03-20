@@ -17,6 +17,9 @@ employeesRouter.post('/',[
     check('curp','el CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
     check('mobile_number','el numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
     // check('active','al campo activo es obligatorio').isInt().exists({checkNull:true}),
+    check('id_department','el id del departamento es obligatorio').isNumeric().exists({ checkNull : true}),
+    check('salary','el salario del empleado es obligatorio y debe ser un flotante').isFloat().exists({ checkNull : true}),
+
     // Checar como guardar los horarios
     check('time_tables','los horarios deben de estar contenidos en un array').isArray(),
     /* check('day', 'el dia es obligatorio').notEmpty().isInt(),
@@ -35,6 +38,7 @@ employeesRouter.put('/:id',[
     check('curp','el CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
     check('mobile_number','el numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
     check('active','al campo activo es obligatorio').isInt().exists({checkNull:true}),
+    // poner id department
     validateFields,
    validateJWT
 

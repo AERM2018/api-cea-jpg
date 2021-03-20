@@ -14,15 +14,8 @@ const Group = db.define('groupss',{
     name_group : {
         type : DataTypes.STRING,
         allowNull: false
-    },
-    entry_year : {
-        type : DataTypes.DATE,
-        allowNull: false
-    },
-    end_year : {
-        type : DataTypes.DATE,
-        allowNull: false
     }
+    
 
 },{
     timestamps : false,

@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const Employee = require('../models/employee');
 const Time_tables = require('../models/time_tables');
+const Emp_dep = require('../models/emp_dep');
 const Emp_tim = require('../models/emp_tim');
 const bcrypt = require('bcryptjs');
 const Cam_use = require('../models/cam_use');
@@ -22,7 +23,7 @@ const createEmployee = async (req, res) => {
     const { body } = req;
     const {  email } = body;
     const { time_tables, id_campus  } = body;
-    const { name, surname, rfc, curp, mobile_number} = body;
+    const { name, surname, rfc, curp, mobile_number, id_department, salary} = body;
     let id_user, id_employee
     let ids_emp_tim
     try {
@@ -69,7 +70,7 @@ const createEmployee = async (req, res) => {
         const name2 = surname.split(" ")
         id_employee = `ale${id_user}.${name1[0]}.${name2[0]}`
         //creating employee
-        const employee = new Employee({ id_employee, id_user, name, surname, rfc, curp, mobile_number });
+        const employee = new Employee({ id_employee, id_user, name, surname, rfc, curp, mobile_number,salary });
         const newEmployee = await employee.save();
         const newEmployeeJson = newEmployee.toJSON();
         id_employee = newEmployeeJson['id_employee']
@@ -87,6 +88,16 @@ const createEmployee = async (req, res) => {
         })
     }
 
+    try {
+        const emp_dep = new Emp_dep({id_employee, id_department})
+        await emp_dep.save()
+    } catch ( err ) {
+        console.log(err)
+        return res.status(500).json({
+            ok: false,
+            msg: "Hable con el administrador",
+        })
+    }
     try {
 
         ids_emp_tim.forEach(async (x) => {

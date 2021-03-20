@@ -37,6 +37,11 @@ const Employees = db.define('employees',{
         type : DataTypes.TINYINT,
         defaultValue : true
     },
+    salary : {
+        type : DataTypes.FLOAT,
+        allowNull : false
+    },
+
 
 
 },{

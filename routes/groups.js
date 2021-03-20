@@ -13,8 +13,7 @@ groupsRouter.get('/', [
 groupsRouter.post( '/',[
     check('id_major','el id de la cerrera es obligatorio y tiene que un numero entero').notEmpty().isNumeric(),
     check('name_group','el nombre del grupo es obligaotorio y tiene que tener como maximo 15 caracteres').not().isEmpty().isLength({max:15}),
-    check('entry_year','el año de entrada es obligatorio').notEmpty().isDate(),
-    check('end_year','el año de salida es obligatorio').notEmpty().isDate(),
+    
 
     check('time_tables','los horarios deben de estar contenidos en un array').isArray(),
     validateFields,
