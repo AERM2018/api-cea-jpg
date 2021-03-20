@@ -2,7 +2,6 @@ const { QueryTypes } = require("sequelize")
 const { db } = require("../database/connection")
 const Campus = require("../models/campus")
 const Municipality = require("../models/municipality")
-const { getCampus } =  require('../queries/queries')
 
 const getAllCampus = async (req, res) => {
 
@@ -20,7 +19,7 @@ const createCampus = async (req, res) => {
     try {
 
         // Check if the municipality exist
-        const campusMun = await Municipality.findOne({
+        const campusMun = await Campus.findOne({
             where : {
                 state,
                 municipality
