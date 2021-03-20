@@ -4,7 +4,7 @@ const validateJWT = require('../middlewares/validar-jwt');
 
 const authRouter = Router();
 
-authRouter.get('/login', login)
+authRouter.post('/login', login)
 authRouter.get('/renew', validateJWT, revalidateJWT)
 // Eliminar
 
