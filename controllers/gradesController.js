@@ -210,7 +210,7 @@ const deleteGradeByStudentId = async (req, res = response) => {
         if (!course) {
             return res.status(404).json({
                 ok: false,
-                msg: `El curso con id ${id_student} no existe, verifiquelo por favor.`
+                msg: `El curso con id ${id_course} no existe, verifiquelo por favor.`
             })
         }
 

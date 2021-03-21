@@ -22,20 +22,35 @@ const getAllCourses = async (req, res = response) => {
 const createCourse = async (req, res = response) => {
 
     const { body } = req;
+    const { id_major , course_name} = body
 
     try {
 
         // Check if the major exist
-        const course_id = await Major.findOne({
+        const major = await Major.findOne({
             where : { 'id_major' : body.id_major }
         })
-        if (!course_id) {
+        if (!major) {
             return res.status(404).json({
                 ok: false,
                 msg: 'La carrera seleccionada no existe'
             })
         }
 
+        // Avoid duplicates
+        const courseMajor = await Course.findOne({ 
+            where : {
+                id_major,
+                course_name
+            }
+        })
+
+        if(courseMajor){
+            return res.status(400).json({
+                ok: false,
+                msg: 'En la carrera ya esta registrado un curso con ese nombre'
+            })
+        }
         //  Create and save course
         const course = new Course(body);
         await course.save();
@@ -57,6 +72,7 @@ const createCourse = async (req, res = response) => {
 const updateCourse = async (req, res = response) => {
     const { id } = req.params
     const { body } = req;
+    const { id_major , course_name} = body
 
     try {
         // Check if the record exists before updating
@@ -69,16 +85,30 @@ const updateCourse = async (req, res = response) => {
         }
 
         // Check if the major exist
-        const course_id = await Major.findOne({
+        const major = await Major.findOne({
             where : { 'id_major' : body.id_major }
         })
-        if (!course_id) {
+        if (!major) {
             return res.status(404).json({
                 ok: false,
                 msg: 'La carrera seleccionada no existe'
             })
         }
 
+        // Avoid duplicates
+        const courseMajor = await Course.findOne({ 
+            where : {
+                id_major,
+                course_name
+            }
+        })
+
+        if(courseMajor){
+            return res.status(400).json({
+                ok: false,
+                msg: 'En la carrera ya esta registrado un curso con ese nombre'
+            })
+        }
         // Update record in the database
         await Course.update(body, {
             where: { 'id_course': id }

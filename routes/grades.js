@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 const { getAllGradesByCourse, uploadGrades, updateGrades, deleteGradeByStudentId } = require('../controllers/gradesController');
+const checkGrades = require('../middlewares/grades');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -18,6 +19,7 @@ gradesRouter.post('/:id_course', [
     check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
     check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
     validateFields,
+    checkGrades,
     validateJWT
 ], uploadGrades);
 
@@ -26,6 +28,7 @@ gradesRouter.put( '/:id_course', [
     check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
     check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
     validateFields,
+    checkGrades,
     validateJWT
 ], updateGrades);
 
