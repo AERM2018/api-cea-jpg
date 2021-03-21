@@ -5,7 +5,8 @@ const Emp_dep = require('../models/emp_dep');
 const Emp_tim = require('../models/emp_tim');
 const bcrypt = require('bcryptjs');
 const Cam_use = require('../models/cam_use');
-
+const Departments = require('../models/department');
+const Department = require('../models/department');
 const getAllEmployees = async (req, res) => {
     const employees = await Employee.findAll({
         where: { 'active': 1, }
@@ -27,10 +28,48 @@ const createEmployee = async (req, res) => {
     let id_user, id_employee
     let ids_emp_tim
     try {
-        const user = new User({ user_type : 'employee', email, password: "12345678" });
-        const newUser = await user.save()
-        const userJson = newUser.toJSON();
-        id_user = userJson['id_user']
+        const employee= await Employee.findOne({
+            where:{rfc}
+        })
+        if(employee){
+            return res.status(400).json({
+                ok : false,
+                msg: "Ya existe un empleado con ese rfc",
+            })
+        }
+        const employee2= await Department.findOne({
+            where:{id_department}
+        })
+        console.log(employee2)
+        if(!employee2){
+            return res.status(400).json({
+                ok : false,
+                msg: "El departamento con es id no existe",
+            })
+        }
+
+        const employee3 = await Employee.findOne({
+            where:{curp}
+        })
+        if(employee3){
+            return res.status(400).json({
+                ok : false,
+                msg: "Ya existe un empleado con ese curp",
+            })
+        }
+        const user = await User.findOne({where:{email}})
+        if(!user){
+            const usern = new User({user_type:"employee",email,password:"123456"});
+            const newUser=await usern.save()
+            const userJson = newUser.toJSON();
+            id_user = userJson['id_user']
+        }
+        else{
+            return res.status(400).json({
+                ok : false,
+                msg: "Ya existe un usuario con ese email",
+            })
+        }
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -89,6 +128,7 @@ const createEmployee = async (req, res) => {
     }
 
     try {
+
         const emp_dep = new Emp_dep({id_employee, id_department})
         await emp_dep.save()
     } catch ( err ) {

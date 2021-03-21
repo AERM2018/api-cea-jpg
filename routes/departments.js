@@ -11,21 +11,21 @@ departmentsRouter.get('/', [
 ], getAllDepartments);
 
 departmentsRouter.post( '/',[
-    check('department_name','el nombre del deparmento es obligatorio y tiene que tener como maximo 22 caracteres ').not().isEmpty().isLength({max:22}),
+    check('department_name','El nombre del deparmento es obligatorio y tiene que tener como maximo 22 caracteres ').not().isEmpty().isLength({max:22}),
     validateFields,
     validateJWT
 
 ], createDepartment);
 
 departmentsRouter.put( '/:id',[
-    param('id','el id del departamento es obligatorio y debe de ser un numero entero').isNumeric(),
-    check('department_name','el nombre del deparmento es obligatorio y tiene que tener como maximo 22 caracteres ').not().isEmpty().isLength({max:22}),
+    param('id','El id del departamento es obligatorio y debe de ser un numero entero').isNumeric(),
+    check('department_name','El nombre del deparmento es obligatorio y tiene que tener como maximo 22 caracteres ').not().isEmpty().isLength({max:22}),
     validateFields,
     validateJWT
 ],updateDepartament);
 
 departmentsRouter.delete( '/:id',[
-    param('id','el id del deparmento ties obligatorio y debe deer un numero entero').isNumeric(),
+    param('id','El id del deparmento ties obligatorio y debe deer un numero entero').isNumeric(),
     validateFields,
     validateJWT
 ], deleteDepartament);

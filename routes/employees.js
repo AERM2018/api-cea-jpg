@@ -10,18 +10,18 @@ employeesRouter.get('/',[
     validateJWT
 ], getAllEmployees);
 employeesRouter.post('/',[
-    check('email','el email es obligatorio').notEmpty().isEmail(),
-    check('name','el nombre del empleado es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
+    check('email','El email es obligatorio').notEmpty().isEmail(),
+    check('name','El nombre del empleado es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
     check('surname','Los apellidos son obligatorios y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
-    check('rfc','el RFC es obligatorio y tiene que tener como maximo 13 caracteres').not().isEmpty().isLength({max:13}),
-    check('curp','el CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
-    check('mobile_number','el numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
+    check('rfc','El RFC es obligatorio y tiene que tener como maximo 13 caracteres').not().isEmpty().isLength({max:13}),
+    check('curp','El CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
+    check('mobile_number','El numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
     // check('active','al campo activo es obligatorio').isInt().exists({checkNull:true}),
-    check('id_department','el id del departamento es obligatorio').isNumeric().exists({ checkNull : true}),
-    check('salary','el salario del empleado es obligatorio y debe ser un flotante').isFloat().exists({ checkNull : true}),
+    check('id_department','El id del departamento es obligatorio').isNumeric().exists({ checkNull : true}),
+    check('salary','El salario del empleado es obligatorio y debe ser un flotante').isFloat().exists({ checkNull : true}),
 
     // Checar como guardar los horarios
-    check('time_tables','los horarios deben de estar contenidos en un array').isArray(),
+    check('time_tables','Los horarios deben de estar contenidos en un array').isArray(),
     /* check('day', 'el dia es obligatorio').notEmpty().isInt(),
     check('start_hour', 'la hora de inicio es obligatoria').notEmpty(),
     check('finish_hour','la hora de fin es obligatoria').notEmpty(), */
@@ -31,13 +31,13 @@ employeesRouter.post('/',[
 ], createEmployee);
 employeesRouter.put('/:id',[
     //ID CHECARSE
-    param('id','el id del empleado es una cadena de texto y es obligatorio').isString().notEmpty(),
-    check('name','el nombre del empleado es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
+    param('id','El id del empleado es una cadena de texto y es obligatorio').isString().notEmpty(),
+    check('name','El nombre del empleado es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
     check('surname','Los apellidos son obligatorios y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
-    check('rfc','el RFC es obligatorio y tiene que tener como maximo 13 caracteres').not().isEmpty().isLength({max:13}),
-    check('curp','el CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
-    check('mobile_number','el numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
-    check('active','al campo activo es obligatorio').isInt().exists({checkNull:true}),
+    check('rfc','El RFC es obligatorio y tiene que tener como maximo 13 caracteres').not().isEmpty().isLength({max:13}),
+    check('curp','El CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
+    check('mobile_number','El numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
+    check('active','El campo activo es obligatorio').isInt().exists({checkNull:true}),
     // poner id department
     validateFields,
    validateJWT
@@ -45,7 +45,7 @@ employeesRouter.put('/:id',[
 ], updateEmployee);
 employeesRouter.delete('/:id', [
     //SAME 
-    param('id','el id del empleado es una cadena de texto y es obligatorio').isString().notEmpty(),
+    param('id','El id del empleado es una cadena de texto y es obligatorio').isString().notEmpty(),
     validateFields,
     validateJWT
 

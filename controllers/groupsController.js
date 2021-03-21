@@ -27,6 +27,9 @@ const createGroup = async (req, res) => {
                 msg: "No existe una carrera con el id " + id_major,
             });
         }
+        
+        
+        
         const group = new Group({ id_major, name_group, entry_year, end_year });
         const newGroup = await group.save()
         const groupJson = newGroup.toJSON();
@@ -120,6 +123,9 @@ const updateGroup = async (req, res) => {
         })
     }
 }
+
+
+
 const deleteGroup = async (req, res) => {
     const { id } = req.params;
     const { body } = req;

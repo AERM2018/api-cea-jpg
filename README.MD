@@ -375,16 +375,12 @@ _An example_
 - _The next object is an example to know how to send it_
 ```
    {
-    "user_type": "flamas",
     "email": "email@gmail.com",
     "name": "nombre",
     "surname": "apellido",
-    "curp": "curp",
+    "curp": "curpunico11",
     "mobile_number": "6182593051",
-    "mobile_back_number": "4223",
-    "address": "domicilio",
-    "active": 1,
-    "rfc": "rfc",
+    "rfc": "rfcunico11",
     "id_campus":1,
    "time_tables" : [{
     "day":7,
@@ -486,7 +482,6 @@ _An example_
 ```
   {
 
-    "user_type": "student",
     "email": "email1111@gmail.com",
     "id_student": "amatricula",
     "name": "1na1me",
@@ -529,8 +524,6 @@ URL/students/Id_students   /*Method http: PUT*/
 {
  "name": "1na1me",
     "surname": "s1ur1name",
-    "id_group": 1,
-    "id_campus":1,
     "group_chief": 0,
     "curp": "cu1d1rp",
     "status": "sta1atus",
@@ -592,24 +585,13 @@ _An example_
 - _The next object is an example to know how to send it_
 ```
   {
-    "user_type": "teacher",
     "email": "emmail1234@gmail.com",
     "name": "1na11me",
     "surname": "s1u1r1name",
     "id_campus":1,
-    "id_ext_cou": null,
     "curp": "cu1d111r1p",
     "rfc": "rf1c121",
-    "active": 1,
-    "mobile_number": "6611125",
-    "address": "address",
-    "courses":2,
-    "id_courses": [1,2],
-    "status": true,
-    "start_date":"1000-01-01",
-     "end_date": "2000-01-01"
-            
-    
+    "mobile_number": "6611125"
 }
 ```
 
