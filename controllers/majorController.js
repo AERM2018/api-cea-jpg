@@ -12,12 +12,24 @@ const getAllMajors = async (req, res) => {
 }
 
 const createMajor = async (req, res) => {
-    const { body } = req;
-
+    const { major_name } = req.body;
     try {
-
-        const major = new Major(body);
-        await major.save()
+        
+        const [major, created] = await Major.findOrCreate({
+            where:{major_name}
+        })
+        if(created){
+            res.status(200).json({
+                ok: true,
+                msg: "La carrera se creo correctamente"
+            })
+        }else{
+            return res.status(500).json({
+                ok:false,
+                msg: "Ya existe una carrera con ese nombre",
+            })
+        }
+     
 
 
 
@@ -30,11 +42,7 @@ const createMajor = async (req, res) => {
     }
 
     
-    res.status(201).json({
-        ok: true,
-        msg: "Major creado correctamente"
     
-    })
 
 
 
@@ -47,7 +55,7 @@ const updateMajor = async (req, res) => {
         if (!major) {
             return res.status(404).json({
                 ok:false,
-                msg: "No existe una Major con el id " + id,
+                msg: "No existe una carrera con el id " + id,
             });
         }
 
@@ -55,7 +63,7 @@ const updateMajor = async (req, res) => {
         
         res.status(200).json({
             ok: true,
-            msg: "El materia se actualizo correctamente"
+            msg: "La carrera se actualizo correctamente"
         })
 
 
@@ -75,14 +83,14 @@ const deleteMajor = async (req, res) => {
         if (!major) {
             return res.status(404).json({
                 ok:false,
-                msg: "No existe una Major con el id " + id,
+                msg: "No existe una carrera con el id " + id,
             });
         }
     
         await major.destroy(body);
         res.status(200).json({
             ok: true,
-            msg: "La materia se elimino correctamente",
+            msg: "La carrera se elimino correctamente",
             
         })
     } catch ( err ) {

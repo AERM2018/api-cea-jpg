@@ -7,7 +7,7 @@ const { validateFields } = require('../middlewares/validateFields');
 const majorsRouter = Router();
 
 majorsRouter.get('/', [
-    validateJWT
+   validateJWT
 ], getAllMajors);
 majorsRouter.post( '/', [
     check('major_name','El nombre de la carrera es obligatario y tiene que tener como maximo 30 caracteres').not().isEmpty().isLength({max:30}),
@@ -24,7 +24,7 @@ majorsRouter.put( '/:id', [
 ] , updateMajor);
 
 majorsRouter.delete( '/:id',[
-    param('id','el id de la carrera es obligatorio y debe de ser un numero entero').isNumeric(),
+    param('id','El id de la carrera es obligatorio y debe de ser un numero entero').isNumeric(),
     validateFields,
     validateJWT
 ], deleteMajor);

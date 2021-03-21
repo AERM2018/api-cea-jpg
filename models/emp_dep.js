@@ -20,6 +20,7 @@ const Emp_dep = db.define('emp_dep',{
     },
 
 },{
-    timestamps : false
+    timestamps : false,
+    freezeTableName:true
 })
 module.exports = Emp_dep;

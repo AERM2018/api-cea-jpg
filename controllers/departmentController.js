@@ -11,11 +11,23 @@ const getAllDepartments = async (req, res) => {
 }
 
 const createDepartment = async (req, res) => {
-    const { body } = req;
+    const { department_name } = req.body;
     try {
 
-        const department = new Department(body);
-        await department.save()
+        const [department, created] = await Department.findOrCreate({
+            where:{department_name}
+        })
+        if(created){
+            res.status(200).json({
+                ok: true,
+                msg: "El departamento se creo correctamente"
+            })
+        }else{
+            return res.status(500).json({
+                ok:false,
+                msg: "Ya existe un departamento con ese nombre",
+            })
+        }
 
     } catch (error) {
         console.log(error)
@@ -24,11 +36,7 @@ const createDepartment = async (req, res) => {
             msg: "Hable con el administrador",
         })
     }
-    res.status(201).json({
-        ok: true,
-        msg: "department creado correctamente",
-    
-    })
+   
 
 
 
@@ -37,10 +45,11 @@ const updateDepartament = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
     try {
+        
         const department = await Department.findByPk(id);
         if (!department) {
             return res.status(404).json({
-                msg: "No existe una department con el id " + id,
+                msg: "No existe un departamento con el id " + id,
             });
         }
 
@@ -70,7 +79,7 @@ const deleteDepartament = async (req, res) => {
         if (!department) {
             return res.status(404).json({
                 ok:false,
-                msg: "No existe un department con el id " + id,
+                msg: "No existe un departamento con el id " + id,
             });
         }
     

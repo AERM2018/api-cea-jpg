@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const Teacher = require('../models/teacher');
-const Cou_tea = require('../models/cou_tea');
+//const Cou_tea = require('../models/cou_tea');
 const bcrypt = require('bcryptjs');
 const Cam_use =require('../models/cam_use');
 
@@ -21,10 +21,32 @@ const createTeacher = async (req, res) => {
     const {name, surname, rfc, mobile_number, email, id_campus }=body;
     let id_user,id_teacher
     try { 
-        const user = new User({user_type : 'teacher ',email,password:"1234576"});
-        const newUser=await user.save()
-        const userJson = newUser.toJSON();
-        id_user = userJson['id_user']
+
+        const teacher= Teacher.findOne({
+            where:{rfc}
+        });
+        if (teacher){
+            return res.status(400).json({
+                ok : false,
+                msg: "Ya existe un maestro con ese rfc",
+            })
+        }
+        
+        const user = User.findOne({where:{email}})
+        if(!user){
+            const usern = new User({user_type:"teacher",email,password:"123456"});
+            const newUser=await usern.save()
+            const userJson = newUser.toJSON();
+            id_user = userJson['id_user']
+        }
+        else{
+            return res.status(400).json({
+                ok : false,
+                msg: "Ya existe un usuario con ese email",
+            })
+        }
+
+
     } catch (error) {
         console.log(error)
         return res.status(500).json({
