@@ -1,35 +1,48 @@
-const { QueryTypes } = require("sequelize")
+const { QueryTypes, Op } = require("sequelize")
 const { db } = require("../database/connection")
 const Campus = require("../models/campus")
 const Municipality = require("../models/municipality")
 
 const getAllCampus = async (req, res) => {
 
-    const campus = await Campus.findAll()
-    res.status(200).json({
-        ok : true,
-        campus
-    })
+    try {
+        const campus = await Campus.findAll()
+        res.status(200).json({
+            ok: true,
+            campus
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        })
+    }
 }
 
 const createCampus = async (req, res) => {
     const { body } = req;
-    const { state, municipality } = body    
+    const { state, municipality, campus_name } = body
 
     try {
 
         // Check if the municipality exist
         const campusMun = await Campus.findOne({
-            where : {
-                state,
-                municipality
+            where: {
+                [Op.or]: {
+                    [Op.and]: {
+                        municipality,
+                        state,
+                    },
+                    campus_name,
+                }
             }
         })
 
-        if(campusMun){
-            return res.status(404).json({
+        if (campusMun) {
+            return res.status(400).json({
                 ok: false,
-                msg: `Un campus con ese municipio y estado ya existe.`
+                msg: `Ya se encuentra registrado un campus con esos datos`
             })
         }
 
@@ -53,12 +66,49 @@ const createCampus = async (req, res) => {
 const updateCampus = async (req, res) => {
     const { id } = req.params
     const { body } = req;
+    const { state, municipality, campus_name } = body
+
 
     try {
-        // Update record in the database
-        await Campus.update(body, {
-            where: { 'id_campus': id }
+
+        const campus = await Campus.findByPk(id)
+
+        if (!campus) {
+            return res.status(404).json({
+                ok: false,
+                msg: `No existe un campus con id ${id}, verifiquelo por favor.`
+            })
+        }
+
+        const campusMun = await Campus.findOne({
+            where: {
+                [Op.or]:  [{
+                    [Op.and]: {
+                        municipality,
+                        state,
+                        id_campus: { [Op.ne]: id }
+                    }},
+                    {[Op.and]: {
+                        campus_name,
+                        id_campus: { [Op.ne]: id }
+                    },
+                }]
+            }
         })
+
+        if (campusMun) {
+            return res.status(400).json({
+                ok: false,
+                msg: `Ya se encuentra registrado un campus con ese nombre o ubicación`
+
+            })
+        }
+
+        // Update record in the database
+        await Campus.update(body,
+            {
+                where: { 'id_campus': id }
+            })
 
         return res.status(200).json({
             ok: true,
