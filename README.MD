@@ -490,7 +490,6 @@ _An example_
     "id_campus":1,
     "group_chief": 0,
     "curp": "cu1d1rp",
-    "status": 1,
     "mobile_number": "6611825",
     "mobile_back_number": "4164020",
     "address": "address",
@@ -526,7 +525,7 @@ URL/students/Id_students   /*Method http: PUT*/
     "surname": "s1ur1name",
     "group_chief": 0,
     "curp": "cu1d1rp",
-    "status": "sta1atus",
+    "status": 2,
     "mobile_number": "6611825",
     "mobile_back_number": "4164020",
     "address": "address",
@@ -589,7 +588,6 @@ _An example_
     "name": "1na11me",
     "surname": "s1u1r1name",
     "id_campus":1,
-    "curp": "cu1d111r1p",
     "rfc": "rf1c121",
     "mobile_number": "6611125"
 }
@@ -617,15 +615,9 @@ URL/teachers/Id_teacher   /*Method http: PUT*/
 {
     "name": "1na11me",
     "surname": "s1u1r1name",
-    "id_ext_cou": null,
-    "curp": "cu1d111r1p",
     "rfc": "rf1c121",
     "active": 1,
     "mobile_number": "6611125",
-    "address": "address",
-    "courses":2,
-    "id_courses": [1,2],
-    "status": "chido",
 }
 ```
 

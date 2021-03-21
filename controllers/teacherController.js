@@ -3,7 +3,7 @@ const Teacher = require('../models/teacher');
 //const Cou_tea = require('../models/cou_tea');
 const bcrypt = require('bcryptjs');
 const Cam_use =require('../models/cam_use');
-
+const Campus = require('../models/campus');
 
 const getAllTeachers = async (req, res) => {
     const teachers = await Teacher.findAll({
@@ -22,7 +22,7 @@ const createTeacher = async (req, res) => {
     let id_user,id_teacher
     try { 
 
-        const teacher= Teacher.findOne({
+        const teacher= await Teacher.findOne({
             where:{rfc}
         });
         if (teacher){
@@ -31,17 +31,26 @@ const createTeacher = async (req, res) => {
                 msg: "Ya existe un maestro con ese rfc",
             })
         }
+        const campus = await Campus.findOne({
+            where: { id_campus }
+        })
+        if (!campus) {
+            return res.status(400).json({
+                ok: false,
+                msg: "No existe un campus con ese id "+id_campus,
+            })
+        }
         
-        const user = User.findOne({where:{email}})
-        if(!user){
-            const usern = new User({user_type:"teacher",email,password:"123456"});
-            const newUser=await usern.save()
+        const user =  await User.findOne({ where: { email } })
+        if (!user) {
+            const usern = new User({ user_type: "student", email, password: "123456" });
+            const newUser = await usern.save()
             const userJson = newUser.toJSON();
             id_user = userJson['id_user']
         }
-        else{
+        else {
             return res.status(400).json({
-                ok : false,
+                ok: false,
                 msg: "Ya existe un usuario con ese email",
             })
         }
@@ -152,7 +161,7 @@ const deleteTeacher = async (req, res) => {
             });
         }
         
-        await teacher.update({active:0})
+        await teacher.update({active:2})
 
         res.status(200).json({
             ok:true,

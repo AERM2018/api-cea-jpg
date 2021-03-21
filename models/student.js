@@ -29,7 +29,7 @@ const Student = db.define('students',{
     },
     status : {
         type : DataTypes.INTEGER,
-        allowNull: false
+        defaultValue : 1
     },
     mobile_number : {
         type : DataTypes.STRING,

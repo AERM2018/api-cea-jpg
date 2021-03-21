@@ -8,7 +8,7 @@ const Campus = require('../models/campus')
 
 const getAllStudents = async (req, res) => {
     const students = await Student.findAll({
-        where: { 'status': 2 }
+        where: { 'status': 1  }
     });
 
     return res.status(200).json({
@@ -21,20 +21,31 @@ const createStudent = async (req, res) => {
     const { body } = req;
     const { email } = body;
     const { id_group, id_campus } = body;
-    const { id_student, name, surname, group_chief, curp, status, mobile_number, mobile_back_number, address, start_date, end_date, complete_documents } = body;
+    const { id_student, name, surname, group_chief, curp, mobile_number, mobile_back_number, address, start_date, end_date, complete_documents } = body;
     let id_user
     try {
         //email
-        const student = Student.findOne({
+        const student = await Student.findOne({
             where: { id_student }
         })
         if (student) {
             return res.status(400).json({
                 ok: false,
-                msg: "Ya existe un alumno",
+                msg: "Ya existe un alumno con esa matricula",
             })
         }
-        const group = Group.findOne({
+        const studentCurp = await Student.findOne({
+            where: { curp }
+        })
+        if (studentCurp) {
+            return res.status(400).json({
+                ok: false,
+                msg: "Ya existe un alumno con esa curp",
+            })
+        }
+
+
+        const group = await Group.findOne({
             where: { id_group }
         })
         if (!group) {
@@ -43,7 +54,7 @@ const createStudent = async (req, res) => {
                 msg: "No existe un grupo con ese id "+id_group,
             })
         }
-        const campus = Campus.findOne({
+        const campus = await Campus.findOne({
             where: { id_campus }
         })
         if (!campus) {
@@ -54,7 +65,7 @@ const createStudent = async (req, res) => {
         }
 
 
-        const user = User.findOne({ where: { email } })
+        const user =  await User.findOne({ where: { email } })
         if (!user) {
             const usern = new User({ user_type: "student", email, password: "123456" });
             const newUser = await usern.save()
@@ -77,7 +88,7 @@ const createStudent = async (req, res) => {
     }
     try {
         //matricula
-        const student = new Student({ id_student, id_user, name, surname, group_chief, curp, status, mobile_number, mobile_back_number, address, start_date, end_date, complete_documents });
+        const student = new Student({ id_student, id_user, name, surname, group_chief, curp, mobile_number, mobile_back_number, address, start_date, end_date, complete_documents });
         await student.save();
         // password
         const user = await User.findByPk(id_user);

@@ -33,7 +33,7 @@ teachersRouter.put('/:id',[
     check('surname','Los apellidos son obligatorios y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
     check('rfc','El RFC es obligatorio y tiene que tener como maximo 13 caracteres').not().isEmpty().isLength({max:13}),
     check('mobile_number','El numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
-    check('id_ext_cou','El id de curso extracurricular es obligatorio').isInt(),
+    //check('id_ext_cou','El id de curso extracurricular es obligatorio').isInt(),
     check('courses','El campo curso son obligatorios').isInt().exists({checkNull:true}),
     check('active','El campo activo es obligatorio').isInt().exists({checkNull:true}),
     

@@ -18,7 +18,7 @@ studentsRouter.post('/',[
     check('group_chief','El campo de jefe de grupo se tiene que llenar').notEmpty().isInt(),
     check('curp','El CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
     check('mobile_number','El numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
-    check('status','El estatus del alumno es obligatorio').isInt().exists({checkNull:true}),
+    //check('status','El estatus del alumno es obligatorio').isInt().exists({checkNull:true}),
     check('mobile_back_number','El numero de telefono es obligatorio y tiene que tener como maximo 10 caracteres').not().isEmpty().isLength({max:10}),
     check('address','El domicilio es obligatorio y tiene que tener 50 caracteres como maximo').not().isEmpty().isLength({max:50}),
     check('start_date','La fecha de inicio es obligatoria').notEmpty().isDate(),
