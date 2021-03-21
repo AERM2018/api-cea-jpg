@@ -741,8 +741,9 @@ The result look like:
     "campus": [
         {
             "campus_name": "Alejandria",
+            "address": "fake addreess #105",
+            "state" : "Durango",            
             "municipality": "Durango",
-            "address": "fake addreess #105"
         }
         ...
     ]
@@ -759,9 +760,10 @@ Endpoint:  URL/campus    HTTP method: POST
 You need send an object like this in the request's body:
 ```
 {
-    "id_municipality" : INT,
-    "campus_name" : STRING,
-    "address" : STRING
+    "campus_name": STRING,
+    "address": STRING,
+    "state" : STRING,            
+    "municipality": STRING,
 }
 ```
 
@@ -777,9 +779,10 @@ Endpoint:  URL/campus/id_campus   HTTP method: PUT
 You need send an object like this in the request's body:
 ```
 {
-    "id_municipality" : INT,
-    "campus_name" : STRING,
-    "address" : STRING
+    "campus_name": STRING,
+    "address": STRING,
+    "state" : STRING,            
+    "municipality": STRING,
 }
 ```
 
@@ -843,7 +846,7 @@ You need send an object like this in the request's body:
 }
 ```
 
-If there's no reason send an empty string
+If there's no observations send an empty string
 
 ### **Update a scholarship by its id**
 
@@ -865,7 +868,7 @@ You need send an object like this in the request's body:
     "observations": STRING,
 }
 ```
-If there's no reason send an empty string
+If there's no observations send an empty string
 
 
 ### **Delete a scholarship by its id**
@@ -899,18 +902,22 @@ Endpoint:  URL/grades/id_course?id_group=id_group   HTTP method: GET
 The result look like:
 ```
 {
-    "ok": true,
-    "scholarships": [
+   "ok": true,
+    "grades": [
         {
-            "id_scholarship": 1,
-            "scholarship_name": "Base",
-            "percentage": 100,
-            "reason": "Some reason",
-            "observations": "",
-            "id_student": "An student's id",
-            "Student": "An student's name"
+            "id_course": 5,
+            "course_name": "Materia 1",
+            "id_student": "DEDG202103001",
+            "student_full_name": "Angel Solis",
+            "grade": 8.1
         },
-        ...
+        {
+            "id_course": 5,
+            "course_name": "Materia 1",
+            "id_student": "DEDG202103002",
+            "student_full_name": "Hugo Fernandez",
+            "grade": 10
+        }...
     ]
 }
 ```
@@ -970,7 +977,7 @@ You need send an object like this in the request's body:
 }
 ```
 
-If there's no reason send an empty string
+
 
 
 ### **Delete grade of a student**
