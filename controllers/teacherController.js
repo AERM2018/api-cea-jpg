@@ -8,6 +8,7 @@ const { Op, QueryTypes } = require('sequelize');
 const {db} = require('../database/connection');
 const { getTeachers } = require('../queries/queries');
 const { primaryKeyAttributes } = require('../models/user');
+const generateMatricula = require('../helpers/generateMatricula');
 
 const getAllTeachers = async (req, res) => {
     const teachers = await db.query(getTeachers, { type : QueryTypes.SELECT})
@@ -70,9 +71,7 @@ const createTeacher = async (req, res) => {
         })
     }
     try {
-        const name1 = name.split(" ");
-        const name2 = surname.split(" ");
-        id_teacher = `ale${id_user}.${name1[0]}.${name2[0]}`
+        id_teacher = generateMatricula(id_user)
         const teacher = new Teacher({ id_teacher, id_user, name, surname, rfc, mobile_number });
         const newTeacher = await teacher.save();
         const newTeacherJson = newTeacher.toJSON();

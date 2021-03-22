@@ -33,6 +33,20 @@ const Campus = db.define('campus',{
         validate : {
             notEmpty : true
         }
+    },
+    colony : {
+        type : DataTypes.STRING(30),
+        allowNull : false,
+        validate : {
+            notEmpty : true
+        }
+    },
+    zip : {
+        type : DataTypes.STRING(6),
+        allowNull : false,
+        validate : {
+            notEmpty : true
+        }
     }
 },{
     timestamps : false,

@@ -1,7 +1,5 @@
 const { QueryTypes, Op } = require("sequelize")
-const { db } = require("../database/connection")
 const Campus = require("../models/campus")
-const Municipality = require("../models/municipality")
 
 const getAllCampus = async (req, res) => {
 
@@ -22,7 +20,7 @@ const getAllCampus = async (req, res) => {
 
 const createCampus = async (req, res) => {
     const { body } = req;
-    const { state, municipality, campus_name } = body
+    const { state, municipality, campus_name, zip } = body
 
     try {
 
@@ -42,10 +40,23 @@ const createCampus = async (req, res) => {
         if (campusMun) {
             return res.status(400).json({
                 ok: false,
-                msg: `Ya se encuentra registrado un campus con esos datos`
+                msg: `Ya se encuentra registrado un campus con ese nombre o ubicación`
             })
         }
 
+        const campusZip = await Campus.findOne({
+            where : {
+                zip
+            }
+        })
+
+        if (campusZip) {
+            return res.status(400).json({
+                ok: false,
+                msg: `Ya se encuentra registrado un campus con el codigo postal ${zip}`
+
+            })
+        }
         //  Create and save course
         const campus = new Campus(body);
         await campus.save();
@@ -66,7 +77,7 @@ const createCampus = async (req, res) => {
 const updateCampus = async (req, res) => {
     const { id } = req.params
     const { body } = req;
-    const { state, municipality, campus_name } = body
+    const { state, municipality, campus_name, zip } = body
 
 
     try {
@@ -104,6 +115,20 @@ const updateCampus = async (req, res) => {
             })
         }
 
+        const campusZip = await Campus.findOne({
+            where : {
+                zip,
+                id_campus : { [Op.ne] : id}
+            }
+        })
+
+        if (campusZip) {
+            return res.status(400).json({
+                ok: false,
+                msg: `Ya se encuentra registrado un campus con el codigo postal ${zip}`
+
+            })
+        }
         // Update record in the database
         await Campus.update(body,
             {

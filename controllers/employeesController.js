@@ -10,6 +10,7 @@ const Department = require('../models/department');
 const { db } = require('../database/connection');
 const { getEmployees } = require('../queries/queries');
 const { QueryTypes } = require('sequelize');
+const generateMatricula = require('../helpers/generateMatricula');
 const getAllEmployees = async (req, res) => {
     const employees = await db.query(getEmployees, { type : QueryTypes.SELECT})
 
@@ -106,9 +107,7 @@ const createEmployee = async (req, res) => {
 
     try {
         //creation of id_employee
-        const name1 = name.split(" ")
-        const name2 = surname.split(" ")
-        id_employee = `ale${id_user}.${name1[0]}.${name2[0]}`
+        id_employee = generateMatricula(id_user)
         //creating employee
         const employee = new Employee({ id_employee, id_user, name, surname, rfc, curp, mobile_number,salary });
         const newEmployee = await employee.save();
