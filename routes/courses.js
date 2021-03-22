@@ -13,7 +13,7 @@ coursesRouter.get('/', [
 
 coursesRouter.post('/', [
     check('id_major', 'El id de major es obligatorio y debe ser un numero entero').isNumeric().exists({checkNull:true}),
-    check('course_name', 'El nombre del curso es obligatorio y debe tener como máximo 25 caracteres').not().isEmpty().isLength({ max : 25}),
+    check('course_name', 'El nombre del curso es obligatorio y debe tener como máximo 70 caracteres').not().isEmpty().isLength({ max : 70}),
     validateFields,
     validateJWT
 ], createCourse);
@@ -21,7 +21,7 @@ coursesRouter.post('/', [
 coursesRouter.put('/:id', [
     param('id', "El id del curso es obligatorio y debe de ser un numero").isNumeric(),
     check('id_major', 'El id de major es obligatorio y debe ser un numero entero').isNumeric().exists({checkNull:true}),
-    check('course_name', 'El nombre del curso es obligatorio y debe tener como máximo 25 caracteres').not().isEmpty().isLength({ max : 25}),
+    check('course_name', 'El nombre del curso es obligatorio y debe tener como máximo 70 caracteres').not().isEmpty().isLength({ max : 70}),
     validateFields,
     validateJWT
 ],

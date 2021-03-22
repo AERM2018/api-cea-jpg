@@ -10,14 +10,14 @@ majorsRouter.get('/', [
    validateJWT
 ], getAllMajors);
 majorsRouter.post( '/', [
-    check('major_name','El nombre de la carrera es obligatario y tiene que tener como maximo 30 caracteres').not().isEmpty().isLength({max:30}),
+    check('major_name','El nombre de la carrera es obligatario y tiene que tener como maximo 70 caracteres').not().isEmpty().isLength({max:70}),
     validateFields,
     validateJWT
 
 ] ,createMajor);
 majorsRouter.put( '/:id', [
     param('id','El id de la carrera es obligatorio y debe de ser un numero entero').isNumeric(),
-    check('major_name','El nombre de la carrera es obligatario y tiene que tener como maximo 30 caracteres').not().isEmpty().isLength({max:30}),
+    check('major_name','El nombre de la carrera es obligatario y tiene que tener como maximo 70 caracteres').not().isEmpty().isLength({max:70}),
     validateFields,
     validateJWT
 
