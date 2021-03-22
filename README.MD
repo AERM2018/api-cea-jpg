@@ -50,6 +50,9 @@ fetch(URL, {
 
 This endpoint will authenticate the user on the server, in case the authentication has done successfully, the endpoint will return de token needed to do any of the endpoints. 
 
+Endpoint:  URL/auth/login   HTTP method: POST
+
+
 You need send an object like this in the request's body:
 ```
 {
@@ -242,12 +245,13 @@ _An example_
     "ok": true,
     "groups": [
         {
-            "id_group": 1,
-            "id_major": 2,
-            "name_group": "gro",
+            "id_group": 6,
+            "id_major": 1,
+            "name_group": "1 derecho",
             "entry_year": "1000-01-01",
-            "end_year": "2000-01-01"
-        }
+            "end_year": "2000-01-01",
+            "major_name": "Licenciatura en derecho"
+        },...
     ]
 }
 ```
@@ -311,7 +315,6 @@ URL/groups/Id_group   /*Method http: PUT*/
     "name_group": "4c",
     "entry_year": "1000-01-01",
     "end_year": "2000-01-01"
-   
 }
 ```
 
@@ -353,15 +356,19 @@ _An example_
     "ok": true,
     "employees": [
         {
-            "id_employee": "ale1.johan.gonzalez",
-            "id_user": 1,
-            "name": "johan",
-            "surname": "gonzalez",
-            "rfc": "dwadwada23",
-            "curp": "afrfowsef",
-            "mobile_number": "61825930",
-            "active": 1
-        }]
+            "id_employee": "ale14.Angel.Cruz",
+            "id_user": 14,
+            "name": "Angel",
+            "surname": "Cruz",
+            "rfc": "rfcunico11",
+            "curp": "curpunico11",
+            "mobile_number": "6182593051",
+            "active": 1,
+            "salary": 5000,
+            "campus_name": "Alejandria 222",
+            "department_name": "Contraloria"
+        },...
+    ]
 }
 ```
 ### Create an employee
@@ -425,7 +432,6 @@ URL/employees/Id_employee   /*Method http: PUT*/
     "mobile_number": "6182593051",
     "mobile_back_number": "4223",
     "address": "domicilio",
-    "active": 1,
     "rfc": "rfc"
    
 }
@@ -467,7 +473,24 @@ _An example_
 ```
 {
     "ok": true,
-    "students": []
+    "students": [
+        {
+            "id_student": "DEDG202103003",
+            "id_user": 9,
+            "name": "1na1me",
+            "surname": "s1ur1name",
+            "group_chief": 0,
+            "curp": "cu1d1rp",
+            "status": 1,
+            "mobile_number": "6611825",
+            "mobile_back_number": "4164020",
+            "address": "address",
+            "start_date": "1000-01-01",
+            "end_date": "2000-01-01",
+            "complete_documents": 0,
+            "campus_name": "Alejandria 2"
+        },...
+        ]
 }
 ```
 ### Create a student
@@ -525,7 +548,6 @@ URL/students/Id_students   /*Method http: PUT*/
     "surname": "s1ur1name",
     "group_chief": 0,
     "curp": "cu1d1rp",
-    "status": 2,
     "mobile_number": "6611825",
     "mobile_back_number": "4164020",
     "address": "address",
@@ -570,8 +592,20 @@ _An example_
 ```
 {
     "ok": true,
-    "teachers": []
-}
+    "teachers": [
+        {
+            "id_teacher": "ale15.Johan.Vargas",
+            "id_user": 15,
+            "name": "Johan",
+            "surname": "Vargas",
+            "rfc": "rfc11121",
+            "mobile_number": "6181266320",
+            "id_ext_cou": null,
+            "courses": 0,
+            "active": 1,
+            "campus_name": "Alejandria 222"
+        },...
+    ]
 ```
 ### Create a teacher
 
@@ -616,7 +650,6 @@ URL/teachers/Id_teacher   /*Method http: PUT*/
     "name": "1na11me",
     "surname": "s1u1r1name",
     "rfc": "rf1c121",
-    "active": 1,
     "mobile_number": "6611125",
 }
 ```
@@ -732,6 +765,7 @@ The result look like:
     "ok": true,
     "campus": [
         {
+            "id_campus" : 9
             "campus_name": "Alejandria",
             "address": "fake addreess #105",
             "state" : "Durango",            

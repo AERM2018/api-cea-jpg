@@ -3,10 +3,12 @@ const Group = require('../models/group');
 const Time_tables = require('../models/time_tables');
 const Major = require('../models/major');
 const Stu_gro = require('../models/stu_gro');
-
+const { Op, QueryTypes } = require('sequelize');
+const { db } = require('../database/connection');
+const { getGroups } = require('../queries/queries');
 
 const getAllGroups = async (req, res) => {
-    const groups = await Group.findAll();
+    const groups = await db.query(getGroups, { type : QueryTypes.SELECT})
     return res.status(200).json({
         ok: true,
         groups,
@@ -20,6 +22,10 @@ const createGroup = async (req, res) => {
     let id_group, id_time_table
     let ids_emp_tim
     try {
+
+
+       
+
         const major = await Major.findByPk(id_major);
         if (!major) {
             return res.status(404).json({
@@ -27,13 +33,25 @@ const createGroup = async (req, res) => {
                 msg: "No existe una carrera con el id " + id_major,
             });
         }
+        const groupName= await Group.findOne({
+            where:{name_group}
+        })
+        if(!groupName){
+            
+            const group = new Group({ id_major, name_group, entry_year, end_year });
+            const newGroup = await group.save()
+            const groupJson = newGroup.toJSON();
+            id_group = groupJson['id_group']
+        }
+        else{
+            return res.status(404).json({
+                ok: false,
+                msg: "Ya existe una un grupo con el nombre " + name_group,
+            });
+        }
         
         
         
-        const group = new Group({ id_major, name_group, entry_year, end_year });
-        const newGroup = await group.save()
-        const groupJson = newGroup.toJSON();
-        id_group = groupJson['id_group']
 
 
     } catch (error) {
@@ -97,6 +115,7 @@ const createGroup = async (req, res) => {
 const updateGroup = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
+    const {id_major,name_group}=body;
     try {
         const group = await Group.findByPk(id);
         if (!group) {
@@ -105,6 +124,29 @@ const updateGroup = async (req, res) => {
                 msg: "No existe un grupo con el id " + id,
             });
         }
+        const major = await Major.findByPk(id_major);
+        if (!major) {
+            return res.status(404).json({
+                ok: false,
+                msg: "No existe una carrera con el id " + id_major
+            });
+        }
+
+        const groupName = await Group.findOne({
+            where: {
+                name_group,
+                id_group: { [Op.ne]: id }
+            }
+        });
+
+        if (groupName){
+            return res.status(400).json({
+                ok: false,
+                msg: `Ya existe un grupo con el nombre ${name_group}`
+            })
+        }
+
+
 
         await group.update(body);
       

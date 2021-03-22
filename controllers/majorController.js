@@ -26,7 +26,7 @@ const createMajor = async (req, res) => {
         }else{
             return res.status(500).json({
                 ok:false,
-                msg: "Ya existe una carrera con ese nombre",
+                msg: `Ya existe una carrera con el nombre '${major_name}'`,
             })
         }
      
@@ -50,6 +50,7 @@ const createMajor = async (req, res) => {
 const updateMajor = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
+    const {major_name}= body;
     try {
         const major = await Major.findByPk(id);
         if (!major) {
@@ -57,6 +58,19 @@ const updateMajor = async (req, res) => {
                 ok:false,
                 msg: "No existe una carrera con el id " + id,
             });
+        }
+        const majorName = await Major.findOne({
+            where: {
+                major_name,
+                id_major: { [Op.ne]: id }
+            }
+        });
+
+        if (majorName){
+            return res.status(400).json({
+                ok: false,
+                msg: `Ya existe una carrera con el nombre ${major_name}`
+            })
         }
 
         await major.update(body);

@@ -3,11 +3,13 @@ const { db } = require("../database/connection");
 
 const Teacher = db.define('teachers',{
     id_teacher: {
+        
         type : DataTypes.STRING(30),
         primaryKey : true,
         validate : {
             notEmpty : true
-        }
+        },
+        
     },
     id_user : {
         type : DataTypes.INTEGER,
@@ -45,6 +47,6 @@ const Teacher = db.define('teachers',{
    
 
 },{
-    timestamps : false
+    timestamps : false,
 })
 module.exports = Teacher;

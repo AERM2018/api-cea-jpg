@@ -7,10 +7,11 @@ const bcrypt = require('bcryptjs');
 const Cam_use = require('../models/cam_use');
 const Departments = require('../models/department');
 const Department = require('../models/department');
+const { db } = require('../database/connection');
+const { getEmployees } = require('../queries/queries');
+const { QueryTypes } = require('sequelize');
 const getAllEmployees = async (req, res) => {
-    const employees = await Employee.findAll({
-        where: { 'active': 1, }
-    });
+    const employees = await db.query(getEmployees, { type : QueryTypes.SELECT})
 
 
     return res.status(200).json({

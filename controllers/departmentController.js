@@ -1,5 +1,5 @@
 const Department = require('../models/department')
-const { createJWT } = require("../helpers/jwt");
+const { Op } = require('sequelize');
 
 
 const getAllDepartments = async (req, res) => {
@@ -25,7 +25,7 @@ const createDepartment = async (req, res) => {
         }else{
             return res.status(500).json({
                 ok:false,
-                msg: "Ya existe un departamento con ese nombre",
+                msg: `Ya existe un departamento con el nombre de ${department_name}`,
             })
         }
 
@@ -44,6 +44,7 @@ const createDepartment = async (req, res) => {
 const updateDepartament = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
+    const { department_name } = body;
     try {
         
         const department = await Department.findByPk(id);
@@ -53,6 +54,19 @@ const updateDepartament = async (req, res) => {
             });
         }
 
+        const departmentAlready = await Department.findOne({
+            where : {
+                department_name,
+                id_department : {[Op.ne] : id}
+            }
+        });
+
+        if(departmentAlready){
+            return res.status(500).json({
+                ok:false,
+                msg: `Ya existe un departamento con el nombre de ${department_name}`,
+            })
+        }
         await department.update(body);
         
         res.status(200).json({

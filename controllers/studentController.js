@@ -4,12 +4,14 @@ const bcrypt = require('bcryptjs');
 const Group = require('../models/group');
 const Stu_gro = require('../models/stu_gro');
 const Cam_use = require('../models/cam_use');
-const Campus = require('../models/campus')
+const Campus = require('../models/campus');
+const { Op, QueryTypes } = require('sequelize');
+const { db } = require('../database/connection');
+const { getStudents } = require('../queries/queries');
+
 
 const getAllStudents = async (req, res) => {
-    const students = await Student.findAll({
-        where: { 'status': 1  }
-    });
+    const students = await db.query(getStudents, { type : QueryTypes.SELECT})
 
     return res.status(200).json({
         ok: true,
@@ -31,7 +33,7 @@ const createStudent = async (req, res) => {
         if (student) {
             return res.status(400).json({
                 ok: false,
-                msg: "Ya existe un alumno con esa matricula",
+                msg: "Ya existe un estudiante con la matricula " + id,
             })
         }
         const studentCurp = await Student.findOne({
@@ -40,7 +42,7 @@ const createStudent = async (req, res) => {
         if (studentCurp) {
             return res.status(400).json({
                 ok: false,
-                msg: "Ya existe un alumno con esa curp",
+                msg: `Ya existe un estudiante con la CURP ${curp}`,
             })
         }
 
@@ -75,7 +77,7 @@ const createStudent = async (req, res) => {
         else {
             return res.status(400).json({
                 ok: false,
-                msg: "Ya existe un usuario con ese email",
+                msg: `Ya existe un usuario con el email ${email}`,
             })
         }
 
@@ -153,17 +155,20 @@ const updateStudent = async (req, res) => {
         if (!student) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un estudiante con el id " + id,
+                msg: "No existe un estudiante con la matricula " + id,
             });
         }
 
         const stu = await Student.findOne({
-            where: { curp }
+            where: { 
+                curp,
+                id_student : {[Op.ne] : id}
+            }
         })
         if (stu) {
             return res.status(400).json({
                 ok: false,
-                msg: "Ya existe un estudiante con esa curp"
+                msg: `Ya existe un estudiante con la CURP ${curp}`
             })
         }
 
