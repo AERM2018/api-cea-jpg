@@ -12,7 +12,8 @@ employeesRouter.get('/',[
 employeesRouter.post('/',[
     check('email','El email es obligatorio').notEmpty().isEmail(),
     check('name','El nombre del empleado es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
-    check('surname','Los apellidos son obligatorios y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
+    check('surname_f','El apellido paterno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
+    check('surname_m','El apellido materno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
     check('rfc','El RFC es obligatorio y tiene que tener como maximo 13 caracteres').not().isEmpty().isLength({max:13}),
     check('curp','El CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
     check('mobile_number','El numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
@@ -33,7 +34,8 @@ employeesRouter.put('/:id',[
     //ID CHECARSE
     param('id','El id del empleado es una cadena de texto y es obligatorio').isString().notEmpty(),
     check('name','El nombre del empleado es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
-    check('surname','Los apellidos son obligatorios y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
+    check('surname_f','El apellido paterno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
+    check('surname_m','El apellido materno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
     check('rfc','El RFC es obligatorio y tiene que tener como maximo 13 caracteres').not().isEmpty().isLength({max:13}),
     check('curp','El CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
     check('mobile_number','El numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),

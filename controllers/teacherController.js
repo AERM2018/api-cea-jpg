@@ -25,7 +25,7 @@ const getAllTeachers = async (req, res) => {
 
 const createTeacher = async (req, res) => {
     const { body } = req;
-    const { name, surname, rfc, mobile_number, email, id_campus } = body;
+    const { name, surname_f,surname_m, rfc, mobile_number, email, id_campus } = body;
     let id_user, id_teacher
     try {
 
@@ -72,7 +72,7 @@ const createTeacher = async (req, res) => {
     }
     try {
         id_teacher = generateMatricula(id_user)
-        const teacher = new Teacher({ id_teacher, id_user, name, surname, rfc, mobile_number });
+        const teacher = new Teacher({ id_teacher, id_user, name, surname_f,surname_m, rfc, mobile_number });
         const newTeacher = await teacher.save();
         const newTeacherJson = newTeacher.toJSON();
         id_teacher = newTeacherJson['id_teacher']

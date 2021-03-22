@@ -15,7 +15,11 @@ const Student = db.define('students',{
         type : DataTypes.STRING,
         allowNull: false
     },
-    surname : {
+    surname_f : {
+        type : DataTypes.STRING,
+        allowNull: false
+    },
+    surname_m : {
         type : DataTypes.STRING,
         allowNull: false
     },

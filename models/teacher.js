@@ -19,7 +19,11 @@ const Teacher = db.define('teachers',{
         type : DataTypes.STRING,
         allowNull: false
     },
-    surname : {
+    surname_f : {
+        type : DataTypes.STRING,
+        allowNull: false
+    },
+    surname_m : {
         type : DataTypes.STRING,
         allowNull: false
     },

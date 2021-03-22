@@ -23,7 +23,7 @@ const createStudent = async (req, res) => {
     const { body } = req;
     const { email } = body;
     const { id_group, id_campus } = body;
-    const { id_student, name, surname, group_chief, curp, mobile_number, mobile_back_number, address, start_date, end_date, complete_documents } = body;
+    const { id_student, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number, address, start_date, end_date, complete_documents } = body;
     let id_user
     try {
         //email
@@ -90,7 +90,7 @@ const createStudent = async (req, res) => {
     }
     try {
         //matricula
-        const student = new Student({ id_student, id_user, name, surname, group_chief, curp, mobile_number, mobile_back_number, address, start_date, end_date, complete_documents });
+        const student = new Student({ id_student, id_user, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number, address, start_date, end_date, complete_documents });
         await student.save();
         // password
         const user = await User.findByPk(id_user);

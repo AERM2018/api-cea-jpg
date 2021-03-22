@@ -17,7 +17,11 @@ const Employees = db.define('employees',{
         type : DataTypes.STRING,
         allowNull: false
     },
-    surname : {
+    surname_f : {
+        type : DataTypes.STRING,
+        allowNull: false
+    },
+    surname_m : {
         type : DataTypes.STRING,
         allowNull: false
     },

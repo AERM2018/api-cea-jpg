@@ -26,7 +26,7 @@ const createEmployee = async (req, res) => {
     const { body } = req;
     const {  email } = body;
     const { time_tables, id_campus  } = body;
-    const { name, surname, rfc, curp, mobile_number, id_department, salary} = body;
+    const { name, surname_f,surname_m, rfc, curp, mobile_number, id_department, salary} = body;
     let id_user, id_employee
     let ids_emp_tim
     try {
@@ -109,7 +109,7 @@ const createEmployee = async (req, res) => {
         //creation of id_employee
         id_employee = generateMatricula(id_user)
         //creating employee
-        const employee = new Employee({ id_employee, id_user, name, surname, rfc, curp, mobile_number,salary });
+        const employee = new Employee({ id_employee, id_user, name, surname_f,surname_m, rfc, curp, mobile_number,salary });
         const newEmployee = await employee.save();
         const newEmployeeJson = newEmployee.toJSON();
         id_employee = newEmployeeJson['id_employee']

@@ -359,7 +359,8 @@ _An example_
             "id_employee": "ale14.Angel.Cruz",
             "id_user": 14,
             "name": "Angel",
-            "surname": "Cruz",
+            "surname_f": "Cruz",
+            "surname_m": "Cruz",
             "rfc": "rfcunico11",
             "curp": "curpunico11",
             "mobile_number": "6182593051",
@@ -384,7 +385,8 @@ _An example_
    {
     "email": "email@gmail.com",
     "name": "nombre",
-    "surname": "apellido",
+    "surname_f": "surname_1",
+    "surname_m": "surname_2",,
     "curp": "curpunico11",
     "mobile_number": "6182593051",
     "rfc": "rfcunico11",
@@ -426,8 +428,9 @@ URL/employees/Id_employee   /*Method http: PUT*/
 
 ```
       {
-    "name": "nombre",
-    "surname": "apellido",
+    "name": "name",
+    "surname_f": "surname_1",
+    "surname_m": "surname_2",,
     "curp": "curp",
     "mobile_number": "6182593051",
     "mobile_back_number": "4223",
@@ -478,7 +481,8 @@ _An example_
             "id_student": "DEDG202103003",
             "id_user": 9,
             "name": "1na1me",
-            "surname": "s1ur1name",
+            "surname_f": "surname_1",
+            "surname_m": "surname_2",
             "group_chief": 0,
             "curp": "cu1d1rp",
             "status": 1,
@@ -508,7 +512,8 @@ _An example_
     "email": "email1111@gmail.com",
     "id_student": "amatricula",
     "name": "1na1me",
-    "surname": "s1ur1name",
+    "surname_f": "surname_1",
+    "surname_m": "surname_2",
     "id_group": 1,
     "id_campus":1,
     "group_chief": 0,
@@ -545,7 +550,8 @@ URL/students/Id_students   /*Method http: PUT*/
 ```
 {
  "name": "1na1me",
-    "surname": "s1ur1name",
+    "surname_f": "surname_1",
+    "surname_m": "surname_2",
     "group_chief": 0,
     "curp": "cu1d1rp",
     "mobile_number": "6611825",
@@ -597,7 +603,8 @@ _An example_
             "id_teacher": "ale15.Johan.Vargas",
             "id_user": 15,
             "name": "Johan",
-            "surname": "Vargas",
+            "surname_f": "Gonzalez",
+            "surname_m": "Vargas",
             "rfc": "rfc11121",
             "mobile_number": "6181266320",
             "id_ext_cou": null,
@@ -620,7 +627,8 @@ _An example_
   {
     "email": "emmail1234@gmail.com",
     "name": "1na11me",
-    "surname": "s1u1r1name",
+    "surname_f": "surname_1",
+    "surname_m": "surname_2",
     "id_campus":1,
     "rfc": "rf1c121",
     "mobile_number": "6611125"
@@ -648,7 +656,8 @@ URL/teachers/Id_teacher   /*Method http: PUT*/
 ```
 {
     "name": "1na11me",
-    "surname": "s1u1r1name",
+    "surname_f": "surname_1",
+    "surname_m": "surname_2",
     "rfc": "rf1c121",
     "mobile_number": "6611125",
 }
