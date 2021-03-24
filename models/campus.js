@@ -13,7 +13,7 @@ const Campus = db.define('campus',{
             notEmpty : true
         }
     },
-    address : {
+    street : {
         type : DataTypes.STRING(100),
         allowNull : false,
         validate : {
