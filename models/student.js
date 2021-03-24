@@ -1,67 +1,95 @@
 const { DataTypes } = require("sequelize");
 const { db } = require("../database/connection");
 
-const Student = db.define('students',{
+const Student = db.define('students', {
     id_student: {
-        type : DataTypes.STRING,
-        primaryKey : true,
-        autoIncrement : true
+        type: DataTypes.STRING,
+        primaryKey: true,
+        autoIncrement: true
     },
-    id_user : {
-        type : DataTypes.INTEGER,
+    id_user: {
+        type: DataTypes.INTEGER,
         allowNull: false
     },
-    name : {
-        type : DataTypes.STRING,
+    name: {
+        type: DataTypes.STRING,
         allowNull: false
     },
-    surname_f : {
-        type : DataTypes.STRING,
+    surname_f: {
+        type: DataTypes.STRING,
         allowNull: false
     },
-    surname_m : {
-        type : DataTypes.STRING,
+    surname_m: {
+        type: DataTypes.STRING,
         allowNull: false
     },
-    group_chief : {
-        type : DataTypes.TINYINT,
+    group_chief: {
+        type: DataTypes.TINYINT,
         allowNull: false
     },
-    curp : {
-        type : DataTypes.STRING,
+    curp: {
+        type: DataTypes.STRING,
         allowNull: false
     },
-    status : {
-        type : DataTypes.INTEGER,
-        defaultValue : 1
+    status: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1
     },
-    mobile_number : {
-        type : DataTypes.STRING,
+    mobile_number: {
+        type: DataTypes.STRING,
         allowNull: false
     },
-    mobile_back_number : {
-        type : DataTypes.STRING,
+    mobile_back_number: {
+        type: DataTypes.STRING,
         allowNull: false
     },
-    address : {
-        type : DataTypes.STRING,
-        allowNull: false
+    start_date: {
+        type: DataTypes.DATE,
+        allowNull: true
     },
-    start_date : {
-        type : DataTypes.DATE,
-        allowNull: false
+    end_date: {
+        type: DataTypes.DATE,
+        allowNull: true
     },
-    end_date : {
-        type : DataTypes.DATE,
-        
+    street: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+        validate: {
+            notEmpty: true
+        }
     },
-    complete_documents : {
-        type : DataTypes.TINYINT,
-        allowNull: false
+    zip: {
+        type : DataTypes.STRING(6),
+        allowNull: false,
+        validate: {
+            notEmpty: true
+        }
     },
+    colony: {
+        type : DataTypes.STRING(30),
+        allowNull: false,
+        validate: {
+            notEmpty: true
+        }
+    },
+    matricula: {
+        type: DataTypes.STRING(15),
+        allowNull: false,
+        validate: {
+            notEmpty: true
+        }
+    },
+    birthday:{
+        type: DataTypes.DATE,
+        allowNull: false,
+    }
 
 
-},{
-    timestamps : false
+
+
+
+
+}, {
+    timestamps: false
 })
 module.exports = Student;

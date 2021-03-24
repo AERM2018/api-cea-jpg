@@ -391,6 +391,8 @@ _An example_
     "mobile_number": "6182593051",
     "rfc": "rfcunico11",
     "id_campus":1,
+    "id_department":1,
+    "salary":1000,
    "time_tables" : [{
     "day":7,
     "start_hour": "1:00:00",
@@ -432,9 +434,9 @@ URL/employees/Id_employee   /*Method http: PUT*/
     "surname_f": "surname_1",
     "surname_m": "surname_2",,
     "curp": "curp",
+    "salary":1000,
     "mobile_number": "6182593051",
     "mobile_back_number": "4223",
-    "address": "domicilio",
     "rfc": "rfc"
    
 }
@@ -478,7 +480,7 @@ _An example_
     "ok": true,
     "students": [
         {
-            "id_student": "DEDG202103003",
+            "matricula": "DEDG202103003",
             "id_user": 9,
             "name": "1na1me",
             "surname_f": "surname_1",
@@ -510,7 +512,7 @@ _An example_
   {
 
     "email": "email1111@gmail.com",
-    "id_student": "amatricula",
+    "matricula": "amatricula",
     "name": "1na1me",
     "surname_f": "surname_1",
     "surname_m": "surname_2",
@@ -520,10 +522,12 @@ _An example_
     "curp": "cu1d1rp",
     "mobile_number": "6611825",
     "mobile_back_number": "4164020",
-    "address": "address",
-    "start_date": "1000-01-01",
-    "end_date": "2000-01-01",
-    "complete_documents":0
+    "birthday":"2021-09-22",
+    "street":"huizache 1",
+    "zip":"34160",
+    "colony":"circuito peten"
+
+
     
     
 }
@@ -549,17 +553,18 @@ URL/students/Id_students   /*Method http: PUT*/
 
 ```
 {
- "name": "1na1me",
+    "name": "1na1me",
+    "matricula":"aw4d65daw456"
     "surname_f": "surname_1",
     "surname_m": "surname_2",
     "group_chief": 0,
     "curp": "cu1d1rp",
     "mobile_number": "6611825",
     "mobile_back_number": "4164020",
-    "address": "address",
-    "start_date": "1000-01-01",
-    "end_date": "2000-01-01",
-    "complete_documents":0
+    "birthday":"2021-09-22",
+    "street":"huizache 1",
+    "zip":"34160",
+    "colony":"circuito peten"
     }
 ```
 
@@ -776,7 +781,9 @@ The result look like:
         {
             "id_campus" : 9
             "campus_name": "Alejandria",
-            "address": "fake addreess #105",
+            "street":"STRING",
+            "zip":"STRING",
+            "colony":"STRING"
             "state" : "Durango",            
             "municipality": "Durango",
         }
@@ -796,7 +803,9 @@ You need send an object like this in the request's body:
 ```
 {
     "campus_name": STRING,
-    "address": STRING,
+    "street":"STRING",
+    "zip":"STRING",
+    "colony":"STRNG"
     "state" : STRING,            
     "municipality": STRING,
 }
@@ -815,7 +824,9 @@ You need send an object like this in the request's body:
 ```
 {
     "campus_name": STRING,
-    "address": STRING,
+    "street":"STRING",
+    "zip":"STRING",
+    "colony":"STRING"
     "state" : STRING,            
     "municipality": STRING,
 }

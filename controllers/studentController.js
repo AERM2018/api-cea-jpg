@@ -8,6 +8,7 @@ const Campus = require('../models/campus');
 const { Op, QueryTypes } = require('sequelize');
 const { db } = require('../database/connection');
 const { getStudents } = require('../queries/queries');
+const generateMatricula = require('../helpers/generateMatricula');
 
 
 const getAllStudents = async (req, res) => {
@@ -23,12 +24,12 @@ const createStudent = async (req, res) => {
     const { body } = req;
     const { email } = body;
     const { id_group, id_campus } = body;
-    const { id_student, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number, address, start_date, end_date, complete_documents } = body;
-    let id_user
+    const { matricula,street,zip,colony,birthday, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number,  start_date, end_date } = body;
+    let id_user, id_student
     try {
         //email
         const student = await Student.findOne({
-            where: { id_student }
+            where: { matricula }
         })
         if (student) {
             return res.status(400).json({
@@ -90,12 +91,13 @@ const createStudent = async (req, res) => {
     }
     try {
         //matricula
-        const student = new Student({ id_student, id_user, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number, address, start_date, end_date, complete_documents });
+        id_student= generateMatricula(id_user) 
+        const student = new Student({id_student, matricula, id_user, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number, street ,zip,colony,birthday  });
         await student.save();
         // password
         const user = await User.findByPk(id_user);
         const salt = bcrypt.genSaltSync();
-        const pass = bcrypt.hashSync(id_student, salt)
+        const pass = bcrypt.hashSync(matricula, salt)
         await user.update({ password: pass });
 
     } catch (error) {
@@ -150,6 +152,7 @@ const updateStudent = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
     const { curp } = body
+    const {matricula} = body;
     try {
         const student = await Student.findByPk(id);
         if (!student) {
@@ -169,6 +172,18 @@ const updateStudent = async (req, res) => {
             return res.status(400).json({
                 ok: false,
                 msg: `Ya existe un estudiante con la CURP ${curp}`
+            })
+        }
+        const matricula = await Student.findOne({
+            where: { 
+                matricula,
+                id_student : {[Op.ne] : id}
+            }
+        })
+        if (matricula) {
+            return res.status(400).json({
+                ok: false,
+                msg: `Ya existe un estudiante con esa matricula ${matricula}`
             })
         }
 

@@ -12,7 +12,7 @@ campusRouter.get('/', [
 
 campusRouter.post('/', [
     check('campus_name','El nombre del campus es obligatorio y debe de tener como máximo 100 caracteres').not().isEmpty().isLength( { max : 100} ),
-    check('address','La dirección del campus es obligatorio y debe de tener como máximo 100 caracteres').not().isEmpty().isLength( { max : 100} ),
+    check('street','La dirección del campus es obligatorio y debe de tener como máximo 100 caracteres').not().isEmpty().isLength( { max : 100} ),
     check('state','El estado donse se encuentra el campus es obligatorio y debe de tener como máximo 50 caracteres').not().isEmpty().isLength( { max : 50} ),
     check('municipality','El municipio donde se encuentra el campus es obligatorio y debe de tener como máximo 50 caracteres').not().isEmpty().isLength( { max : 50} ),
     check('colony','La colonia donde se encuentra el campus es obligatoria y debe de tener como máximo 30 caracteres').not().isEmpty().isLength( { max : 30} ),
@@ -24,7 +24,7 @@ campusRouter.post('/', [
 campusRouter.put('/:id',[
     param('id','El id del campus es obligatorio y debe der ser numero entero ').isNumeric(),
     check('campus_name','El nombre del campus es obligatorio y debe de tener como máximo 100 caracteres').not().isEmpty().isLength( { max : 100} ),
-    check('address','La dirección del campus es obligatorio y debe de tener como máximo 100 caracteres').not().isEmpty().isLength( { max : 100} ),
+    check('street','La dirección del campus es obligatorio y debe de tener como máximo 100 caracteres').not().isEmpty().isLength( { max : 100} ),
     check('state','El estado donse se encuentra el campus es obligatorio y debe de tener como máximo 50 caracteres').not().isEmpty().isLength( { max : 50} ),
     check('municipality','El municipio donde se encuentra el campus es obligatorio y debe de tener como máximo 50 caracteres').not().isEmpty().isLength( { max : 50} ),
     check('colony','La colonia donde se encuentra el campus es obligatoria y debe de tener como máximo 30 caracteres').not().isEmpty().isLength( { max : 30} ),
