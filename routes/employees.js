@@ -40,6 +40,7 @@ employeesRouter.put('/:id',[
     check('curp','El CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
     check('mobile_number','El numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
     check('active','El campo activo es obligatorio').isInt().exists({checkNull:true}),
+    check('salary','El salario del empleado es obligatorio y debe ser un flotante').isFloat().exists({ checkNull : true}),
     // poner id department
     validateFields,
    validateJWT

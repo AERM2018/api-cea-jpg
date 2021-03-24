@@ -26,26 +26,19 @@ const createCampus = async (req, res) => {
 
         // Check if the municipality exist
         const campusMun = await Campus.findOne({
-            where: {
-                [Op.or]: {
-                    [Op.and]: {
-                        municipality,
-                        state,
-                    },
-                    campus_name,
-                }
-            }
+            where: {campus_name}
+
         })
 
         if (campusMun) {
             return res.status(400).json({
                 ok: false,
-                msg: `Ya se encuentra registrado un campus con ese nombre o ubicación`
+                msg: `Ya se encuentra registrado un campus con el nombre de ${campus_name}`
             })
         }
 
         const campusZip = await Campus.findOne({
-            where : {
+            where: {
                 zip
             }
         })
@@ -93,32 +86,26 @@ const updateCampus = async (req, res) => {
 
         const campusMun = await Campus.findOne({
             where: {
-                [Op.or]:  [{
                     [Op.and]: {
-                        municipality,
-                        state,
-                        id_campus: { [Op.ne]: id }
-                    }},
-                    {[Op.and]: {
                         campus_name,
                         id_campus: { [Op.ne]: id }
                     },
-                }]
-            }
+                }
+            
         })
 
         if (campusMun) {
             return res.status(400).json({
                 ok: false,
-                msg: `Ya se encuentra registrado un campus con ese nombre o ubicación`
+                msg: `Ya se encuentra registrado un campus con el nombre de ${campus_name} `
 
             })
         }
 
         const campusZip = await Campus.findOne({
-            where : {
+            where: {
                 zip,
-                id_campus : { [Op.ne] : id}
+                id_campus: { [Op.ne]: id }
             }
         })
 

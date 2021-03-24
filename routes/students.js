@@ -10,9 +10,13 @@ studentsRouter.get('/', [
     validateJWT
 ], getAllStudents);
 studentsRouter.post('/',[
-    check('id_student','La matricula del estudiante es obligatoria').notEmpty().isString(),
+    check('matricula','La matricula del estudiante es obligatoria').not().isEmpty().isLength({max:15}),
+    check('street','La calle es obligatoria y tiene como maximo 100 caracteres').not().isEmpty().isLength({max:100}),
+    check('zip','El codigo postal de la direccion es obligatorio y tiene como maximo 6 caracteres').not().isEmpty().isLength({max:6}),
+    check('colony','La colonia es obligatoria y tiene como maximo 30 caracteres').not().isEmpty().isLength({max:30}),
     //check('user_type','El tipo de usuario es obligatorio y tiene que tener como maximo 8 caracteres').not().isEmpty().isLength({max:8}),
     check('email','El email es obligatorio').notEmpty().isEmail(),
+    check('birthday','La fecha de nacimiento del estudiante es obligatoria').isDate(),
     check('name','El nombre del estudiante es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
     check('surname_f','El apellido paterno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
     check('surname_m','El apellido materno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
@@ -21,29 +25,32 @@ studentsRouter.post('/',[
     check('mobile_number','El numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
     //check('status','El estatus del alumno es obligatorio').isInt().exists({checkNull:true}),
     check('mobile_back_number','El numero de telefono es obligatorio y tiene que tener como maximo 10 caracteres').not().isEmpty().isLength({max:10}),
-    check('address','El domicilio es obligatorio y tiene que tener 50 caracteres como maximo').not().isEmpty().isLength({max:50}),
-    check('start_date','La fecha de inicio es obligatoria').notEmpty().isDate(),
-    check('end_date','La fecha de fin es obligatoria').notEmpty().isDate(),
-    check('complete_documents','Falta el campo de los documentos del alumno').notEmpty().isInt(),
+    //check('address','El domicilio es obligatorio y tiene que tener 50 caracteres como maximo').not().isEmpty().isLength({max:50}),
+   
+    //check('complete_documents','Falta el campo de los documentos del alumno').notEmpty().isInt(),
     check('id_group','Falta el campo del id del alumno').isInt().exists({checkNull:true}),
     validateFields,
     validateJWT
 
 ], createStudent);
 studentsRouter.put('/:id',[
+
     param('id','El id es obligatorio y tiene que ser la matricula de un alumno').notEmpty().isString(),
+    check('matricula','La matricula del estudiante es obligatoria').not().isEmpty().isLength({max:15}),
     check('name','El nombre del estudiante es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
     check('surname_f','El apellido paterno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
     check('surname_m','El apellido materno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
     check('group_chief','El campo de jefe de grupo se tiene que llenar').notEmpty().isInt(),
+    check('birthday','La fecha de nacimiento del estudiante es obligatoria').isDate(),
     check('curp','El CURP es obligatorio y tiene que tener como maximo 18 caracteres').not().isEmpty().isLength({max:18}),
     check('mobile_number','El numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
-
+    check('street','La calle es obligatoria y tiene como maximo 100 caracteres').not().isEmpty().isLength({max:100}),
+    check('zip','El codigo postal de la direccion es obligatorio y tiene como maximo 6 caracteres').not().isEmpty().isLength({max:6}),
+    check('colony','La colonia es obligatoria y tiene como maximo 30 caracteres').not().isEmpty().isLength({max:30}),
     check('mobile_back_number','El numero de telefono es obligatorio y tiene que tener como maximo 10 caracteres').not().isEmpty().isLength({max:10}),
-    check('address','El domicilio es obligatorio y tiene que tener 50 caracteres como maximo').not().isEmpty().isLength({max:50}),
-    check('start_date','La fecha de inicio es obligatoria').notEmpty().isDate(),
-    check('end_date','La fecha de fin es obligatoria').notEmpty().isDate(),
-    check('complete_documents','Falta el campo de los documentos del alumno').isInt().exists({checkNull:true}),
+    //check('address','El domicilio es obligatorio y tiene que tener 50 caracteres como maximo').not().isEmpty().isLength({max:50}),
+  
+   // check('complete_documents','Falta el campo de los documentos del alumno').isInt().exists({checkNull:true}),
     validateFields,
     validateJWT
 
