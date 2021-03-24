@@ -5,13 +5,13 @@ const getAllCampus = async (req, res) => {
 
     try {
         const campus = await Campus.findAll()
-        res.status(200).json({
+        return res.status(200).json({
             ok: true,
             campus
         })
     } catch (err) {
         console.log(err)
-        res.status(500).json({
+        return res.status(500).json({
             ok: false,
             msg: 'Hable con el administrador'
         })
