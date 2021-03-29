@@ -14,7 +14,7 @@ teachersRouter.get('/',[
 teachersRouter.post('/',[
     // check('user_type','el tipo de usuario es obligatorio y tiene que tener como maximo 8 caracteres').not().isEmpty().isLength({max:8}),
     check('name','El nombre del profesor es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
-    check('email','El email es obligatorio').notEmpty().isEmail(),
+    // check('email','El email es obligatorio').notEmpty().isEmail(),
     check('surname_f','El apellido paterno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
     check('surname_m','El apellido materno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
     check('rfc','El RFC es obligatorio y tiene que tener como maximo 13 caracteres').not().isEmpty().isLength({max:13}),

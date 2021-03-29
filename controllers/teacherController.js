@@ -48,19 +48,12 @@ const createTeacher = async (req, res) => {
             })
         }
 
-        const user = await User.findOne({ where: { email } })
-        if (!user) {
-            const usern = new User({ user_type: "teacher", email, password: "123456" });
+        
+            const usern = new User({ user_type: "teacher", password: "123456" });
             const newUser = await usern.save()
             const userJson = newUser.toJSON();
             id_user = userJson['id_user']
-        }
-        else {
-            return res.status(400).json({
-                ok: false,
-                msg: "Ya existe un usuario con ese email",
-            })
-        }
+        
 
 
     } catch (error) {
