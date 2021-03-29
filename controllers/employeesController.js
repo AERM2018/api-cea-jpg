@@ -192,7 +192,8 @@ const createEmployee = async (req, res) => {
 
     res.status(201).json({
         ok: true,
-        msg: "empleado creado correctamente"
+        msg: `empleado creado correctamente con id ${id_employee}`
+        
     })
 
 }

@@ -10,7 +10,7 @@ studentsRouter.get('/', [
     validateJWT
 ], getAllStudents);
 studentsRouter.post('/',[
-    check('email','El email es obligatorio').notEmpty().isEmail(),
+    // check('email','El email es obligatorio').notEmpty().isEmail(),
     check('matricula','La matricula del estudiante es obligatoria').not().isEmpty().isLength({max:15}),
     check('name','El nombre del estudiante es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
     check('surname_f','El apellido paterno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),

@@ -25,7 +25,7 @@ const createStudent = async (req, res) => {
     const { email } = body;
     const { id_group, id_campus } = body;
     const { matricula,street,zip,colony,birthdate, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number,  start_date, end_date } = body;
-    let id_user, id_student
+    let id_user, id_student, user
     try {
         //email
         const student = await Student.findOne({
@@ -68,13 +68,15 @@ const createStudent = async (req, res) => {
         }
 
 
-        const user =  await User.findOne({ where: { email } })
+        user =  await User.findOne({ where: { email } })
         if (!user) {
-            const usern = new User({ user_type: "student", email, password: "123456" });
+            const usern = new User({ user_type: "student", password: "123456" });
             const newUser = await usern.save()
             const userJson = newUser.toJSON();
             id_user = userJson['id_user']
         }
+
+
         else {
             return res.status(400).json({
                 ok: false,
@@ -99,6 +101,9 @@ const createStudent = async (req, res) => {
         const salt = bcrypt.genSaltSync();
         const pass = bcrypt.hashSync(matricula, salt)
         await user.update({ password: pass });
+
+        const inst_email = `${id_student}@alejandria.edu.mx`
+        await user.update({email : inst_email})
 
     } catch (error) {
         console.log(error)
@@ -143,7 +148,7 @@ const createStudent = async (req, res) => {
     res.status(201).json({
         ok: true,
         msg: "Estudiante creado correctamente"
-    })
+})
 
 
 
