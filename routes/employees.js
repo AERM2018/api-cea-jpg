@@ -10,7 +10,7 @@ employeesRouter.get('/',[
     validateJWT
 ], getAllEmployees);
 employeesRouter.post('/',[
-    check('email','El email es obligatorio').notEmpty().isEmail(),
+    // check('email','El email es obligatorio').notEmpty().isEmail(),
     check('name','El nombre del empleado es obligatorio y debe de tener como maximo 35 caracteres').not().isEmpty().isLength({max:35}),
     check('surname_f','El apellido paterno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
     check('surname_m','El apellido materno es obligatorio y debe de tener como maximo 45 caracteres').not().isEmpty().isLength({max:45}),
