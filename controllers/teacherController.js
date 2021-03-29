@@ -26,7 +26,7 @@ const getAllTeachers = async (req, res) => {
 const createTeacher = async (req, res) => {
     const { body } = req;
     const { name, surname_f,surname_m, rfc, mobile_number, email, id_campus } = body;
-    let id_user, id_teacher
+    let id_user, id_teacher, user
     try {
 
         const teacher = await Teacher.findOne({
@@ -70,11 +70,14 @@ const createTeacher = async (req, res) => {
         const newTeacherJson = newTeacher.toJSON();
         id_teacher = newTeacherJson['id_teacher']
         // create password
-        const user = await User.findByPk(id_user);
+        user = await User.findByPk(id_user);
         const salt = bcrypt.genSaltSync();
         const pass = bcrypt.hashSync(id_teacher, salt)
 
         await user.update({ password: pass });
+
+        const inst_email = `${id_teacher}@alejandria.edu.mx`
+        await user.update({email : inst_email})
     } catch (error) {
         console.log(error)
         return res.status(500).json({

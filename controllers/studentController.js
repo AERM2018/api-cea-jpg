@@ -220,7 +220,8 @@ const deleteStudent = async (req, res) => {
             ok: true,
             msg: "El alumno se elimino correctamente"
         })
-    } catch (error) {
+    } catch (error) 
+    {
         console.log(error)
         return res.status(500).json({
             ok: false,

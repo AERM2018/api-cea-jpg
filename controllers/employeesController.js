@@ -49,7 +49,7 @@ const createEmployee = async (req, res) => {
     const {  email } = body;
     const { time_tables, id_campus  } = body;
     const { name, surname_f,surname_m, rfc, curp, mobile_number, id_department, salary} = body;
-    let id_user, id_employee
+    let id_user, id_employee, user
     let ids_emp_tim
     try {
         const employee= await Employee.findOne({
@@ -64,7 +64,6 @@ const createEmployee = async (req, res) => {
         const employee2= await Department.findOne({
             where:{id_department}
         })
-        console.log(employee2)
         if(!employee2){
             return res.status(400).json({
                 ok : false,
@@ -127,12 +126,15 @@ const createEmployee = async (req, res) => {
         const newEmployee = await employee.save();
         const newEmployeeJson = newEmployee.toJSON();
         id_employee = newEmployeeJson['id_employee']
-        const user = await User.findByPk(id_user);
+        user = await User.findByPk(id_user);
         // creation of password
         const salt = bcrypt.genSaltSync();
         const pass = bcrypt.hashSync(id_employee, salt)
 
         await user.update({ password: pass });
+
+        const inst_email = `${id_employee}@alejandria.edu.mx`
+        await user.update({email : inst_email})
 
     } catch (error) {
         console.log(error)
@@ -184,7 +186,7 @@ const createEmployee = async (req, res) => {
 
     res.status(201).json({
         ok: true,
-        msg: `empleado creado correctamente con id ${id_employee}`
+        msg: `Empleado creado correctamente con id :${id_employee}`
         
     })
 
