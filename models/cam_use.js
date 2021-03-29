@@ -2,7 +2,7 @@ const {DataTypes} = require("sequelize");
 const {db} = require('../database/connection')
 
 
-const Cam_use =  db.define('Cam_use',{
+const Cam_use =  db.define('cam_use',{
     id_cam_use : {
         primaryKey : true,
         type : DataTypes.INTEGER,
