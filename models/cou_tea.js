@@ -2,7 +2,7 @@ const {DataTypes} = require("sequelize");
 const {db} = require('../database/connection')
 
 
-const Cou_tea =  db.define('Cou_tea',{
+const Cou_tea =  db.define('cou_tea',{
     id_sub_tea : {
         primaryKey : true,
         type : DataTypes.INTEGER,

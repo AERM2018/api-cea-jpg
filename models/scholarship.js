@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize')
 const { db } = require('../database/connection')
 
 
-const Scholarship = db.define('Scholarship',{
+const Scholarship = db.define('scholarship',{
     id_scholarship : {
         type : DataTypes.INTEGER,
         primaryKey : true,
