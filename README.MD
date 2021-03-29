@@ -271,8 +271,6 @@ _An example_
        {
     "id_major": 1,
     "name_group": "gro",
-    "entry_year": "1000-01-01",
-    "end_year": "2000-01-01",
     "time_tables": [
         {
             "day": 7,

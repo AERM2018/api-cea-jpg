@@ -16,10 +16,14 @@ const Group = db.define('groupss',{
         allowNull: false
     },
     entry_year : {
-        type : DataTypes.DATE
+        type : DataTypes.DATE,
+        allowNull: true,
+        defaultValue : null
     },
     end_year : {
-        type : DataTypes.DATE
+        type : DataTypes.DATE,
+        allowNull: true,
+        defaultValue : null
     }
     
 
