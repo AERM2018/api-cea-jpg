@@ -50,7 +50,9 @@ fetch(URL, {
 
 This endpoint will authenticate the user on the server, in case the authentication has done successfully, the endpoint will return de token needed to do any of the endpoints. 
 
+```
 Endpoint:  URL/auth/login   HTTP method: POST
+```
 
 
 You need send an object like this in the request's body:
@@ -522,7 +524,7 @@ _An example_
     "curp": "cu1d1rp",
     "mobile_number": "6611825",
     "mobile_back_number": "4164020",
-    "birthday":"2021-09-22",
+    "birthdate":"2021-09-22",
     "street":"huizache 1",
     "zip":"34160",
     "colony":"circuito peten"
@@ -553,18 +555,24 @@ URL/students/Id_students   /*Method http: PUT*/
 
 ```
 {
-    "name": "1na1me",
-    "matricula":"aw4d65daw456"
-    "surname_f": "surname_1",
-    "surname_m": "surname_2",
+    "id_student": "ale108889",
+    "id_user": 108,
+    "name": "Angel",
     "group_chief": 0,
-    "curp": "cu1d1rp",
+    "curp": "curp",
+    "status": 1,
     "mobile_number": "6611825",
     "mobile_back_number": "4164020",
-    "birthday":"2021-09-22",
-    "street":"huizache 1",
-    "zip":"34160",
-    "colony":"circuito peten"
+    "street": "address",
+    "start_date": null,
+    "end_date": null,
+    "surname_f": "Gonzalez",
+    "surname_m": "Gonzalez",
+    "colony": "Huizache",
+    "zip": "30160",
+    "matricula": "DEDG202103002",
+    "birthdate": "2020-06-03",
+    "campus_name": "Alejandria 3"
     }
 ```
 
@@ -579,9 +587,9 @@ URL/students/Id_students   /*Method http: PUT*/
 ### Delete student
 
 ```
-URL/students/Id_students   /*Method http: DELETE*/
+URL/students/Id_student   /*Method http: DELETE*/
 ```
-- _This endpoint is to delete a student, you just have to put in the params the id of the student instead of id-student_
+- _This endpoint is to delete a student, you just have to put in the params the matricula of the student instead of id-student_
 - _if the request is successful the response would be:_
 ```
 {
@@ -865,7 +873,7 @@ The result look like:
             "percentage": 100,
             "reason": "Buen alumno",
             "observations": "",
-            "id_student": "An student's id",
+            "matricula": "An student's matricula",
             "Student": "An student's name"
         },
         ...
@@ -884,7 +892,7 @@ Endpoint:  URL/scholarships    HTTP method: POST
 You need send an object like this in the request's body:
 ```
 {
-    "id_student": STRING,
+    "matricula": STRING,
     "scholarship_name": STRING,
     "percentage": FLOAT,
     "reason": STRING,
@@ -907,7 +915,7 @@ Endpoint:  URL/scholarships/id_scholarship   HTTP method: PUT
 You need send an object like this in the request's body:
 ```
 {
-    "id_student": STRING,
+    "matricula": STRING,
     "scholarship_name": STRING,
     "percentage": FLOAT,
     "reason": STRING,

@@ -24,7 +24,7 @@ const createStudent = async (req, res) => {
     const { body } = req;
     const { email } = body;
     const { id_group, id_campus } = body;
-    const { matricula,street,zip,colony,birthday, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number,  start_date, end_date } = body;
+    const { matricula,street,zip,colony,birthdate, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number,  start_date, end_date } = body;
     let id_user, id_student
     try {
         //email
@@ -34,7 +34,7 @@ const createStudent = async (req, res) => {
         if (student) {
             return res.status(400).json({
                 ok: false,
-                msg: "Ya existe un estudiante con la matricula " + id,
+                msg: "Ya existe un estudiante con la matricula " + matricula,
             })
         }
         const studentCurp = await Student.findOne({
@@ -92,7 +92,7 @@ const createStudent = async (req, res) => {
     try {
         //matricula
         id_student= generateMatricula(id_user) 
-        const student = new Student({id_student, matricula, id_user, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number, street ,zip,colony,birthday  });
+        const student = new Student({id_student, matricula, id_user, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number, street ,zip,colony,birthdate  });
         await student.save();
         // password
         const user = await User.findByPk(id_user);
@@ -208,11 +208,13 @@ const deleteStudent = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const student = await Student.findByPk(id);
+        const student = await Student.findOne({
+            where : { matricula: id }
+        });
         if (!student) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un alumno con el id " + id,
+                msg: "No existe un alumno con la matricula " + id,
             });
         }
 

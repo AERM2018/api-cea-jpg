@@ -11,7 +11,7 @@ scholarshipRouter.get( '/', [
 ],  getAllScholarships);
 
 scholarshipRouter.post('/',[
-    check('id_student','La matricula del estudiante es obligatoria y debe tener como máximo 15 caracteres').notEmpty().isString().isLength( { max : 15} ),
+    check('matricula','La matricula del estudiante es obligatoria y debe tener como máximo 15 caracteres').notEmpty().isString().isLength( { max : 15} ),
     check('scholarship_name','El nombre de la beca es obligatorio y debe tener como máximo 15 caracteres').notEmpty().isString().isLength( { max : 15} ),
     check('percentage','El porcentaje de la beca es obligatorio y debe ser numero flotante').isFloat().exists({checkNull:true}),
     check('reason','La razon de la beca es obligatoria y debe tener como máximo 100 caracteres').notEmpty().isString().isLength( { max : 100} ),
@@ -23,7 +23,7 @@ scholarshipRouter.post('/',[
 
 scholarshipRouter.put( '/:id_scholarship',[
     check('id_scholarship','El id de la beca es un numero entero y es obligatorio').notEmpty().exists( {checkNull:true} ),
-    check('id_student','La matricula del estudiante es obligatoria y debe tener como máximo 15 caracteres').notEmpty().isString().isLength( { max : 15} ),
+    check('matricula','La matricula del estudiante es obligatoria y debe tener como máximo 15 caracteres').notEmpty().isString().isLength( { max : 15} ),
     check('scholarship_name','El nombre de la beca es obligatorio y debe tener como máximo 15 caracteres').notEmpty().isString().isLength( { max : 15} ),
     check('percentage','El porcentaje de la beca es obligatorio y debe ser numero con decimales').isFloat().exists({checkNull:true}),
     check('reason','La razon de la beca es obligatoria y debe tener como máximo 100 caracteres').notEmpty().isString().isLength( { max : 100} ),

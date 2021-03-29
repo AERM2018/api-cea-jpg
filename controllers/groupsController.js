@@ -8,11 +8,34 @@ const { db } = require('../database/connection');
 const { getGroups } = require('../queries/queries');
 
 const getAllGroups = async (req, res) => {
-    const groups = await db.query(getGroups, { type : QueryTypes.SELECT})
-    return res.status(200).json({
-        ok: true,
-        groups,
-    })
+    try {
+        const groups_no_time = await db.query(getGroups, { type : QueryTypes.SELECT})
+       
+        const groups_time =  groups_no_time.map( async group => {
+            const gro_tim = await Gro_tim.findAll({
+                where : { id_group : group.id_group},
+                attributes : ['id_time_table'],
+                
+            })
+            const time_tables = await Time_tables.findAll({
+                where : { id_time_table : { [Op.in] : gro_tim.map( time_table => time_table.toJSON().id_time_table)}},
+                attributes : { exclude : ['id_time_table']}
+            })
+            return {...group, time_table : time_tables.map( time_table => time_table.toJSON())}
+        })
+        
+        Promise.all(groups_time).then( groups => {
+            return res.status(200).json({
+                ok: true,
+                groups,
+            })
+        })
+    } catch ( err ) {
+        return res.status(500).json({
+            ok: false,
+           msg : "Hable con el administrador"
+        })
+    }
 }
 
 const createGroup = async (req, res) => {

@@ -45,11 +45,13 @@ const Student = db.define('students', {
     },
     start_date: {
         type: DataTypes.DATE,
-        allowNull: true
+        allowNull: true,
+        defaultValue: null
     },
     end_date: {
         type: DataTypes.DATE,
-        allowNull: true
+        allowNull: true,
+        defaultValue: null
     },
     street: {
         type: DataTypes.STRING(100),
@@ -79,7 +81,7 @@ const Student = db.define('students', {
             notEmpty: true
         }
     },
-    birthday:{
+    birthdate:{
         type: DataTypes.DATE,
         allowNull: false,
     }

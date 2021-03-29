@@ -10,7 +10,6 @@ const getAllScholarships = async (req, res = response) => {
     try {
         const scholarships = await db.query(getScholarships, { type: QueryTypes.SELECT });
 
-        console.log(scholarships)
         res.status(200).json({
             ok: true,
             scholarships
@@ -26,17 +25,17 @@ const getAllScholarships = async (req, res = response) => {
 
 const createScholarship = async (req, res = response) => {
     const { body } = req;
-    const { id_student, scholarship_name, percentage, reason, observations } = body;
+    const { matricula, scholarship_name, percentage, reason, observations } = body;
 
     try {
         // check if the student exists
         const student = await Student.findOne({
-            where: { 'id_student': id_student }
+            where: { 'matricula': matricula }
         });
         if (!student) {
             return res.status(404).json({
                 ok: false,
-                msg: `El estudiante con id ${id_student} no existe, verifiquelo por favor.`
+                msg: `El estudiante con id ${matricula} no existe, verifiquelo por favor.`
             });
         }
 
@@ -44,7 +43,7 @@ const createScholarship = async (req, res = response) => {
         const newSch = await scholarship.save();
         const id_scholarship = newSch.toJSON()['id_scholarship'];
 
-        const sch_stu = new Sch_stu({ id_scholarship, id_student });
+        const sch_stu = new Sch_stu({ id_scholarship, id_student: student.id_student });
         await sch_stu.save()
 
         res.status(201).json({
@@ -64,7 +63,7 @@ const createScholarship = async (req, res = response) => {
 
 const updateScholarship = async (req, res = response) => {
     const { id_scholarship } = req.params
-    const { id_student } = req.body;
+    const { matricula, ...rest } = req.body;
 
     try {
         // Check if the scholarship exists
@@ -75,21 +74,23 @@ const updateScholarship = async (req, res = response) => {
                 msg: `La beca con id ${id_scholarship} no existe, verifiquelo por favor.`
             });
         }
-
-        if (scholarship.toJSON().id_student != id_student) {
-            // check if the student exists
-            const student = await Student.findOne({
-                where: { 'id_student': id_student }
+        // check if the student exists
+        const student = await Student.findOne({
+            where: { 'matricula': matricula }
+        });
+        if (!student) {
+            return res.status(404).json({
+                ok: false,
+                msg: `El estudiante con id ${matricula} no existe, verifiquelo por favor.`
             });
-            if (!student) {
-                return res.status(404).json({
-                    ok: false,
-                    msg: `El estudiante con id ${id_student} no existe, verifiquelo por favor.`
-                });
-            }
         }
-
-        await Scholarship.update(body, { where: { 'id_scholarship': id_scholarship } })
+        const sch_stu = await Sch_stu.findOne({
+            where : { id_scholarship : scholarship.id_scholarship}
+        })
+         if(sch_stu.id_student != student.id_student){
+             await sch_stu.update({id_student : student.id_student})
+         }
+        await Scholarship.update({...rest}, { where: { 'id_scholarship': id_scholarship } })
         res.status(200).json({
             ok: true,
             msg: `La beca con id ${id_scholarship} se actualizo correctamente.`

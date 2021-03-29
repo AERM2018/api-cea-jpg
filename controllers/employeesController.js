@@ -5,21 +5,43 @@ const Emp_dep = require('../models/emp_dep');
 const Emp_tim = require('../models/emp_tim');
 const bcrypt = require('bcryptjs');
 const Cam_use = require('../models/cam_use');
-const Departments = require('../models/department');
 const Department = require('../models/department');
 const { db } = require('../database/connection');
 const { getEmployees } = require('../queries/queries');
-const { QueryTypes } = require('sequelize');
+const { QueryTypes, Op } = require('sequelize');
 const generateMatricula = require('../helpers/generateMatricula');
 const getAllEmployees = async (req, res) => {
-    const employees = await db.query(getEmployees, { type : QueryTypes.SELECT})
-
-
-    return res.status(200).json({
-        ok: true,
-        employees,
-
-    })
+    try {
+        const employees_no_time = await db.query(getEmployees, { type : QueryTypes.SELECT})
+    
+        const employees_time = employees_no_time.map( async employee => {
+            const emp_time =  await Emp_tim.findAll({
+                where : {id_employee : employee.id_employee},
+                attributes : ['id_time_table']
+            })
+    
+            const time_tables = await Time_tables.findAll({
+                where : { id_time_table : { [Op.in] : emp_time.map(time_table => time_table.toJSON().id_time_table)}},
+                attributes : { exclude : ['id_time_table']}
+            })
+    
+            return {...employee, time_table : time_tables.map( time_table => time_table.toJSON())}
+        })
+    
+    
+        Promise.all(employees_time).then( employees => {
+            return res.status(200).json({
+                ok: true,
+                employees,
+            })
+        })
+        
+    } catch ( err ) {
+        return res.status(500).json({
+            ok: false,
+            msg : "Hable con el administrador",
+        })
+    }
 }
 
 const createEmployee = async (req, res) => {
@@ -234,11 +256,6 @@ const deleteEmployee = async (req, res) => {
 
 
 }
-
-
-
-
-
 
 module.exports = {
     getAllEmployees,

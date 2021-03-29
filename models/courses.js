@@ -1,7 +1,7 @@
 // const { DataTypes } = require('sequelize');
 const { DataTypes } = require('sequelize');
 const { db } = require('../database/connection');
-const Course = db.define('Course',{
+const Course = db.define('courses',{
     id_course : {
         primaryKey : true,
         autoIncrement : true,
