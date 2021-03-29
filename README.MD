@@ -555,24 +555,18 @@ URL/students/Id_students   /*Method http: PUT*/
 
 ```
 {
-    "id_student": "ale108889",
-    "id_user": 108,
+    "matricula": "DEDG202103002",
     "name": "Angel",
+    "surname_f": "Gonzalez",
+    "surname_m": "Gonzalez",
     "group_chief": 0,
+    "birthdate": "2020-06-03",
     "curp": "curp",
-    "status": 1,
     "mobile_number": "6611825",
     "mobile_back_number": "4164020",
     "street": "address",
-    "start_date": null,
-    "end_date": null,
-    "surname_f": "Gonzalez",
-    "surname_m": "Gonzalez",
     "colony": "Huizache",
-    "zip": "30160",
-    "matricula": "DEDG202103002",
-    "birthdate": "2020-06-03",
-    "campus_name": "Alejandria 3"
+    "zip": "30160"
     }
 ```
 
