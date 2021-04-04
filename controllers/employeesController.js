@@ -13,6 +13,7 @@ const generateMatricula = require('../helpers/generateMatricula');
 const getAllEmployees = async (req, res) => {
     try {
         const employees_no_time = await db.query(getEmployees, { type : QueryTypes.SELECT})
+        
     
         const employees_time = employees_no_time.map( async employee => {
             const emp_time =  await Emp_tim.findAll({
@@ -37,6 +38,7 @@ const getAllEmployees = async (req, res) => {
         })
         
     } catch ( err ) {
+        console.log(err)
         return res.status(500).json({
             ok: false,
             msg : "Hable con el administrador",
@@ -51,6 +53,7 @@ const createEmployee = async (req, res) => {
     const { name, surname_f,surname_m, rfc, curp, mobile_number, id_department, salary} = body;
     let id_user, id_employee, user
     let ids_emp_tim
+
     try {
         const employee= await Employee.findOne({
             where:{rfc}
@@ -67,7 +70,7 @@ const createEmployee = async (req, res) => {
         if(!employee2){
             return res.status(400).json({
                 ok : false,
-                msg: "El departamento con es id no existe",
+                msg: `El departamento con el id ${id_department} no existe`,
             })
         }
 
@@ -171,6 +174,7 @@ const createEmployee = async (req, res) => {
     }
     try {
        //campus
+        
         const cam_use = new Cam_use({id_campus,id_user});
         await cam_use.save();
 
