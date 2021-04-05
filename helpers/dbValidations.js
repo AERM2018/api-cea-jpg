@@ -32,6 +32,7 @@ const checkDepartmentExistence = async( id_department = 0 ) => {
         throw new Error (`El departamento con id ${id_department} no existe`)
     }
 }
+
 module.exports = {
     checkCampusExistence,
     checkStudentExistence,
