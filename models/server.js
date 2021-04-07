@@ -28,6 +28,7 @@ class Server{
         this.middlewares();
         this.base = 'api-ale/v1'
         this.apiPaths = {
+            index : '/',
             auth : `/${this.base}/auth`,
             states : `/${this.base}/states`,
             municipalities : `/${this.base}/municipalities`,
@@ -67,6 +68,9 @@ class Server{
         this.app.use(this.apiPaths.groups, groupsRouter)
         this.app.use(this.apiPaths.students, studentsRouter)
         this.app.use(this.apiPaths.teachers, teachersRouter)
+        this.app.use(this.apiPaths.index, ( req, res) => {
+            res.send('Hola mundo')
+        })
     }
     listen(){
         this.app.listen( this.port, () => {
