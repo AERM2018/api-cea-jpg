@@ -155,7 +155,7 @@ const updateStudent = async (req, res) => {
         if (!student) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un estudiante con la matricula " + id,
+                msg: "No existe un estudiante con el id " + id,
             });
         }
 
@@ -206,12 +206,12 @@ const deleteStudent = async (req, res) => {
 
     try {
         const student = await Student.findOne({
-            where : { matricula: id }
+            where : { id_student: id }
         });
         if (!student) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un alumno con la matricula " + id,
+                msg: "No existe un alumno con el id " + id,
             });
         }
 
