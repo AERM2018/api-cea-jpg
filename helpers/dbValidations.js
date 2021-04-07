@@ -1,5 +1,6 @@
 const Campus = require('../models/campus');
 const Department = require('../models/department');
+const Payment = require('../models/payment');
 const Student = require('../models/student');
 
 const checkCampusExistence = async( id_campus = 0) => {  
@@ -33,8 +34,21 @@ const checkDepartmentExistence = async( id_department = 0 ) => {
     }
 }
 
+const checkPaymentExistence = async( id_payment = 0 ) => {
+    const payment = await Payment.findOne({
+        where : {
+            id_payment : id_payment
+        }
+    });
+
+    if(!payment){
+        throw new Error (`El pago con id ${id_payment} no existe`)
+    }
+}
+
 module.exports = {
     checkCampusExistence,
     checkStudentExistence,
-    checkDepartmentExistence
+    checkDepartmentExistence,
+    checkPaymentExistence
 }

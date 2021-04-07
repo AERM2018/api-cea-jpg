@@ -1,3 +1,4 @@
+const moment = require('moment')
 const User = require('../models/user');
 const Student = require('../models/student');
 const bcrypt = require('bcryptjs');
@@ -9,14 +10,39 @@ const { Op, QueryTypes } = require('sequelize');
 const { db } = require('../database/connection');
 const { getStudents } = require('../queries/queries');
 const generateMatricula = require('../helpers/generateMatricula');
+const Stu_pay_status = require('../models/stu_pay_status');
 
 
 const getAllStudents = async (req, res) => {
     const students = await db.query(getStudents, { type : QueryTypes.SELECT})
+    const stu_pay = students.map( async (stu) => {
+        console.log(moment().startOf('month').day(7))
+        const payment = await Stu_pay_status.findAll({
+            where : {
+                id_student : stu.id_student,
+                [Op.and] :[ 
+                    {
+                        payment_date : { [Op.gte] : moment().startOf('month').day(7).toDate()} 
+                    }
+                    ,{
+                    payment_date : { [Op.lte] : moment().endOf('month').day(7).toDate()} ,
+                    }
+                ],
+                status_payment : 0,
+                payment_type : 'Materia'
+            },
+            attributes : { exclude : ['id']}
+        })
+        return {...stu,payment}
+    })
 
-    return res.status(200).json({
-        ok: true,
-        students
+    console.log("llego aqui")
+    Promise.all(stu_pay).then( students => {
+        return res.status(200).json({
+            ok: true,
+            students
+        })
+
     })
 }
 

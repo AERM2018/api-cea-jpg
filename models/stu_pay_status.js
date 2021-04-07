@@ -15,6 +15,9 @@ const Stu_pay_status = db.define('stu_pay_status',{
     id_student : {
         type : DataTypes.STRING(15)
     },
+    amount : {
+        type : DataTypes.FLOAT
+    },
     payment_date : {
         type : DataTypes.DATEONLY
     },
