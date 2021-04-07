@@ -171,13 +171,13 @@ const updateStudent = async (req, res) => {
                 msg: `Ya existe un estudiante con la CURP ${curp}`
             })
         }
-        const matricula = await Student.findOne({
+        const stu_matricula = await Student.findOne({
             where: { 
                 matricula,
                 id_student : {[Op.ne] : id}
             }
         })
-        if (matricula) {
+        if (stu_matricula) {
             return res.status(400).json({
                 ok: false,
                 msg: `Ya existe un estudiante con esa matricula ${matricula}`
