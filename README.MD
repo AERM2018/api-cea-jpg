@@ -3,7 +3,7 @@
 ## Welcome to the API for the Control escolar "Alejandria".
 
 #### The first thing is to get access to the URL which help you to start requesting data.
-URL: https://api-cea-jpg.herokuapp.com/api-ale/v1/
+URL: http://api.alejandria.edu.mx/api-ale/v1/
 
 **Note:** Don't forget that you need a token to get the data, otherwise you won't be able to get it.
 
