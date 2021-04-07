@@ -266,8 +266,8 @@ const getAllPaymentsByGroup = async (req, res = response) => {
             where: { id_student },
             attributes: [[fn('concat', col('name'), ' ', col('surname_f'), ' ', col('surname_m')), 'student_fullname'], 'id_student', 'matricula']
         })
-        const stu_pays = await getPaymentStudent(id_student, false)
-        return { ...student.toJSON(), ...stu_pays }
+        const stu_pays = await getPaymentStudent(id_student, true)
+        return { ...student.toJSON(), stu_pays }
     })
 
     Promise.all(payments).then(stu_pay_info => {

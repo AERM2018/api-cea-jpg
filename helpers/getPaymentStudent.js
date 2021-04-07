@@ -28,7 +28,8 @@ const getPaymentStudent = async (id_student = '', details = false) => {
 
     const moneyFromPayments = allPaymentsByStudent.map(async (pay_info) => {
         let expected, current
-        switch (pay_info.payment_type) {
+        const { payment_type, amount, id_payment, id_employee, employee_fullname, id_group, major_name, status_payment} = pay_info
+        switch (payment_type) {
             case 'Documento':
                 // Pago documento
                 // Request.belongsTo(Document, { foreignKey: 'id_document' })
@@ -44,51 +45,58 @@ const getPaymentStudent = async (id_student = '', details = false) => {
                 //     attributes: { exclude: ['id_request', 'id_payment'] }
 
                 // })
-                let req_pay = await db.query(getReqPay, { replacements: { id: pay_info.id_payment }, type: QueryTypes.SELECT })
+                let req_pay = await db.query(getReqPay, { replacements: { id: id_payment }, type: QueryTypes.SELECT })
                 expected = req_pay[0].cost
-                current = pay_info.amount;
+                current = amount;
 
                 if (details) {
                     const doc_type = req_pay[0].name
                     req_pay[0].name = document_types[doc_type]['name']
                     missing_payment = document_types[doc_type]['price'] - pay_info.amount
-                    const { id_student, student_fullname, id_employee, employee_fullname } = pay_info
-                    extra = { missing_payment, id_student, student_fullname, id_employee, employee_fullname, ...req_pay[0] }
+                    // const { id_student, student_fullname,  } = pay_info
+                    extra = { missing_payment, id_employee, employee_fullname, status_payment,...req_pay[0] }
                 }
                 break;
-            // case 'Materia':
-            //     // Pago de materia
-            //     Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
-            //     Course.hasMany(Gro_cou, { foreignKey: 'id_course' })
-            //     const gro_cou = await Gro_cou.findOne({
-            //         where: {
-            //             [Op.and]: {
-            //                 start_date: { [Op.gte]: course_pay_s },
-            //                 end_date: { [Op.lte]: course_pay_f },
-            //                 id_group
-            //             }
-            //         },
-            //         include: {
-            //             model: Course,
-            //             attributes: [[col('id_course'), 'id'], [col('course_name'),'name']]
-            //         },
-            //         attributes: { exclude: ['id_gro_cou', 'id_course', 'id_group', 'start_date', 'end_date', 'status'] }
+            case 'Materia':
+                // Pago de materia
+                // const { id_group, major_name,amount } = pay_info
+                Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
+                Course.hasMany(Gro_cou, { foreignKey: 'id_course' })
+                const gro_cou = await Gro_cou.findOne({
+                    where: {
+                        [Op.and]: {
+                            start_date: { [Op.gte]: course_pay_s },
+                            end_date: { [Op.lte]: course_pay_f },
+                            id_group
+                        }
+                    },
+                    include: {
+                        model: Course,
+                        attributes: [[col('id_course'), 'id'], [col('course_name'),'name']]
+                    },
+                    attributes: { exclude: ['id_gro_cou', 'id_course', 'id_group', 'start_date', 'end_date', 'status'] }
 
-            //     })
+                })
 
-            //     let course
-            //     if (!gro_cou) {
-            //         course = { warning: 'No existe una materia registrada para la fecha del pago' }
-            //     } else {
-            //         course = { ...gro_cou.toJSON()['course'] }
-            //     }
-            //     missing = feed_course - amount
-            //     extra = {...course }
-            //     break;
+                let course
+                if (!gro_cou) {
+                    course = { warning: 'No existe una materia registrada para la fecha del pago' }
+                } else {
+                    course = { ...gro_cou.toJSON()['course'] }
+                }
+
+                expected = getFeeCourseByMajor( major_name )
+                current = amount
+                missing = getFeeCourseByMajor( major_name ) - amount
+
+
+                extra = {...course, id_employee, employee_fullname, status_payment }
+                break;
 
             case 'Inscripción':
-                expected = getFeeCourseByMajor(pay_info.major_name)
-                current = pay_info.amount;
+                expected = getFeeCourseByMajor(major_name)
+                current = amount;
+                extra = { name : 'Inscripción', id_employee, employee_fullname, status_payment}
         }
         return (details) ? { expected, current, ...extra } : { expected, current }
     })
@@ -98,9 +106,7 @@ const getPaymentStudent = async (id_student = '', details = false) => {
     let money_exp = 0, money = 0
     if(!details){
         payments.forEach(pay => {
-            // console.log(pay)
-            if (!pay.expected && !pay.current) return
-            //   console.log(pay)
+            // if (!pay.expected && !pay.current) return
             money_exp += pay.expected
             money += pay.current
         })
@@ -108,10 +114,7 @@ const getPaymentStudent = async (id_student = '', details = false) => {
         return { money_exp, money, missing: (money_exp - money) }
     }
 
-    return { id_student: [...payments] }
-    // console.log(payments)
-
-    // console.log(payments.extra)
+    return payments
 }
 
 module.exports = {
