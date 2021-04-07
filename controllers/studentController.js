@@ -181,7 +181,7 @@ const updateStudent = async (req, res) => {
         if (!student) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un estudiante con la matricula " + id,
+                msg: "No existe un estudiante con el id " + id,
             });
         }
 
@@ -197,13 +197,13 @@ const updateStudent = async (req, res) => {
                 msg: `Ya existe un estudiante con la CURP ${curp}`
             })
         }
-        const matricula = await Student.findOne({
+        const stu_matricula = await Student.findOne({
             where: { 
                 matricula,
                 id_student : {[Op.ne] : id}
             }
         })
-        if (matricula) {
+        if (stu_matricula) {
             return res.status(400).json({
                 ok: false,
                 msg: `Ya existe un estudiante con esa matricula ${matricula}`
@@ -232,12 +232,12 @@ const deleteStudent = async (req, res) => {
 
     try {
         const student = await Student.findOne({
-            where : { matricula: id }
+            where : { id_student: id }
         });
         if (!student) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un alumno con la matricula " + id,
+                msg: "No existe un alumno con el id " + id,
             });
         }
 
