@@ -68,9 +68,9 @@ class Server{
         this.app.use(this.apiPaths.groups, groupsRouter)
         this.app.use(this.apiPaths.students, studentsRouter)
         this.app.use(this.apiPaths.teachers, teachersRouter)
-        this.app.use(this.apiPaths.index, ( req, res) => {
-            res.send('Hola mundo')
-        })
+        // this.app.use(this.apiPaths.index, ( req, res) => {
+        //     res.send('Hola mundo')
+        // })
     }
     listen(){
         this.app.listen( this.port, () => {
