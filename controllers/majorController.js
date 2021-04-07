@@ -29,10 +29,6 @@ const createMajor = async (req, res) => {
                 msg: `Ya existe una carrera con el nombre '${major_name}'`,
             })
         }
-     
-
-
-
     } catch (error) {
         console.log( error )
         return res.status(500).json({
