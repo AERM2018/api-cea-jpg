@@ -6,34 +6,36 @@ const Stu_gro = require('../models/stu_gro');
 const { Op, QueryTypes } = require('sequelize');
 const { db } = require('../database/connection');
 const { getGroups } = require('../queries/queries');
+const Courses = require('../models/courses')
+const Gro_cou = require('../models/gro_cou')
 
 const getAllGroups = async (req, res) => {
     try {
-        const groups_no_time = await db.query(getGroups, { type : QueryTypes.SELECT})
-       
-        const groups_time =  groups_no_time.map( async group => {
+        const groups_no_time = await db.query(getGroups, { type: QueryTypes.SELECT })
+
+        const groups_time = groups_no_time.map(async group => {
             const gro_tim = await Gro_tim.findAll({
-                where : { id_group : group.id_group},
-                attributes : ['id_time_table'],
-                
+                where: { id_group: group.id_group },
+                attributes: ['id_time_table'],
+
             })
             const time_tables = await Time_tables.findAll({
-                where : { id_time_table : { [Op.in] : gro_tim.map( time_table => time_table.toJSON().id_time_table)}},
-                attributes : { exclude : ['id_time_table']}
+                where: { id_time_table: { [Op.in]: gro_tim.map(time_table => time_table.toJSON().id_time_table) } },
+                attributes: { exclude: ['id_time_table'] }
             })
-            return {...group, time_table : time_tables.map( time_table => time_table.toJSON())}
+            return { ...group, time_table: time_tables.map(time_table => time_table.toJSON()) }
         })
-        
-        Promise.all(groups_time).then( groups => {
+
+        Promise.all(groups_time).then(groups => {
             return res.status(200).json({
                 ok: true,
                 groups,
             })
         })
-    } catch ( err ) {
+    } catch (err) {
         return res.status(500).json({
             ok: false,
-           msg : "Hable con el administrador"
+            msg: "Hable con el administrador"
         })
     }
 }
@@ -47,7 +49,7 @@ const createGroup = async (req, res) => {
     try {
 
 
-       
+
 
         const major = await Major.findByPk(id_major);
         if (!major) {
@@ -56,25 +58,24 @@ const createGroup = async (req, res) => {
                 msg: "No existe una carrera con el id " + id_major,
             });
         }
-        const groupName= await Group.findOne({
-            where:{name_group}
+        const groupName = await Group.findOne({
+            where: { name_group }
         })
-        if(!groupName){
-            
+        if (!groupName) {
             const group = new Group({ id_major, name_group, entry_year, end_year });
             const newGroup = await group.save()
             const groupJson = newGroup.toJSON();
             id_group = groupJson['id_group']
         }
-        else{
+        else {
             return res.status(404).json({
                 ok: false,
                 msg: "Ya existe una un grupo con el nombre " + name_group,
             });
         }
-        
-        
-        
+
+
+
 
 
     } catch (error) {
@@ -127,7 +128,7 @@ const createGroup = async (req, res) => {
     }
 
     res.status(201).json({
-        ok:true,
+        ok: true,
         msg: "Grupo creado correctamente"
     })
 
@@ -138,7 +139,7 @@ const createGroup = async (req, res) => {
 const updateGroup = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
-    const {id_major,name_group}=body;
+    const { id_major, name_group } = body;
     try {
         const group = await Group.findByPk(id);
         if (!group) {
@@ -162,7 +163,7 @@ const updateGroup = async (req, res) => {
             }
         });
 
-        if (groupName){
+        if (groupName) {
             return res.status(400).json({
                 ok: false,
                 msg: `Ya existe un grupo con el nombre ${name_group}`
@@ -172,11 +173,11 @@ const updateGroup = async (req, res) => {
 
 
         await group.update(body);
-      
+
         res.status(200).json({
             ok: true,
             msg: "El grupo se actualizo correctamente",
-   
+
         })
 
 
@@ -194,9 +195,9 @@ const updateGroup = async (req, res) => {
 const deleteGroup = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
-    
+
     try {
-        
+
         const group = await Group.findByPk(id);
         if (!group) {
             return res.status(404).json({
@@ -204,30 +205,29 @@ const deleteGroup = async (req, res) => {
                 msg: "No existe un grupo con el id " + id,
             });
         }
-        
+
         const stu_gro = await Stu_gro.findAll({
-            where: {id_group:id}
+            where: { id_group: id }
         })
-        stu_gro.forEach(async (grupo)=>{
+        stu_gro.forEach(async (grupo) => {
             await grupo.destroy()
         })
-    
-        const gro_tim= await Gro_tim.findAll({
-            where: {id_group:id}
+
+        const gro_tim = await Gro_tim.findAll({
+            where: { id_group: id }
         })
-        gro_tim.forEach(async (grupo)=>
-        {
+        gro_tim.forEach(async (grupo) => {
             await grupo.destroy()
         })
-    
+
         await group.destroy(body);
-        
+
         res.status(200).json({
             ok: true,
             msg: "El grupo se elimino correctamente",
-         
+
         })
-    } catch ( error ) {
+    } catch (error) {
         console.log(error)
         return res.status(500).json({
             ok: false,
@@ -236,7 +236,61 @@ const deleteGroup = async (req, res) => {
     }
 
 }
+const addCourseGroup = async (req, res) => {
+    const { id:id_group} = req.params
+    const { id_course, ...resto } = req.body;
 
+
+    try {
+        const group = await Group.findByPk(id_group);
+        if (!group) {
+            return res.status(404).json({
+                ok: false,
+                msg: "No existe un grupo con el id " + id_group,
+            });
+        }
+        const course = await Courses.findByPk(id_course);
+        if (!course) {
+            return res.status(404).json({
+                ok: false,
+                msg: `No existe una materia con el id ${ id_course }`
+            })
+        }
+        const groupCourse = await Gro_cou.findOne({
+            where: {
+                id_course,
+                id_group: { [Op.ne]: id_group }
+            }
+        });
+
+        if (groupCourse) {
+            return res.status(400).json({
+                ok: false,
+                msg: `Ya existe una materia en ese grupo con el id ${id_course}`
+            })
+        }
+
+        const gro_cou = new Gro_cou({ id_group, id_course, ...resto });
+        await gro_cou.save()
+        
+        res.status(200).json({
+            ok: true,
+            msg: "La materia se añadio al grupo correctamente"
+        })
+
+
+        
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            ok: false,
+            msg: "Hable con el administrador"
+        })
+    }
+
+
+
+}
 
 
 
@@ -246,5 +300,6 @@ module.exports = {
     getAllGroups,
     createGroup,
     updateGroup,
-    deleteGroup
+    deleteGroup,
+    addCourseGroup
 }
