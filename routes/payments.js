@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { getAllPayments, createPayment, deletePayment, payForPayment, getAllPaymentsByGroup} = require('../controllers/paymentController');
-const { checkStudentExistence, checkPaymentExistence } = require('../helpers/dbValidations');
+const { getAllPayments, createPayment, deletePayment, payForPayment, getAllPaymentsByGroup, getAllPaymentsByStudent} = require('../controllers/paymentController');
+const { checkStudentExistence, checkPaymentExistence, checkGroupExistence, checkEmployeeExistence } = require('../middlewares/dbValidations');
 const { getIdEmployee, getIdStudent } = require('../middlewares/getIds');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -13,12 +13,22 @@ paymentsRouter.get('/',[
     validateJWT
 ], getAllPayments)
 
-paymentsRouter.get('/:id_group',[
-validateJWT
+paymentsRouter.get('/groups/:id_group',[
+    check('id_group','El id del grupo es obligatoria.'),
+    checkGroupExistence,
+    validateFields,
+    validateJWT
 ], getAllPaymentsByGroup)
 
+paymentsRouter.get('/students/:matricula',[
+    check('matricula','El id del estudiante es obligatorio.'),
+    validateFields,
+    checkStudentExistence,
+    validateJWT
+], getAllPaymentsByStudent)
+
 paymentsRouter.post('/',[
-    check('matricula',"La matricula del estudiante es obligatoria y debe de tener como máximo 15 caracteres").isString().notEmpty().isLength({ max : 15 }).custom(checkStudentExistence),
+    check('matricula',"La matricula del estudiante es obligatoria y debe de tener como máximo 15 caracteres").isString().notEmpty().isLength({ max : 15 }),
     check('id_user',"El id del usuario es obligatorio").isInt().exists({ checkNull : true}),
     check('payment_method',"El metódo de pago es obligatorio").exists({ checkNull : true}).custom( 
         (payment_method) => { 
@@ -37,8 +47,8 @@ paymentsRouter.post('/',[
     check('amount',"El monto del pago es obligatorio").isFloat().exists({ checkNull : true }),
     validateFields,
     validateJWT,
-    getIdEmployee,
-    getIdStudent
+    checkStudentExistence,
+    checkEmployeeExistence
 ],createPayment)
 
 paymentsRouter.delete('/:id_payment',[

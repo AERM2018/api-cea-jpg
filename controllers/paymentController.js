@@ -1,33 +1,43 @@
 const { response } = require("express")
 const moment = require('moment')
 const Student = require("../models/student");
-const Gro_cou = require("../models/gro_cou");
+// const Gro_cou = require("../models/gro_cou");
 const { Op, QueryTypes, col, fn } = require("sequelize");
 const Stu_gro = require("../models/stu_gro");
 const Stu_pay = require("../models/stu_pay");
 const Emp_pay = require("../models/emp_pay");
 const Group = require("../models/group");
-const Course = require("../models/courses");
+// const Course = require("../models/courses");
 const Payment = require("../models/payment");
 const Request = require("../models/request");
 const Document = require("../models/document");
 const { document_types, fee_school, getFeeCourseByMajor } = require("../types/dictionaries");
 const { getPaymentStudent } = require("../helpers/getPaymentStudent");
 const { db } = require("../database/connection");
-const { getInscriptions, getReqPay, getPayInfo } = require("../queries/queries");
+const { getReqPay } = require("../queries/queries");
 const Emp_dep = require("../models/emp_dep");
-const Stu_pay_status = require("../models/stu_pay_status");
+// const Stu_pay_status = require("../models/stu_pay_status");
 const Major = require("../models/major");
+const Pay_info = require("../models/pay_info");
 
 const getAllPayments = async (req, res = response) => {
+    const { major_name = '', name_group = ''} = req.query
+    console.log(major_name )
     try {
         Group.belongsTo(Major, { foreignKey: 'id_major' })
         Major.hasMany(Group, { foreignKey: 'id_major' })
         const groups = await Group.findAll({
             include: {
                 model: Major,
-                attributes: ['major_name']
+                attributes: ['major_name'],
+                where : {
+                    'major_name' : { [Op.like] :`${major_name}%`}
+                }
+            },
+            where : {
+                'name_group' : { [Op.like] :`%${name_group}%`}
             }
+
         });
 
         const pay_group = groups.map(async ({ id_group, name_group, major }) => {
@@ -42,6 +52,7 @@ const getAllPayments = async (req, res = response) => {
             const gro_pay_info = await Promise.all(payments)
 
             let money_exp = 0, money = 0
+            console.log(gro_pay_info)
             gro_pay_info.forEach(pay_info => {
                 if (!pay_info.money_exp && !pay_info.money) return
                 money_exp += pay_info.money_exp
@@ -49,7 +60,7 @@ const getAllPayments = async (req, res = response) => {
 
 
             })
-            return { id_group, name_group, ...major.toJSON(), money_exp, money }
+            return { id_group, name_group, ...major.toJSON(), money_exp, money, missing: (money_exp - money) }
 
         })
         Promise.all(pay_group).then(payments_info => {
@@ -73,19 +84,15 @@ const getAllPayments = async (req, res = response) => {
 
 
 const createPayment = async (req, res = response) => {
-    const { matricula, id_user, id_employee, id_student, document_type, ...rest } = req.body
+    const { matricula, id_user, document_type, ...rest } = req.body
+    const {id_employee, id_student} = req;
     let status_payment = false;
     let cutoff_date;
     let id_document;
     const { payment_type, amount } = rest
     let change = 0;
 
-    const emp_dep = await Emp_dep.findOne({
-        where: {
-            id_employee: id_employee
-        }
-    })
-    const { id_department } = emp_dep.toJSON()
+    
 
     switch (payment_type) {
         case 'Documento':
@@ -99,23 +106,21 @@ const createPayment = async (req, res = response) => {
             const doc_info = new Document({ document_type, cost: document_types[document_type]['price'] })
             const doc = await doc_info.save()
             id_document = doc.toJSON()['id_document']
-
             status_payment = (amount >= document_types[document_type]['price'])
-
+            change =  (amount - document_types[document_type]['price'] > 0) ? amount - document_types[document_type]['price'] : 0
             cutoff_date = moment().startOf('month').day(7).add(1, 'month').startOf('month').day(7).toDate()
 
             break;
 
         case 'Inscripción':
-            // const stu_inscripcion = await db.query(getInscriptions, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-            const stu_pay_status_ins = await Stu_pay_status.findAndCountAll({
+            const pays_ins = await Pay_info.findAndCountAll({
                 where: {
                     id_student: id_student,
                     payment_type: 'Inscripción'
                 },
                 attributes: { exclude: ['id'] }
             })
-            if (stu_pay_status_ins.count != 0) {
+            if (pays_ins.count != 0) {
                 return res.status(400).json({
                     ok: false,
                     msg: `El alumno con matricula ${matricula} ya esta inscrito a un grupo`
@@ -134,51 +139,33 @@ const createPayment = async (req, res = response) => {
             break;
 
         case 'Materia':
-            const stu_pay_status_cou = await Stu_pay_status.findAndCountAll({
+            const fisrt_sunday = moment().startOf('month').day(7).toDate().toJSON().substr(0,10)
+            const last_sunday = moment(fisrt_sunday).add(4,'weeks').toDate().toJSON().substr(0,10)
+
+            const pays_courses = await Pay_info.findAll({
                 where: {
                     [Op.and]: {
                         id_student: id_student,
-                        payment_date: {
-                            [Op.and]: {
-                                [Op.gte]: moment().startOf('month').day(7).toDate(),
-                                [Op.lte]: moment().endOf('month').day(7).toDate()
-                            }
-                        },
-                        payment_type: 'Materia'
+                        payment_type : { [Op.in] : ['Materia','Documento']},
                     }
                 },
                 attributes: { exclude: ['id'] }
             })
-            if (stu_pay_status_cou.count > 0) {
+            if (pays_courses.filter( ({payment_date, payment_type}) => ( payment_type === 'Materia' && payment_date >= fisrt_sunday && payment_date <= last_sunday)).length > 0) {
                 return res.status(400).json({
                     ok: false,
-                    msg: "La materia correspondiente al mes ya se encuentra pagada"
+                    msg: "La materia correspondiente al mes ya se encuentra pagada o abonada"
                 })
             }
 
-            const stu_pay_status_missing = await Stu_pay_status.findAndCountAll({
-                where: {
-                    [Op.and]: {
-                        id_student: id_student,
-                        [Op.or]: {
-
-                            payment_type: 'Materia',
-                            payment_type: 'Documento'
-
-                        },
-                        status_payment: 0
-                    }
-                },
-                attributes: { exclude: ['id'] }
-            })
-            if (stu_pay_status_missing.count > 0) {
+            if ( pays_courses.filter( ({status_payment}) => status_payment != 1).length > 0 ) {
                 return res.status(400).json({
                     ok: false,
                     msg: "Pago denegado, existe un(a) materia/documento pendiente de pagar"
                 })
             }
 
-            if (amount < feed_course) {
+            if (amount < getFeeCourseByMajor(pays_courses[0].toJSON()['major_name'])) {
                 cutoff_date = moment().startOf('week').add(1, 'week');
             } else {
                 status_payment = 1
@@ -186,7 +173,6 @@ const createPayment = async (req, res = response) => {
             }
 
     }
-    // console.log(moment('2021-04-26').diff(moment().startOf('month').day(7),'days')/7)
     const new_payment = new Payment({ ...rest, cutoff_date, amount: (amount - change), status_payment })
     const payment = await new_payment.save()
     const { id_payment } = payment.toJSON();
@@ -197,68 +183,29 @@ const createPayment = async (req, res = response) => {
 
     // create a new request just in case a document was created
     if (id_document) {
-        const request = new Request({
-            id_department,
-            id_document,
-            id_payment
+        const emp_dep = await Emp_dep.findOne({
+            where: {
+                id_employee: id_employee
+            }
         })
-
+        const { id_department } = emp_dep.toJSON()
+        const request = new Request({ id_department, id_document, id_payment })
         await request.save()
     }
 
+    const msg = (change === 0) ? "Se ha registrado un abono debido a que el monto de dinero no satisface el pago." : `Pago registrado con exito`
     return res.status(201).json({
         ok: true,
-        msg: "Pago registrado con exito",
+        msg,
         change
     })
-    // const id_student = await Student.findOne({
-    //     attributes : ['id_student'],
-    //     where: { matricula },
-    // })
-    // const id_group = await Stu_gro.findOne({
-    //     attributes : ['id_group'],
-    //     where : {id_student : id_student.toJSON()['id_student']},
-    // })
-    // const gro_cou = await Gro_cou.findOne({
-    //     where: {
-    //         [Op.and]: {
-    //             start_date: { [Op.gte]: course_pay_s },
-    //             end_date: { [Op.lte]: course_pay_f },
-    //             id_group : id_group.toJSON()['id_group']
-    //         }
-    //     },
-    //     attributes : ['id_course']
-    // })
-
-    // return res.json({
-    //     gro_cou
-    // })
-    // try {
-    //     const student = await Student.findOne({
-    //         where : {matricula}
-    //     })
-    //     const {id_student} = student.toJSON()
-    //     const payments = await Payments.findAll();
-    //     res.status(200).json({
-    //         ok :true,
-    //         payments
-    //     })
-    // } catch ( err ) {
-    //     console.log(err)
-    //     res.status(500).json({
-    //         ok :false,
-    //         msg : "Hable con el administrador"
-    //     })
-    // }
 }
 
 const getAllPaymentsByGroup = async (req, res = response) => {
     const { id_group } = req.params
 
     const stu_gro = await Stu_gro.findAll({
-        where: {
-            id_group: id_group
-        }
+        where: { id_group }
     })
 
     const payments = stu_gro.map(async ({ id_student }) => {
@@ -266,8 +213,8 @@ const getAllPaymentsByGroup = async (req, res = response) => {
             where: { id_student },
             attributes: [[fn('concat', col('name'), ' ', col('surname_f'), ' ', col('surname_m')), 'student_fullname'], 'id_student', 'matricula']
         })
-        const stu_pays = await getPaymentStudent(id_student, true)
-        return { ...student.toJSON(), stu_pays }
+        const stu_pays = await getPaymentStudent(id_student, false)
+        return { ...student.toJSON(), ...stu_pays, missing: (stu_pays.money_exp - stu_pays.money) }
     })
 
     Promise.all(payments).then(stu_pay_info => {
@@ -277,35 +224,43 @@ const getAllPaymentsByGroup = async (req, res = response) => {
         })
     })
 }
+
+const getAllPaymentsByStudent = async( req, res = response) => {
+    const { id_student } = req
+    // const pay_info_stu = await Pay_info.findOne({
+    //     where : { id_student },
+    //     attributes : { exclude : ['id'] }
+    // })
+    const payments = await getPaymentStudent(id_student,true)
+
+    // const {  } = pay_info_stu
+    // const pay_info = {...pay_info_stu.toJSON(),payments}
+    return res.status(200).json({
+        ok : true,
+        student : payments
+    })
+}
 const deletePayment = async (req, res = response) => {
     const { id_payment } = req.params
     try {
         const payment = await Payment.findOne({
-            where: {
-                id_payment: id_payment
-            }
+            where: { id_payment }
         })
 
         await Stu_pay.destroy({
-            where: {
-                id_payment: id_payment
-            }
+            where: { id_payment }
         })
         await Emp_pay.destroy({
-            where: {
-                id_payment: id_payment
-            }
+            where: { id_payment }
         })
         if (payment.toJSON()['payment_type'] == 'Documento') {
             const request = await Request.findOne({
-                where: {
-                    id_payment: id_payment
-                }
+                where: { id_payment }
             })
             await request.destroy()
             await Document.destroy({
                 where: {
-                    id_document: await request.toJSON()['id_document']
+                    id_document: request.toJSON()['id_document']
                 }
             })
 
@@ -325,12 +280,13 @@ const payForPayment = async (req, res = response) => {
     let pay = 0
 
     try {
-        const payment = await Payment.findOne({
+        const payment = await Pay_info.findOne({
             where: {
                 id_payment: id_payment
-            }
+            },
+            attributes : { exclude : ['id']}
         })
-        const { payment_type, amount } = payment.toJSON()
+        const { payment_type, amount, major_name } = payment.toJSON()
         let { status_payment, cutoff_date } = payment.toJSON()
         // Don't pay a payment which is already paid fully
         if (status_payment) {
@@ -341,34 +297,22 @@ const payForPayment = async (req, res = response) => {
         }
         switch (payment_type) {
             case 'Documento':
-                Request.belongsTo(Document, { foreignKey: 'id_document' })
-                Document.hasOne(Request, { foreignKey: 'id_document' })
-                const requests = await Request.findOne({
-                    where: {
-                        id_payment: id_payment
-                    },
-                    include: {
-                        model: Document,
-                        attributes: [[col('document_type'), 'name'], [col('id_document'), 'id']]
-                    },
-                    attributes: { exclude: ['id_request', 'id_payment'] }
-
-                })
-                const doc_type = requests.toJSON()['document']['name']
+                const req_pay = await db.query(getReqPay, { replacements: { id: id_payment }, type: QueryTypes.SELECT })
+                console.log(req_pay)
+                const doc_type = req_pay[0]['name']
                 missing = document_types[doc_type]['price'] - amount
                 change = (pay_amount > missing) ? pay_amount - missing : 0
                 pay = pay_amount - change
                 if (amount + pay === document_types[doc_type]['price']) {
                     status_payment = 1
-
                 }
                 break;
 
             case 'Materia':
-                missing = feed_course - amount
+                missing = getFeeCourseByMajor( major_name ) - amount
                 change = (pay_amount > missing) ? pay_amount - missing : 0
                 pay = pay_amount - change
-                if (amount + pay === feed_course) {
+                if (amount + pay ===  getFeeCourseByMajor( major_name ) ) {
                     status_payment = 1
                 } else {
                     cutoff_date = moment().startOf('week').add(1, 'week')
@@ -377,12 +321,12 @@ const payForPayment = async (req, res = response) => {
                 break;
         }
 
-        payment.update({
+            Payment.update({
             amount: (amount + pay),
-            status_payment: status_payment,
+            status_payment,
             cutoff_date,
             payment_date: moment().toDate()
-        })
+        },{ where : {id_payment}})
 
         return res.status(200).json({
             ok: true,
@@ -391,6 +335,10 @@ const payForPayment = async (req, res = response) => {
         })
     } catch (err) {
         console.log(err)
+        return res.status(500).json({
+            ok : false,
+            msg : "Hable con el administrador."
+        })
     }
 }
 module.exports = {
@@ -398,5 +346,6 @@ module.exports = {
     createPayment,
     deletePayment,
     payForPayment,
-    getAllPaymentsByGroup
+    getAllPaymentsByGroup,
+    getAllPaymentsByStudent
 }

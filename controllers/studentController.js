@@ -6,11 +6,12 @@ const Group = require('../models/group');
 const Stu_gro = require('../models/stu_gro');
 const Cam_use = require('../models/cam_use');
 const Campus = require('../models/campus');
-const { Op, QueryTypes } = require('sequelize');
+const { Op, QueryTypes, EmptyResultError } = require('sequelize');
 const { db } = require('../database/connection');
-const { getStudents } = require('../queries/queries');
+const { getStudents, getStuInfo } = require('../queries/queries');
 const generateMatricula = require('../helpers/generateMatricula');
 const Stu_pay_status = require('../models/stu_pay_status');
+const { response } = require('express');
 
 
 const getAllStudents = async (req, res) => {
@@ -46,6 +47,18 @@ const getAllStudents = async (req, res) => {
     })
 }
 
+const getStudentByMatricula = async( req, res = response ) => {
+    const { id_student }  = req
+    try {
+        const [student] = await  db.query(getStuInfo, { replacements : { id : id_student }, type : QueryTypes.SELECT})
+        res.json({
+            ok : true,
+            student
+        })
+    } catch ( err ) {
+        
+    }
+}
 const createStudent = async (req, res) => {
     const { body } = req;
     const { email } = body;
@@ -265,6 +278,7 @@ const deleteStudent = async (req, res) => {
 
 module.exports = {
     getAllStudents,
+    getStudentByMatricula,
     createStudent,
     updateStudent,
     deleteStudent

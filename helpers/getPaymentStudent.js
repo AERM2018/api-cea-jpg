@@ -1,7 +1,7 @@
 const { Op, fn, col, QueryTypes } = require("sequelize")
 const moment = require('moment');
 
-const { document_types, feed_course, getFeeCourseByMajor } = require('../types/dictionaries')
+const { document_types, fee_school , getFeeCourseByMajor } = require('../types/dictionaries')
 const Course = require("../models/courses")
 const Document = require("../models/document")
 const Group = require("../models/group")
@@ -14,7 +14,8 @@ const Emp_pay = require("../models/emp_pay");
 const Employees = require("../models/employee");
 const { sequelize } = require("../models/student");
 const { db } = require("../database/connection");
-const { getPayInfo, getReqPay } = require('../queries/queries')
+const { getPayInfo, getReqPay } = require('../queries/queries');
+const Pay_info = require("../models/pay_info");
 
 const getPaymentStudent = async (id_student = '', details = false) => {
 
@@ -22,13 +23,18 @@ const getPaymentStudent = async (id_student = '', details = false) => {
     const course_pay_f = moment().endOf('month').toJSON().substr(0, 10)
     let missing = 0;
 
-    const allPaymentsByStudent = await db.query(getPayInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
+    // const allPaymentsByStudent = await db.query(getPayInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
+    const allPaymentsByStudent = await Pay_info.findAll({
+        where : { id_student },
+        order : [['payment_date','DESC']],
+        attributes : { exclude : ['id']}
+    })
 
     let extra;
 
     const moneyFromPayments = allPaymentsByStudent.map(async (pay_info) => {
         let expected, current
-        const { payment_type, amount, id_payment, id_employee, employee_fullname, id_group, major_name, status_payment} = pay_info
+        const { payment_type, amount, id_payment, id_employee, employee_fullname, id_group, major_name, status_payment, payment_date} = pay_info
         switch (payment_type) {
             case 'Documento':
                 // Pago documento
@@ -52,9 +58,9 @@ const getPaymentStudent = async (id_student = '', details = false) => {
                 if (details) {
                     const doc_type = req_pay[0].name
                     req_pay[0].name = document_types[doc_type]['name']
-                    missing_payment = document_types[doc_type]['price'] - pay_info.amount
-                    // const { id_student, student_fullname,  } = pay_info
-                    extra = { missing_payment, id_employee, employee_fullname, status_payment,...req_pay[0] }
+                    missing = document_types[doc_type]['price'] - pay_info.amount
+                    const {name} = req_pay[0]
+                    extra = { missing, name }
                 }
                 break;
             case 'Materia':
@@ -90,31 +96,33 @@ const getPaymentStudent = async (id_student = '', details = false) => {
                 missing = getFeeCourseByMajor( major_name ) - amount
 
 
-                extra = {...course, id_employee, employee_fullname, status_payment }
+                extra = {...course, missing }
                 break;
 
             case 'Inscripción':
                 expected = getFeeCourseByMajor(major_name)
                 current = amount;
-                extra = { name : 'Inscripción', id_employee, employee_fullname, status_payment}
+                missing = fee_school - amount
+                extra = { name : 'Inscripción', missing}
         }
-        return (details) ? { expected, current, ...extra } : { expected, current }
+        extra = {...extra, id_employee, employee_fullname, status_payment,payment_date}
+        return (details) ? { expected, current,  ...extra } : { expected, current }
+        // return { expected, current,  ...extra }
     })
 
     const payments = await Promise.all(moneyFromPayments)
 
     let money_exp = 0, money = 0
+    payments.forEach(pay => {
+        money_exp += pay.expected
+        money += pay.current
+    })
     if(!details){
-        payments.forEach(pay => {
-            // if (!pay.expected && !pay.current) return
-            money_exp += pay.expected
-            money += pay.current
-        })
-
-        return { money_exp, money, missing: (money_exp - money) }
+        return {money_exp, money}
     }
+    const { student_fullname, matricula} = allPaymentsByStudent[0].toJSON()
+    return { student_fullname, id_student, matricula,money_exp, money, missing: (money_exp - money), payments}
 
-    return payments
 }
 
 module.exports = {

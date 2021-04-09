@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { getAllEmployees, createEmployee, updateEmployee, deleteEmployee } = require('../controllers/employeesController');
-const { checkCampusExistence } = require('../helpers/dbValidations');
+const { checkCampusExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
