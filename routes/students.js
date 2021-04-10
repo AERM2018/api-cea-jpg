@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { getAllStudents,createStudent,updateStudent,deleteStudent } = require('../controllers/studentController');
+const { getAllStudents,createStudent,updateStudent,deleteStudent, getStudentByMatricula } = require('../controllers/studentController');
+const { checkStudentExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -9,6 +10,12 @@ const studentsRouter = Router();
 studentsRouter.get('/', [
     validateJWT
 ], getAllStudents);
+
+studentsRouter.get('/:matricula',[
+    check('matricula','La matricula del estudiante es obligatoria.').notEmpty(),
+    checkStudentExistence
+], getStudentByMatricula)
+
 studentsRouter.post('/',[
     // check('email','El email es obligatorio').notEmpty().isEmail(),
     check('matricula','La matricula del estudiante es obligatoria').not().isEmpty().isLength({max:15}),
