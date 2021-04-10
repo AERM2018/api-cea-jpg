@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { getAllEmployees, createEmployee, updateEmployee, deleteEmployee } = require('../controllers/employeesController');
+const { checkCampusExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -19,17 +20,14 @@ employeesRouter.post('/',[
     check('mobile_number','El numero de telefono es obligatorio y tienen que ser 10 digitos').not().isEmpty().isLength({max:10}),
     // check('active','al campo activo es obligatorio').isInt().exists({checkNull:true}),
     check('id_department','El id del departamento es obligatorio').isNumeric().exists({ checkNull : true}),
+    check('id_campus','El id del campus es obligatorio').isNumeric().exists({ checkNull : true}).custom(checkCampusExistence),
     check('salary','El salario del empleado es obligatorio y debe ser un flotante').isFloat().exists({ checkNull : true}),
-
     // Checar como guardar los horarios
     check('time_tables','Los horarios deben de estar contenidos en un array').isArray(),
-    /* check('day', 'el dia es obligatorio').notEmpty().isInt(),
-    check('start_hour', 'la hora de inicio es obligatoria').notEmpty(),
-    check('finish_hour','la hora de fin es obligatoria').notEmpty(), */
+    // check('id_campus').custom(checkCampusExistence),
     validateFields,
-    validateJWT
-
-], createEmployee);
+    validateJWT,
+],createEmployee);
 employeesRouter.put('/:id',[
     //ID CHECARSE
     param('id','El id del empleado es una cadena de texto y es obligatorio').isString().notEmpty(),

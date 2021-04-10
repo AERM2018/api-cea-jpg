@@ -1,7 +1,7 @@
-const { QueryTypes, Op, json } = require("sequelize");
+const { QueryTypes, Op } = require("sequelize");
 const Card = require('../models/card');
 
-// const Payment
+const Payment = require('../models/payment');
 const {db}=require('../database/connection');
 
 const getAllCards = async (req, res) =>{
@@ -41,15 +41,15 @@ const createCard = async (req, res)=>{
             where:{card_number}
         })
         if(!cardNumber){
-            const card = new Card({id_payment, cardNumber, owner, bank, due_date});
+            const card = new Card({id_payment, card_number, owner, bank, due_date});
             const newCard = await card.save();
-            const cardJson = newCard.toJson();
+            const cardJson = newCard.toJSON();
             id_card= cardJson['id_card']
         }
         else{
-            return res.status(404).json({
+            return res.status(400).json({
                 ok: false,
-                msg:"Ya existe un resgistro con el numero de tarjeta"+ card_number,
+                msg:"Ya existe un resgistro con el numero de tarjeta "+ card_number,
             });
         }
     }catch(error){
@@ -62,7 +62,7 @@ const createCard = async (req, res)=>{
 
     res.status(201).json({
         ok:true,
-        msg: "Grupo creado correctamente"
+        msg: "Tarjeta creada correctamente"
     });
 
 }
@@ -104,7 +104,7 @@ const updateCard = async(req, res)=>{
         await card.update(body);
         res.status(200).json({
             ok:true,
-            msg: "El número de tarjeta se actualizó correctamente",
+            msg: "Los datos de la tarjeta se actualizaron correctamente",
         });
     }catch(error){
         console.log(error);
@@ -130,7 +130,7 @@ const deleteCard = async (req, res)=>{
                 msg: "No existe una tarjeta con el id " +id,
             });
         }
-        await card.update({ status:2})
+        await card.destroy();
         res.status(200).json({
             ok: true,
             msg: "La tarjeta se eliminó conrrectamente"

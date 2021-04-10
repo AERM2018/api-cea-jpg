@@ -14,7 +14,7 @@ const Card = db.define('card',{
         }
     },
     card_number:{
-        type: DataTypes.INTEGER(16),
+        type: DataTypes.STRING(16),
         allowNull: false,
         validate:{
             notEmpty:true

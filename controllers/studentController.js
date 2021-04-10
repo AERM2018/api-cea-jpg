@@ -1,3 +1,4 @@
+const moment = require('moment')
 const User = require('../models/user');
 const Student = require('../models/student');
 const bcrypt = require('bcryptjs');
@@ -5,21 +6,83 @@ const Group = require('../models/group');
 const Stu_gro = require('../models/stu_gro');
 const Cam_use = require('../models/cam_use');
 const Campus = require('../models/campus');
-const { Op, QueryTypes } = require('sequelize');
+const { Op, QueryTypes, EmptyResultError } = require('sequelize');
 const { db } = require('../database/connection');
-const { getStudents } = require('../queries/queries');
+const { getStudents, getStuInfo } = require('../queries/queries');
 const generateMatricula = require('../helpers/generateMatricula');
+const Stu_pay_status = require('../models/stu_pay_status');
+const { response } = require('express');
+const Major = require('../models/major');
+const Course = require('../models/courses');
+const { getFisrtAndLastSunday } = require('../helpers/dates');
+const Gro_cou = require('../models/gro_cou');
+const { getFeeCourseByMajor, document_types, getFeeSchoolByMajor } = require('../types/dictionaries');
+const { printAndSendError } = require('../helpers/responsesOfReq');
 
 
 const getAllStudents = async (req, res) => {
-    const students = await db.query(getStudents, { type : QueryTypes.SELECT})
-
-    return res.status(200).json({
-        ok: true,
-        students
-    })
+    try {
+        const students = await db.query(getStudents, { type : QueryTypes.SELECT})
+        // const stu_pay = students.map( async (stu) => {
+        //     console.log(moment().startOf('month').day(7))
+        //     const payment = await Stu_pay_status.findAll({
+        //         where : {
+        //             id_student : stu.id_student,
+        //             [Op.and] :[ 
+        //                 {
+        //                     payment_date : { [Op.gte] : moment().startOf('month').day(7).toDate()} 
+        //                 }
+        //                 ,{
+        //                 payment_date : { [Op.lte] : moment().endOf('month').day(7).toDate()} ,
+        //                 }
+        //             ],
+        //             status_payment : 0,
+        //             payment_type : 'Materia'
+        //         },
+        //         attributes : { exclude : ['id']}
+        //     })
+        //     return {...stu,payment}
+        // })
+    
+        return res.status(200).json({
+            ok: true,
+            students
+        })
+    } catch ( err ) {
+        printAndSendError( res, err)
+    }
 }
 
+const getStudentByMatricula = async( req, res = response ) => {
+    const { id_student }  = req
+    try {
+        const [student] = await  db.query(getStuInfo, { replacements : { id : id_student }, type : QueryTypes.SELECT})
+        Course.hasOne(Gro_cou, { foreignKey : 'id_course'})
+        Gro_cou.belongsTo(Course, { foreignKey : 'id_course'})
+        const { id_group } = student
+        const { fisrt_sunday, last_sunday } = getFisrtAndLastSunday()
+        const group = await Gro_cou.findOne({
+            where : { id_group },
+            include : {
+                model : Course,
+                attributes : ['course_name'],
+            },
+            where : {
+                start_date : fisrt_sunday,
+                end_date : last_sunday,
+            }
+        })
+        let course;
+        course = (group === null) ? "Materia no ha asignada al alumno" : group.toJSON()['course']['course_name']
+
+            res.json({
+            ok : true,
+            student : {...student,course}
+        })
+    } catch ( err ) {
+        printAndSendError( res, err)
+    }
+}
 const createStudent = async (req, res) => {
     const { body } = req;
     const { email } = body;
@@ -76,12 +139,8 @@ const createStudent = async (req, res) => {
 
         
 
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador",
-        })
+    } catch ( err ) {
+        printAndSendError(res, err)
     }
     try {
         //matricula
@@ -97,12 +156,8 @@ const createStudent = async (req, res) => {
         const inst_email = `${id_student}@alejandria.edu.mx`
         await user.update({email : inst_email})
 
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador",
-        })
+    } catch ( err ) {
+       printAndSendError(res, err)
     }
     try {
         const group = await Group.findByPk(id_group);
@@ -115,12 +170,8 @@ const createStudent = async (req, res) => {
         const stu_gro = new Stu_gro({ id_student, id_group })
         await stu_gro.save();
 
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador",
-        })
+    } catch ( err ) {
+        printAndSendError(res, err)
     }
     try {
         //campus
@@ -129,12 +180,8 @@ const createStudent = async (req, res) => {
         await cam_use.save();
 
 
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador",
-        })
+    } catch (err) {
+        printAndSendError(res, err)
     }
 
     res.status(201).json({
@@ -155,7 +202,7 @@ const updateStudent = async (req, res) => {
         if (!student) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un estudiante con la matricula " + id,
+                msg: "No existe un estudiante con el id " + id,
             });
         }
 
@@ -171,13 +218,13 @@ const updateStudent = async (req, res) => {
                 msg: `Ya existe un estudiante con la CURP ${curp}`
             })
         }
-        const matricula = await Student.findOne({
+        const stu_matricula = await Student.findOne({
             where: { 
                 matricula,
                 id_student : {[Op.ne] : id}
             }
         })
-        if (matricula) {
+        if (stu_matricula) {
             return res.status(400).json({
                 ok: false,
                 msg: `Ya existe un estudiante con esa matricula ${matricula}`
@@ -192,12 +239,8 @@ const updateStudent = async (req, res) => {
         })
 
 
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador"
-        })
+    } catch ( err ) {
+        printAndSendError(res, err)
     }
 }
 
@@ -206,12 +249,12 @@ const deleteStudent = async (req, res) => {
 
     try {
         const student = await Student.findOne({
-            where : { matricula: id }
+            where : { id_student: id }
         });
         if (!student) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un alumno con la matricula " + id,
+                msg: "No existe un alumno con el id " + id,
             });
         }
 
@@ -222,11 +265,7 @@ const deleteStudent = async (req, res) => {
         })
     } catch (error) 
     {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador"
-        })
+        printAndSendError(res, err)
     }
 
 
@@ -239,6 +278,7 @@ const deleteStudent = async (req, res) => {
 
 module.exports = {
     getAllStudents,
+    getStudentByMatricula,
     createStudent,
     updateStudent,
     deleteStudent
