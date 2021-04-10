@@ -15,6 +15,7 @@ studentsRouter.get('/:matricula',[
     check('matricula','La matricula del estudiante es obligatoria.').notEmpty(),
     checkStudentExistence
 ], getStudentByMatricula)
+
 studentsRouter.post('/',[
     // check('email','El email es obligatorio').notEmpty().isEmail(),
     check('matricula','La matricula del estudiante es obligatoria').not().isEmpty().isLength({max:15}),

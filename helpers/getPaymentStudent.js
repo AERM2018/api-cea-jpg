@@ -1,127 +1,104 @@
-const { Op, fn, col, QueryTypes } = require("sequelize")
-const moment = require('moment');
+const { Op, col, QueryTypes } = require("sequelize")
 
-const { document_types, fee_school , getFeeCourseByMajor } = require('../types/dictionaries')
+const { document_types, fee_school, getFeeCourseByMajor, getFeeSchoolByMajor } = require('../types/dictionaries')
 const Course = require("../models/courses")
-const Document = require("../models/document")
-const Group = require("../models/group")
 const Gro_cou = require("../models/gro_cou")
-const Payment = require("../models/payment")
-const Request = require("../models/request")
-const Student = require("../models/student")
-const Stu_gro = require("../models/stu_gro");
-const Emp_pay = require("../models/emp_pay");
-const Employees = require("../models/employee");
-const { sequelize } = require("../models/student");
 const { db } = require("../database/connection");
-const { getPayInfo, getReqPay } = require('../queries/queries');
+const { getReqPay } = require('../queries/queries');
 const Pay_info = require("../models/pay_info");
+const { getFisrtAndLastSunday } = require("./dates");
 
 const getPaymentStudent = async (id_student = '', details = false) => {
 
-    const course_pay_s = moment().startOf('month').toJSON().substr(0, 10)
-    const course_pay_f = moment().endOf('month').toJSON().substr(0, 10)
     let missing = 0;
 
-    // const allPaymentsByStudent = await db.query(getPayInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-    const allPaymentsByStudent = await Pay_info.findAll({
-        where : { id_student },
-        order : [['payment_date','DESC']],
-        attributes : { exclude : ['id']}
-    })
+    try {
+        const allPaymentsByStudent = await Pay_info.findAll({
+            where: { id_student },
+            order: [['payment_date', 'DESC']],
+            attributes: { exclude: ['id'] }
+        })
 
-    let extra;
+        let extra;
 
-    const moneyFromPayments = allPaymentsByStudent.map(async (pay_info) => {
-        let expected, current
-        const { payment_type, amount, id_payment, id_employee, employee_fullname, id_group, major_name, status_payment, payment_date} = pay_info
-        switch (payment_type) {
-            case 'Documento':
-                // Pago documento
-                // Request.belongsTo(Document, { foreignKey: 'id_document' })
-                // Document.hasOne(Request, { foreignKey: 'id_document' })
-                // const requests = await Request.findOne({
-                //     where: {
-                //         id_payment: id_payment
-                //     },
-                //     include: {
-                //         model: Document,
-                //         attributes: [[col('document_type'),'name'], [col('id_document'),'id']]
-                //     },
-                //     attributes: { exclude: ['id_request', 'id_payment'] }
+        const moneyFromPayments = allPaymentsByStudent.map(async (pay_info) => {
+            let expected, current
+            const { payment_type, amount, id_payment, id_employee, employee_fullname, id_group, major_name, status_payment, payment_date } = pay_info
+            switch (payment_type) {
+                case 'Documento':
+                    let req_pay = await db.query(getReqPay, { replacements: { id: id_payment }, type: QueryTypes.SELECT })
+                    expected = req_pay[0].cost
+                    current = amount;
 
-                // })
-                let req_pay = await db.query(getReqPay, { replacements: { id: id_payment }, type: QueryTypes.SELECT })
-                expected = req_pay[0].cost
-                current = amount;
+                    if (details) {
+                        const doc_type = req_pay[0].name
+                        req_pay[0].name = document_types[doc_type]['name']
+                        missing = document_types[doc_type]['price'] - pay_info.amount
+                        const { name } = req_pay[0]
+                        extra = { missing, name }
+                    }
+                    break;
+                case 'Materia':
+                    const { fisrt_sunday, last_sunday } = getFisrtAndLastSunday(payment_date)
+                        // Pago de materia
+                        Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
+                    Course.hasMany(Gro_cou, { foreignKey: 'id_course' })
+                    const gro_cou = await Gro_cou.findOne({
+                        where: {
+                            [Op.and]: {
+                                start_date: { [Op.gte]: fisrt_sunday },
+                                end_date: { [Op.lte]: last_sunday },
+                                id_group
+                            }
+                        },
+                        include: {
+                            model: Course,
+                            attributes: [[col('id_course'), 'id'], [col('course_name'), 'name']]
+                        },
+                        attributes: { exclude: ['id_gro_cou', 'id_course', 'id_group', 'start_date', 'end_date', 'status'] }
 
-                if (details) {
-                    const doc_type = req_pay[0].name
-                    req_pay[0].name = document_types[doc_type]['name']
-                    missing = document_types[doc_type]['price'] - pay_info.amount
-                    const {name} = req_pay[0]
-                    extra = { missing, name }
-                }
-                break;
-            case 'Materia':
-                // Pago de materia
-                // const { id_group, major_name,amount } = pay_info
-                Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
-                Course.hasMany(Gro_cou, { foreignKey: 'id_course' })
-                const gro_cou = await Gro_cou.findOne({
-                    where: {
-                        [Op.and]: {
-                            start_date: { [Op.gte]: course_pay_s },
-                            end_date: { [Op.lte]: course_pay_f },
-                            id_group
-                        }
-                    },
-                    include: {
-                        model: Course,
-                        attributes: [[col('id_course'), 'id'], [col('course_name'),'name']]
-                    },
-                    attributes: { exclude: ['id_gro_cou', 'id_course', 'id_group', 'start_date', 'end_date', 'status'] }
+                    })
 
-                })
+                    let course
+                    if (!gro_cou) {
+                        course = { warning: 'No existe una materia registrada para la fecha del pago' }
+                    } else {
+                        course = { ...gro_cou.toJSON()['course'] }
+                    }
 
-                let course
-                if (!gro_cou) {
-                    course = { warning: 'No existe una materia registrada para la fecha del pago' }
-                } else {
-                    course = { ...gro_cou.toJSON()['course'] }
-                }
-
-                expected = getFeeCourseByMajor( major_name )
-                current = amount
-                missing = getFeeCourseByMajor( major_name ) - amount
+                    expected = getFeeCourseByMajor(major_name)
+                    current = amount
+                    missing = getFeeCourseByMajor(major_name) - amount
 
 
-                extra = {...course, missing }
-                break;
+                    extra = { ...course, missing }
+                    break;
 
-            case 'Inscripción':
-                expected = getFeeCourseByMajor(major_name)
-                current = amount;
-                missing = fee_school - amount
-                extra = { name : 'Inscripción', missing}
+                case 'Inscripción':
+                    expected = getFeeSchoolByMajor(major_name)
+                    current = amount;
+                    missing = getFeeSchoolByMajor(major_name) - amount
+                    extra = { name: `Inscripción a ${major_name}`, missing }
+            }
+            extra = { ...extra, id_employee, employee_fullname, status_payment, payment_date }
+            return (details) ? { expected, current, ...extra } : { expected, current }
+        })
+
+        const payments = await Promise.all(moneyFromPayments)
+
+        let money_exp = 0, money = 0
+        payments.forEach(pay => {
+            money_exp += pay.expected
+            money += pay.current
+        })
+        if (!details) {
+            return { money_exp, money }
         }
-        extra = {...extra, id_employee, employee_fullname, status_payment,payment_date}
-        return (details) ? { expected, current,  ...extra } : { expected, current }
-        // return { expected, current,  ...extra }
-    })
+        const { student_fullname, matricula } = allPaymentsByStudent[0].toJSON()
+        return { student_fullname, id_student, matricula, money_exp, money, missing: (money_exp - money), payments }
+    } catch (err) {
 
-    const payments = await Promise.all(moneyFromPayments)
-
-    let money_exp = 0, money = 0
-    payments.forEach(pay => {
-        money_exp += pay.expected
-        money += pay.current
-    })
-    if(!details){
-        return {money_exp, money}
     }
-    const { student_fullname, matricula} = allPaymentsByStudent[0].toJSON()
-    return { student_fullname, id_student, matricula,money_exp, money, missing: (money_exp - money), payments}
 
 }
 

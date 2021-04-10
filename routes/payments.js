@@ -1,11 +1,9 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { getAllPayments, createPayment, deletePayment, payForPayment, getAllPaymentsByGroup, getAllPaymentsByStudent} = require('../controllers/paymentController');
+const { getAllPayments, createPayment, deletePayment, payForPayment, getAllPaymentsByGroup, getAllPaymentsByStudent, getPricesPayments} = require('../controllers/paymentController');
 const { checkStudentExistence, checkPaymentExistence, checkGroupExistence, checkEmployeeExistence } = require('../middlewares/dbValidations');
-const { getIdEmployee, getIdStudent } = require('../middlewares/getIds');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
-const { document_types } = require('../types/dictionaries');
 
 const paymentsRouter = Router();
 
@@ -26,6 +24,10 @@ paymentsRouter.get('/students/:matricula',[
     checkStudentExistence,
     validateJWT
 ], getAllPaymentsByStudent)
+
+paymentsRouter.get('/prices',[ 
+    validateJWT
+], getPricesPayments)
 
 paymentsRouter.post('/',[
     check('matricula',"La matricula del estudiante es obligatoria y debe de tener como máximo 15 caracteres").isString().notEmpty().isLength({ max : 15 }),

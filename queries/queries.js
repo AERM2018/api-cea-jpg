@@ -8,7 +8,7 @@ const queries = {
     'getEmployees' : 'SELECT emp.*, cam.campus_name , dep.department_name FROM cam_use LEFT JOIN campus cam ON cam.id_campus = cam_use.id_campus LEFT JOIN employees emp ON emp.id_user = cam_use.id_user LEFT JOIN emp_dep ON emp.id_employee = emp_dep.id_employee LEFT JOIN departments dep ON dep.id_department = emp_dep.id_department WHERE active = 1',
     'getGroups' : 'SELECT gro.* , maj.major_name FROM groupss gro LEFT JOIN majors maj ON gro.id_major = maj.id_major',
     "getReqPay" : 'SELECT * FROM req_pay WHERE id_payment = :id',
-    "getStuInfo" : "SELECT id_student, matricula, CONCAT(name,' ',surname_f,' ',surname_m) as student_fullname, name_group, campus_name, major_name FROM stu_info WHERE id_student = :id"
+    "getStuInfo" : "SELECT id_student, matricula, CONCAT(name,' ',surname_f,' ',surname_m) as student_fullname, name_group, id_group, campus_name, major_name FROM stu_info WHERE id_student = :id"
 }
 
 module.exports = queries

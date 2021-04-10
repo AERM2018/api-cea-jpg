@@ -48,7 +48,8 @@ const checkEmployeeExistence = async(  req, res = response, next  ) => {
     next();
 }
 
-const checkDepartmentExistence = async( id_department = 0 ) => {
+const checkDepartmentExistence = async( req, res = response, next ) => {
+    const id_department = req.params.id_department || req.body.id_department
     const department = await Department.findOne({
         where : {
             id_department : id_department
@@ -56,11 +57,17 @@ const checkDepartmentExistence = async( id_department = 0 ) => {
     });
 
     if(!department){
-        throw new Error (`El departamento con id ${id_department} no existe`)
+        return res.status(404).json({
+            ok : false,
+            msg : `El departamento con id ${id_department} no existe`
+        })
     }
+
+    next()
 }
 
-const checkPaymentExistence = async( id_payment = 0 ) => {
+const checkPaymentExistence = async( req, res = response, next ) => {
+    const id_payment = req.params.id_payment || req.body.id_payment
     const payment = await Payment.findOne({
         where : {
             id_payment : id_payment
@@ -68,8 +75,13 @@ const checkPaymentExistence = async( id_payment = 0 ) => {
     });
 
     if(!payment){
-        throw new Error (`El pago con id ${id_payment} no existe`)
+        return res.status(404).json({
+            ok : false,
+            msg : `El pago con id ${id_payment} no existe`
+        })
     }
+    
+    next()
 }
 
 const checkGroupExistence = async( req, res = response, next ) => {
