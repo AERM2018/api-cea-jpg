@@ -15,6 +15,7 @@ const employeesRouter=require('../routes/employees');
 const groupsRouter=require('../routes/groups');
 const studentsRouter= require('../routes/students');
 const teachersRouter = require('../routes/teachers');
+const cardsRouter = require('../routes/cards');
 class Server{
 
     app = express.application;
@@ -40,7 +41,8 @@ class Server{
             employees: `/${this.base}/employees`,
             groups: `/${this.base}/groups`,
             students: `/${this.base}/students`,
-            teachers: `/${this.base}/teachers`
+            teachers: `/${this.base}/teachers`,
+            cards: `/${this.base}/cards`
         }
         this.routes();
     }
@@ -67,6 +69,7 @@ class Server{
         this.app.use(this.apiPaths.groups, groupsRouter)
         this.app.use(this.apiPaths.students, studentsRouter)
         this.app.use(this.apiPaths.teachers, teachersRouter)
+        this.app.use(this.apiPaths.cards, cardsRouter)
     }
     listen(){
         this.app.listen( this.port, () => {
