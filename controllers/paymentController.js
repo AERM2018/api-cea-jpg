@@ -3,13 +3,11 @@ const moment = require('moment')
 
 const { printAndSendError } = require('../helpers/responsesOfReq')
 const Student = require("../models/student");
-// const Gro_cou = require("../models/gro_cou");
 const { Op, QueryTypes, col, fn } = require("sequelize");
 const Stu_gro = require("../models/stu_gro");
 const Stu_pay = require("../models/stu_pay");
 const Emp_pay = require("../models/emp_pay");
 const Group = require("../models/group");
-// const Course = require("../models/courses");
 const Payment = require("../models/payment");
 const Request = require("../models/request");
 const Document = require("../models/document");
@@ -18,10 +16,9 @@ const { getPaymentStudent } = require("../helpers/getPaymentStudent");
 const { db } = require("../database/connection");
 const { getReqPay, getStuInfo } = require("../queries/queries");
 const Emp_dep = require("../models/emp_dep");
-// const Stu_pay_status = require("../models/stu_pay_status");
 const Major = require("../models/major");
 const Pay_info = require("../models/pay_info");
-const Card = require("../models/card_provisional");
+const Card = require("../models/card");
 const Card_pay = require("../models/card_pay");
 
 const getAllPayments = async (req, res = response) => {
@@ -114,12 +111,6 @@ const createPayment = async (req, res = response) => {
         switch (payment_type) {
             case 'Documento':
                 // Verify if the doc_type was sent
-                // if (!document_type && !(document_type >= 0 && document_type <= 10)) {
-                //     return res.status(400).json({
-                //         ok: false,
-                //         msg: "El tipo de documento es obligatorio, verifiquelo por favor."
-                //     })
-                // }
                 const doc_info = new Document({ document_type, cost: document_types[document_type]['price'] })
                 const doc = await doc_info.save()
                 id_document = doc.toJSON()['id_document']

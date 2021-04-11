@@ -1,6 +1,6 @@
 const { response } = require('express');
 const Campus = require('../models/campus');
-const Card = require('../models/card_provisional');
+const Card = require('../models/card');
 const Department = require('../models/department');
 const Employees = require('../models/employee');
 const Group = require('../models/group');

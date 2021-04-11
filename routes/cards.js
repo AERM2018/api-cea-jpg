@@ -4,7 +4,6 @@ const { getAllCards, createCard,updateCard, deleteCard } = require('../controlle
 
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
-const campusRouter = require('./campus');
 
 const cardsRouter = Router();
 
