@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 const { getAllPayments, createPayment, deletePayment, payForPayment, getAllPaymentsByGroup, getAllPaymentsByStudent, getPricesPayments} = require('../controllers/paymentController');
-const { checkStudentExistence, checkPaymentExistence, checkGroupExistence, checkEmployeeExistence } = require('../middlewares/dbValidations');
+const { checkStudentExistence, checkPaymentExistence, checkGroupExistence, checkEmployeeExistence, checkStudentEnroll, checkCardExistence, isValidDocument, isValidCard } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -47,22 +47,28 @@ paymentsRouter.post('/',[
                 return true
             }}),
     check('amount',"El monto del pago es obligatorio").isFloat().exists({ checkNull : true }),
+    check('id_card','La tarjeta a la cual va dirigo el pago es necesario.').exists({ checkNull : false }).custom( (id_card,{req}) => isValidCard(id_card, req)),
+    check('document_type','El tipo de documento es necesario.').exists({ checkNull : false }).custom( (document_type, {req}) => isValidDocument(document_type, req) ),
     validateFields,
     validateJWT,
     checkStudentExistence,
-    checkEmployeeExistence
+    checkEmployeeExistence,
+    checkStudentEnroll,
+    checkCardExistence
 ],createPayment)
 
 paymentsRouter.delete('/:id_payment',[
-    check('id_payment','El id del pago es obligatorio').isInt().exists({ checkNull : true}).custom(checkPaymentExistence),
+    check('id_payment','El id del pago es obligatorio').isInt().exists({ checkNull : true}),
     validateFields,
+    checkPaymentExistence,
     validateJWT
 ], deletePayment)
 
 paymentsRouter.patch('/:id_payment/payFor',[
-    check('id_payment','El id del pago es obligatorio').isInt().exists({ checkNull : true}).custom(checkPaymentExistence),
+    check('id_payment','El id del pago es obligatorio').isInt().exists({ checkNull : true}),
     check('pay_amount','El monto de abono es obligatorio').isFloat().exists({ checkNull : true}),
     validateFields,
+    checkPaymentExistence,
     validateJWT
 ], payForPayment)
 module.exports = paymentsRouter;

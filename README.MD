@@ -1042,3 +1042,200 @@ You need send an object like this in the request's body:
 }
 ```
 
+---------------------------------------------------------
+### **Get all payments**
+
+This enpoint will give you the total money that each group has to pay, how much it has paid and how much is missing.
+
+Query params you can use:
+- major_name : specify a major and the groups which belog to that major will be returned.
+- name_group : specify a group's name and the groups whose name match with the search will be returned.
+
+If the query params are not send, the endpoint will return a list of groups without filters.
+
+```
+Endpoint  URL/payments           HTTP METHOD : GET
+```
+The result look like this:
+```
+{
+    ok : true,
+    payments : [
+        {
+            "id_group": 5,
+            "name_group": "2 derecho",
+            "major_name": "Licenciatura en Derecho",
+            "money_exp": 2600,
+            "money": 2600,
+            "missing": 0
+        },...
+    ]
+}
+```
+--------------------------------------------------------------
+### **Get payments by group**
+
+This endpoint will give you a list of the students which belong to the group specified, each one of the student's record contain the total money the student has to pay, how much he has paid and how much he is missing and some other info.
+
+* Put the value of id group instead of "id_group"
+
+```
+Endpoint  URL/payments/groups/id_group           HTTP METHOD : GET
+```
+The result look like this:
+```
+{
+    "ok": true,
+    "payments": [
+        {
+            "student_fullname": "Angel Retana Retana",
+            "matricula": "DEDG202103003",
+            "id_student": "ale105083",
+            "money_exp": 0,
+            "money": 0,
+            "missing": 0
+        },
+        {
+            "student_fullname": "Angel Gonzalez Vergas",
+            "matricula": "DEDG202103001",
+            "id_student": "ale106009",
+            "money_exp": 2600,
+            "money": 2600,
+            "missing": 0
+        },...
+    ]
+}
+```
+#### **Info you might want to know:**
+
+- money_exp : total money to pay.
+- money     : how much money have paid.
+- missing   : how much money is missing.
+
+--------------------------------------------------------------
+### **Get payments by student**
+
+This endpoint will give you a list of the payments that a student has made, in addition, it shows the student's basic info for payments and how much money he dues and how much he has paid, each one of the payments contain the total money the student has to pay, how much he has paid and how much he is missing, moreover the payment's concept, the payment's status, which employee made it, and the date when the payment was paid.
+
+* Put the value of student's matricula instead of "matricula"
+
+```
+Endpoint  URL/payments/students/matricula           HTTP METHOD : GET
+```
+
+Query params you can use:
+- status : 0 (payments don't fully paid) OR 1 (payments fully paid)
+
+If the query params are not send, the endpoint will return payment with status 0 and 1.
+
+The result look like this:
+```
+{
+   "ok": true,
+    "student": {
+        "matricula": "DEDG202103001",
+        "id_student": "ale106009",
+        "student_fullname": "Angel Gonzalez Vergas"
+        "money_exp": 2600,
+        "money": 2600,
+        "missing": 0,
+        "payments": [
+            {
+                "expected": 800,
+                "current": 800,
+                "name": "Inscripción a Licenciatura en Derecho",
+                "missing": 0,
+                "id_payment": 92,
+                "id_employee": "ale104691",
+                "employee_fullname": "Angel Cruz Cruz",
+                "status_payment": 1,
+                "payment_date": "2021-04-11"
+            },
+            {
+                "expected": 800,
+                "current": 800,
+                "id": 5,
+                "name": "Español avanzado",
+                "missing": 0,
+                "id_payment": 93,
+                "id_employee": "ale104691",
+                "employee_fullname": "Angel Cruz Cruz",
+                "status_payment": 1,
+                "payment_date": "2021-04-11"
+            },...
+        ]
+    },...
+}
+```
+
+#### **Info you might want to know:**
+#### _Student_
+- money_exp : total money to pay.
+- money     : how much money have paid.
+- missing   : how much money is missing.
+
+#### _Payments_
+- expected : total money to pay,
+- current  : how much money have paid.
+- missing  : how much money is missing.
+- name     : payment's concept.
+- status   : 0 (not fullt paid) OR 1 (fully paid).
+
+--------------------------------------------------------------
+### **Create payment**
+
+This endpoint will create a new payment which will containt info such student that made it, employee that attend the student, the concept and other important info.
+
+* Put the value of student's matricula instead of "matricula"
+
+```
+Endpoint  URL/payments         HTTP METHOD : POST
+```
+
+
+You need send an object like this in the request's body
+```
+{
+   matricula        : STRING,
+   id_user          : INT,
+   payment_method   : 'Tarjeta'   || 'Depósito'    || 'Efectivo',
+   payment_type     : 'Documento' || 'Inscripción' || 'Materia',
+   amount           : FLOAT,
+   document_type    : INT,
+   id_card          : INT
+}
+```
+_**Important**_
+- If the payment_type is different to document, send null as payment_type value
+- If the payment_method is different to tarjeta or depósito, send null as payment_method value
+
+-------------------------------------------------------------------
+### Pay for payment
+
+This endpoint will pay for a payment by its id, if the payment is fully paid, the payment's status will change from 0 to 1.
+
+* Put the value of payment's id instead of "id_payment"
+
+```
+Endpoint  URL/payments/id_payment/payFor         HTTP METHOD : PATCH
+```
+
+
+You need send an object like this in the request's body
+```
+{
+   pay_amount : FLOAT
+}
+```
+--------------------------------------------------------------------
+### Delete a payment
+
+This endpoint will delete a payment by its id, the info of the student who ask for it and the employee who attend the student will be deleted as well as the card info in case the payment would have paid with card or deposit. In case the payment was for a document, the request will be deleted as well.
+
+* Put the value of payment's id instead of "id_payment"
+
+```
+Endpoint  URL/payments/id_payment         HTTP METHOD : DELETE
+``` 
+
+It's not neccesary to send a body in the request.
