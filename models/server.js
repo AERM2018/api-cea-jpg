@@ -15,6 +15,7 @@ const employeesRouter=require('../routes/employees');
 const groupsRouter=require('../routes/groups');
 const studentsRouter= require('../routes/students');
 const teachersRouter = require('../routes/teachers');
+const cardsRouter = require('../routes/cards');
 const paymentsRouter = require('../routes/payments');
 const requestRouter = require('../routes/request');
 class Server{
@@ -44,6 +45,7 @@ class Server{
             groups: `/${this.base}/groups`,
             students: `/${this.base}/students`,
             teachers: `/${this.base}/teachers`,
+            cards: `/${this.base}/cards`,
             payments: `/${this.base}/payments`,
             requests: `/${this.base}/requests`,
         }
@@ -72,6 +74,7 @@ class Server{
         this.app.use(this.apiPaths.groups, groupsRouter)
         this.app.use(this.apiPaths.students, studentsRouter)
         this.app.use(this.apiPaths.teachers, teachersRouter)
+        this.app.use(this.apiPaths.cards, cardsRouter)
         this.app.use(this.apiPaths.payments, paymentsRouter)
         this.app.use(this.apiPaths.requests, requestRouter)
         this.app.use(this.apiPaths.index, (req, res) => {
