@@ -4,33 +4,34 @@ const { db } = require("../database/connection");
 const Gro_cou = db.define('gro_cou',{
     id_gro_cou : {
         type : DataTypes.INTEGER,
-        primaryKey : true,
-        autoIncrement : true
+        autoIncrement : true,
+        primaryKey : true
     },
     id_group : {
         type : DataTypes.INTEGER,
-        allowNull: false
+        allowNull : false
     },
     id_course : {
         type : DataTypes.INTEGER,
-        allowNull: false
+        allowNull : false
     },
     status : {
-        type : DataTypes.TINYINT,
-        defaultValue: 1
+        type : DataTypes.BOOLEAN,
+        allowNull : false
     },
-    start_date: {
-        type: DataTypes.DATE,
-        allowNull: false
+    start_date : {
+        type : DataTypes.DATEONLY,
+        allowNull : false
     },
-    end_date: {
-        type : DataTypes.DATE,
-        allowNull: false
+    end_date : {
+        type : DataTypes.DATEONLY,
+        allowNull : false
     }
-   
+},
+{
+    freezeTableName : true,
+    timestamps : false
+});
 
-},{
-    timestamps : false,
-    freezeTableName :true
-})
+
 module.exports = Gro_cou;
