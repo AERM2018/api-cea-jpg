@@ -48,9 +48,6 @@ const createGroup = async (req, res) => {
     let ids_emp_tim
     try {
 
-
-
-
         const major = await Major.findByPk(id_major);
         if (!major) {
             return res.status(404).json({
