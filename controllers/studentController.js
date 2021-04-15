@@ -22,7 +22,7 @@ const { printAndSendError } = require('../helpers/responsesOfReq');
 
 const getAllStudents = async (req, res) => {
     try {
-        const students = await db.query(getStudents, { type : QueryTypes.SELECT})
+        const students = await db.query(getStudents, { type: QueryTypes.SELECT })
         // const stu_pay = students.map( async (stu) => {
         //     console.log(moment().startOf('month').day(7))
         //     const payment = await Stu_pay_status.findAll({
@@ -43,44 +43,44 @@ const getAllStudents = async (req, res) => {
         //     })
         //     return {...stu,payment}
         // })
-    
+
         return res.status(200).json({
             ok: true,
             students
         })
-    } catch ( err ) {
-        printAndSendError( res, err)
+    } catch (err) {
+        printAndSendError(res, err)
     }
 }
 
-const getStudentByMatricula = async( req, res = response ) => {
-    const { id_student }  = req
+const getStudentByMatricula = async (req, res = response) => {
+    const { id_student } = req
     try {
-        const [student] = await  db.query(getStuInfo, { replacements : { id : id_student }, type : QueryTypes.SELECT})
-        Course.hasOne(Gro_cou, { foreignKey : 'id_course'})
-        Gro_cou.belongsTo(Course, { foreignKey : 'id_course'})
+        const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
+        Course.hasOne(Gro_cou, { foreignKey: 'id_course' })
+        Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
         const { id_group } = student
         const { fisrt_sunday, last_sunday } = getFisrtAndLastSunday()
         const group = await Gro_cou.findOne({
-            where : { id_group },
-            include : {
-                model : Course,
-                attributes : ['course_name'],
+            where: { id_group },
+            include: {
+                model: Course,
+                attributes: ['course_name'],
             },
-            where : {
-                start_date : fisrt_sunday,
-                end_date : last_sunday,
+            where: {
+                start_date: fisrt_sunday,
+                end_date: last_sunday,
             }
         })
         let course;
         course = (group === null) ? "Materia no ha asignada al alumno" : group.toJSON()['course']['course_name']
 
-            res.json({
-            ok : true,
-            student : {...student,course}
+        res.json({
+            ok: true,
+            student: { ...student, course }
         })
-    } catch ( err ) {
-        printAndSendError( res, err)
+    } catch (err) {
+        printAndSendError(res, err)
     }
 }
 const createStudent = async (req, res) => {
@@ -88,7 +88,7 @@ const createStudent = async (req, res) => {
     const { body } = req;
     const { email } = body;
     const { id_group, id_campus } = body;
-    const { matricula,street,zip,colony,birthdate, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number,  start_date, end_date } = body;
+    const { matricula, street, zip, colony, birthdate, name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number, start_date, end_date } = body;
     let id_user, id_student, user
     try {
         //email
@@ -97,8 +97,8 @@ const createStudent = async (req, res) => {
         })
         if (student) {
             //aqui hacer cosas de pros
-            
-            if (student.status===1){
+
+            if (student.status === 1) {
 
                 return res.status(400).json({
                     ok: false,
@@ -106,60 +106,62 @@ const createStudent = async (req, res) => {
                 })
             }
             else {
-                const { id_student} = student
-               try {
-                   console.log("ya existia un alumno con esa matricula")
-                   const group = await Group.findOne({
-                       where: { id_group }
-                   })
-                   if (!group) {
-                       return res.status(400).json({
-                           ok: false,
-                           msg: "No existe un grupo con ese id "+id_group,
-                       })
-                   }
-                   const campus = await Campus.findOne({
-                       where: { id_campus }
-                   })
-                   if (!campus) {
-                       return res.status(400).json({
-                           ok: false,
-                           msg: "No existe un campus con ese id "+id_campus,
-                       })
-                   }
-                  
-                   const stu_gro = await Stu_gro.findOne({ 
-                       where: {id_student:student.id_student}
+                const { id_student } = student
+                try {
+                   
+                    const group = await Group.findOne({
+                        where: { id_group }
+                    })
+                    if (!group) {
+                        return res.status(400).json({
+                            ok: false,
+                            msg: "No existe un grupo con ese id " + id_group,
+                        })
+                    }
+                    const campus = await Campus.findOne({
+                        where: { id_campus }
+                    })
+                    if (!campus) {
+                        return res.status(400).json({
+                            ok: false,
+                            msg: "No existe un campus con ese id " + id_campus,
+                        })
+                    }
+
+                    const stu_gro = await Stu_gro.findOne({
+                        where: { id_student: student.id_student }
                     })
 
-                   await stu_gro.update({id_group})
+                    await stu_gro.update({ id_group })
 
                 } catch (error) {
                     printAndSendError(res, error)
                 }
                 try {
                     const cam_use = await Cam_use.findOne({
-                        where: {id_user:student.id_user}
+                        where: { id_user: student.id_user }
                     });
-                    
-                    await cam_use.update({id_campus})
-                  
+
+                    await cam_use.update({ id_campus })
+
                 } catch (error) {
                     printAndSendError(res, error)
                 }
                 try {
-                    await student.update({ status: 1,name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number,
-                     street, zip, birthdate })
-                      return res.status(200).json({
-                        ok: true,
-                        msg: "El estudiante se actualizo correctamente",
-                        id_student
-                        
+                    await student.update({
+                        status: 1, name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number,
+                        street, zip, birthdate
                     })
-                    
+                    return res.status(200).json({
+                        ok: true,
+                        msg: "El estudiante se creo correctamente",
+                        id_student
+
+                    })
+
                 } catch (error) {
                     printAndSendError(res, error)
-                    
+
                 }
             }
         }
@@ -180,7 +182,7 @@ const createStudent = async (req, res) => {
         if (!group) {
             return res.status(400).json({
                 ok: false,
-                msg: "No existe un grupo con ese id "+id_group,
+                msg: "No existe un grupo con ese id " + id_group,
             })
         }
         const campus = await Campus.findOne({
@@ -189,26 +191,24 @@ const createStudent = async (req, res) => {
         if (!campus) {
             return res.status(400).json({
                 ok: false,
-                msg: "No existe un campus con ese id "+id_campus,
+                msg: "No existe un campus con ese id " + id_campus,
             })
         }
 
 
-            const usern = new User({ user_type: "student", password: "123456" });
-            const newUser = await usern.save()
-            const userJson = newUser.toJSON();
-            id_user = userJson['id_user']
+        const usern = new User({ user_type: "student", password: "123456" });
+        const newUser = await usern.save()
+        const userJson = newUser.toJSON();
+        id_user = userJson['id_user']
 
 
-        
-
-    } catch ( err ) {
+    } catch (err) {
         printAndSendError(res, err)
     }
     try {
         //matricula
-        id_student= generateMatricula(id_user) 
-        const student = new Student({id_student, matricula, id_user, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number, street ,zip,colony,birthdate  });
+        id_student = generateMatricula(id_user)
+        const student = new Student({ id_student, matricula, id_user, name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number, street, zip, colony, birthdate });
         await student.save();
         // password
         const user = await User.findByPk(id_user);
@@ -217,10 +217,10 @@ const createStudent = async (req, res) => {
         await user.update({ password: pass });
 
         const inst_email = `${id_student}@alejandria.edu.mx`
-        await user.update({email : inst_email})
+        await user.update({ email: inst_email })
 
-    } catch ( err ) {
-       printAndSendError(res, err)
+    } catch (err) {
+        printAndSendError(res, err)
     }
     try {
         const group = await Group.findByPk(id_group);
@@ -233,7 +233,7 @@ const createStudent = async (req, res) => {
         const stu_gro = new Stu_gro({ id_student, id_group })
         await stu_gro.save();
 
-    } catch ( err ) {
+    } catch (err) {
         printAndSendError(res, err)
     }
     try {
@@ -241,18 +241,17 @@ const createStudent = async (req, res) => {
 
         const cam_use = new Cam_use({ id_campus, id_user });
         await cam_use.save();
+        return res.status(201).json({
+            ok: true,
+            msg: "Estudiante creado correctamente",
+            id_student
+        })
 
 
     } catch (err) {
         printAndSendError(res, err)
     }
 
-    res.status(201).json({
-        ok: true,
-        msg: "Estudiante creado correctamente",
-        id_student
-      
-})
 
 
 
@@ -261,7 +260,7 @@ const updateStudent = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
     const { curp } = body
-    const {matricula} = body;
+    const { matricula } = body;
     try {
         const student = await Student.findByPk(id);
         if (!student) {
@@ -272,9 +271,9 @@ const updateStudent = async (req, res) => {
         }
 
         const stu = await Student.findOne({
-            where: { 
+            where: {
                 curp,
-                id_student : {[Op.ne] : id}
+                id_student: { [Op.ne]: id }
             }
         })
         if (stu) {
@@ -284,9 +283,9 @@ const updateStudent = async (req, res) => {
             })
         }
         const stu_matricula = await Student.findOne({
-            where: { 
+            where: {
                 matricula,
-                id_student : {[Op.ne] : id}
+                id_student: { [Op.ne]: id }
             }
         })
         if (stu_matricula) {
@@ -304,7 +303,7 @@ const updateStudent = async (req, res) => {
         })
 
 
-    } catch ( err ) {
+    } catch (err) {
         printAndSendError(res, err)
     }
 }
@@ -314,7 +313,7 @@ const deleteStudent = async (req, res) => {
 
     try {
         const student = await Student.findOne({
-            where : { id_student: id }
+            where: { id_student: id }
         });
         if (!student) {
             return res.status(404).json({
@@ -328,12 +327,9 @@ const deleteStudent = async (req, res) => {
             ok: true,
             msg: "El alumno se elimino correctamente"
         })
-    } catch (error) 
-    {
+    } catch (error) {
         printAndSendError(res, err)
     }
-
-
 }
 
 

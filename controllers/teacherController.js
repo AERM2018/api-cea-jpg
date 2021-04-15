@@ -21,6 +21,7 @@ const getAllTeachers = async (req, res) => {
         ok: true,
         teachers
     })
+
 }
 
 const createTeacher = async (req, res) => {
@@ -33,6 +34,9 @@ const createTeacher = async (req, res) => {
             where: { rfc }
         });
         if (teacher) {
+
+            //aqui hacer cosas
+
             return res.status(400).json({
                 ok: false,
                 msg: "Ya existe un maestro con ese rfc",
@@ -115,7 +119,8 @@ const createTeacher = async (req, res) => {
 
     res.status(201).json({
         ok: true,
-        msg: "Maestro creado correctamente"
+        msg: "Maestro creado correctamente",
+        id_teacher
     })
 
 
