@@ -190,7 +190,7 @@ const createEmployee = async (req, res) => {
 
     res.status(201).json({
         ok: true,
-        msg: `Empleado creado correctamente con id :${id_employee}`
+        msg: `Empleado creado correctamente con id: ${id_employee}`
         
     })
 
@@ -231,6 +231,15 @@ const deleteEmployee = async (req, res) => {
         
         const employee = await Employee.findByPk(id);
         if (!employee) {
+            return res.status(404).json({
+                ok: false,
+                msg: "No existe un empleado con el id " + id,
+            });
+        }
+        const employeeActive = await Employee.findOne({
+            where: {active:0}
+        });
+        if (employeeActive) {
             return res.status(404).json({
                 ok: false,
                 msg: "No existe un empleado con el id " + id,

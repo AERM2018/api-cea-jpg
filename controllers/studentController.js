@@ -313,9 +313,18 @@ const deleteStudent = async (req, res) => {
 
     try {
         const student = await Student.findOne({
-            where: { id_student: id }
+            where: { id_student: id,  }
         });
         if (!student) {
+            return res.status(404).json({
+                ok: false,
+                msg: "No existe un alumno con el id " + id,
+            });
+        }
+        const studentStatus = await Student.findOne({
+            where: { status:2   }
+        });
+        if (studentStatus) {
             return res.status(404).json({
                 ok: false,
                 msg: "No existe un alumno con el id " + id,

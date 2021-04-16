@@ -179,6 +179,14 @@ const deleteTeacher = async (req, res) => {
                 msg: "No existe un maestro con el id " + id,
             });
         }
+        const teacherActive = await Teacher.findOne({
+            where: {active: 2}
+        });
+        if (teacherActive) {
+            return res.status(404).json({
+                msg: "No existe un maestro con el id " + id,
+            });
+        }
 
         await teacher.update({ active: 2 })
 
