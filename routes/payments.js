@@ -37,6 +37,7 @@ paymentsRouter.post('/',[
     check('amount',"El monto del pago es obligatorio").isFloat().exists({ checkNull : true }),
     check('id_card','La tarjeta a la cual va dirigo el pago es necesario.').exists({ checkNull : false }).custom( (id_card,{req}) => isValidCard(id_card, req)),
     check('document_type','El tipo de documento es necesario.').exists({ checkNull : false }).custom( (document_type, {req}) => isValidDocument(document_type, req) ),
+    check('start_date','').exists({ checkNull : false }),
     validateFields,
     validateJWT,
     checkStudentExistence,

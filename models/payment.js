@@ -18,19 +18,24 @@ const Payment = db.define('payment',{
     },
     status_payment : {
         type : DataTypes.BOOLEAN,
-        allowNull : null
+        allowNull : false
     },
     cutoff_date : {
-        type : DataTypes.DATE,
-        allowNull : null
+        type : DataTypes.DATEONLY,
+        allowNull : false
     },
     payment_date : {
-        type : DataTypes.DATE,
-        defaultValue : Date.now()
+        type : DataTypes.DATEONLY,
+        defaultValue : Date.now(),
+        allowNull : true
     },
     amount : {
         type : DataTypes.INTEGER,
         allowNull : false,
+    },
+    start_date : {
+        type : DataTypes.DATEONLY,
+        allowNull : true
     },
 },
 {

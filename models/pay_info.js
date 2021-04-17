@@ -25,6 +25,10 @@ const Pay_info = db.define('pay_info',{
         type : DataTypes.DATEONLY,
         allowNull : false
     },
+    start_date : {
+        type : DataTypes.DATEONLY,
+        allowNull : true
+    },
     amount           : {
         type : DataTypes.FLOAT,
         allowNull : false

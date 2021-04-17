@@ -23,8 +23,8 @@ const getPaymentStudent = async (id_student = '', details = false, st_payment = 
 
     const moneyFromPayments = allPaymentsByStudent.map(async (pay_info) => {
         let expected
-        const { payment_type, id_payment, id_group, major_name, status_payment, payment_date, current, cutoff_date } = pay_info
-        let { amount } = pay_info
+        const { payment_type, id_payment, id_group, major_name, payment_date, start_date,current,  } = pay_info
+        let { amount, status_payment, cutoff_date } = pay_info
         expected = amount
         switch (payment_type) {
             case 'Documento':
@@ -38,15 +38,31 @@ const getPaymentStudent = async (id_student = '', details = false, st_payment = 
                 }
                 break;
             case 'Materia':
-                const { first_day, last_day, overdue } = await getGroupDaysAndOverdue(id_group)
+                const { first_day, last_day, overdue } = await getGroupDaysAndOverdue(id_group, start_date)
                 const amount_origin = getFeeCourseByMajor(major_name)
                 // Change the payment's amount in case it's necessary
-                if(!status_payment && (moment().month() === moment(cutoff_date).month())){
-                    if (amount_origin + overdue != amount) {
-                        await Payment.update({ amount: amount_origin + overdue }, {
-                            where: { id_payment }
-                        })
-                        expected = amount_origin + overdue
+                if(status_payment != 1 ){
+                    // Change the status if the date is overdue
+                    if((status_payment === 0 && moment().month() > moment(cutoff_date).month() && moment().year() >= moment(cutoff_date).year())){
+                        if(moment().diff(moment(cutoff_date).endOf('month'),"days") < 15){
+                            await Payment.update({ cutoff_date : moment(cutoff_date).endOf('month').add(15,"days") }, {
+                                where: { id_payment }
+                            })
+                            cutoff_date = moment(cutoff_date).endOf('month').add(15,"days")
+                        }else{
+                            await Payment.update({ status_payment : 2 }, {
+                                where: { id_payment }
+                            })
+                            status_payment = 2
+                        }
+                    }
+                    if((status_payment === 0 && moment().month() === moment(cutoff_date).month()) || (status_payment === 2 && moment().month() != moment(cutoff_date).month())){
+                        if (amount_origin + overdue != amount) {
+                            await Payment.update({ amount: amount_origin + overdue }, {
+                                where: { id_payment }
+                            })
+                            expected = amount_origin + overdue
+                        }
                     }
                 }else {
                     expected = amount
@@ -57,8 +73,8 @@ const getPaymentStudent = async (id_student = '', details = false, st_payment = 
                 const gro_cou = await Gro_cou.findOne({
                     where: {
                         [Op.and]: {
-                            start_date: { [Op.gte]: moment(cutoff_date).startOf('month').format().substr(0,10) },
-                            end_date: { [Op.lte]: moment(cutoff_date).endOf('month').format().substr(0,10) },
+                            start_date: { [Op.gte]: start_date },
+                            end_date: { [Op.lte]: moment(start_date).endOf('month').format().substr(0,10) },
                             id_group
                         }
                     },
@@ -72,7 +88,7 @@ const getPaymentStudent = async (id_student = '', details = false, st_payment = 
 
                 let course
                 if (!gro_cou) {
-                    course = { warning: 'No existe una materia registrada para la fecha del pago' }
+                    course = { name: `Pago adelantado de materia del mes ${moment(start_date).format('MMMM-YYYY')}` }
                 } else {
                     course = { ...gro_cou.toJSON()['course'] }
                 }
@@ -90,6 +106,7 @@ const getPaymentStudent = async (id_student = '', details = false, st_payment = 
     })
 
     const payments = await Promise.all(moneyFromPayments)
+    
 
     // Get the total money of the payments
     let money_exp = 0, money = 0

@@ -4,7 +4,7 @@ const { col } = require('sequelize');
 const Gro_tim = require('../models/gro_tim');
 const Time_tables = require('../models/time_tables');
 
-const getGroupDaysAndOverdue = async( id_group = 0 ) => {
+const getGroupDaysAndOverdue = async( id_group = 0, month = {} ) => {
     Time_tables.hasMany(Gro_tim, { foreignKey: 'id_time_table' });
     Gro_tim.belongsTo(Time_tables, { foreignKey: 'id_time_table' });
     const gro_tim = await Gro_tim.findAll({
@@ -20,16 +20,16 @@ const getGroupDaysAndOverdue = async( id_group = 0 ) => {
 
     // Find the first of month in which the student attends class
 
-    const begin_of_month = moment().local().startOf('month').day()
-    const end_of_month = moment().local().endOf('month')
+    const begin_of_month = moment(month).local().startOf('month').day()
+    const end_of_month = moment(month).local().endOf('month')
     let first_day_date, last_day_date;
 
     const first_day = time_table_days.find(day => day >= begin_of_month)
 
     if (!first_day) {
-        first_day_date = moment().local().startOf('month').day(time_table_days[0] + 7)
+        first_day_date = moment(month).local().startOf('month').day(time_table_days[0] + 7)
     } else {
-        first_day_date = moment().local().startOf('month').day(first_day)
+        first_day_date = moment(month).local().startOf('month').day(first_day)
     }
 
     const weeks_missing_month = moment(end_of_month).diff(first_day_date, 'weeks') + 1
@@ -43,10 +43,18 @@ const getGroupDaysAndOverdue = async( id_group = 0 ) => {
     first_day_date = first_day_date.format().substr(0, 10)
     last_day_date = last_day_date.format().substr(0, 10)
 
-    const overdue = moment().local().diff(moment(first_day_date),'weeks') * 100;
+    let overdue;
+    if(moment(month).month() === moment().month()){
+        overdue = moment().local().diff(moment(first_day_date),'weeks') * 100
+    }else if((moment(month).month() < moment().month()) && (moment(month).year() === moment().year())){
+        overdue = moment(month).endOf('month').diff(moment(first_day_date),'weeks') * 100
+    }else{
+        overdue = 0
+    }
+    // console.log(overdue)
+    // const overdue = (moment(month).month() === moment().month()) ? moment().local().diff(moment(first_day_date),'weeks') * 100 :  0;
    
-    console.log(true && (moment().month() === moment('2021-04-30').month()))
-    
+    // console.log(moment('2021-05-09').year())
     return { first_day : first_day_date, last_day: last_day_date, overdue }
 }
 
