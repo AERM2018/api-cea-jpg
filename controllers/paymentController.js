@@ -20,6 +20,9 @@ const Major = require("../models/major");
 const Pay_info = require("../models/pay_info");
 const Card = require("../models/card");
 const Card_pay = require("../models/card_pay");
+const Emp_par_pay = require("../models/emp_pay");
+const Partial_pay = require("../models/partial_pay");
+const { getGroupDaysAndOverdue } = require("../helpers/dates");
 
 const getAllPayments = async (req, res = response) => {
     const { major_name = '', name_group = '' } = req.query
@@ -88,39 +91,44 @@ const getPricesPayments = (req, res = response) => {
     })
 }
 const createPayment = async (req, res = response) => {
-    const { matricula, id_user, document_type, payment_method, id_card, amount, ...rest } = req.body
+    const { matricula, document_type, payment_method, id_card, amount, payment_type } = req.body
+    let { start_date } = req.body
     const { id_employee, id_student, enroll } = req;
-    let status_payment = false;
+    let status_payment = 0;
     let cutoff_date;
     let id_document;
-    const { payment_type } = rest
     let change = 0;
+    let total_to_pay = 0
+    let msg = 'Pago adelentado de materia.';
 
     try {
 
         const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-        const { major_name } = student
+        const { major_name, id_group, ins_date, } = student
 
-        if(!enroll && payment_type != 'Inscripción'){
+        if (!enroll && payment_type.toLowerCase() != 'inscripción') {
             return res.status(400).json({
-                ok : false,
-                msg : `Pago denegado, el alumno con matricula ${matricula} no se encuentra inscrito en algun grupo.`
+                ok: false,
+                msg: `Pago denegado, el alumno con matricula ${matricula} no se encuentra inscrito en algun grupo.`
             })
         }
 
-        switch (payment_type) {
-            case 'Documento':
+        start_date = (start_date === null) ? moment().startOf('month').format().substr(0, 10) : moment().month(start_date).startOf('month').format().substr(0, 10)
+
+        switch (payment_type.toLowerCase()) {
+            case 'documento':
                 // Verify if the doc_type was sent
-                const doc_info = new Document({ document_type, cost: document_types[document_type]['price'] })
+                total_to_pay = document_types[document_type]['price']
+                const doc_info = new Document({ document_type, cost: total_to_pay })
                 const doc = await doc_info.save()
                 id_document = doc.toJSON()['id_document']
-                status_payment = (amount >= document_types[document_type]['price'])
-                change = (amount - document_types[document_type]['price'] > 0) ? amount - document_types[document_type]['price'] : 0
-                cutoff_date = moment().startOf('month').day(7).add(1, 'month').startOf('month').day(7).toDate()
+                status_payment = (amount >= total_to_pay) ? 1 : 0
 
+                cutoff_date = moment().local().endOf('month').format().substr(0, 10)
+                msg = ""
                 break;
 
-            case 'Inscripción':
+            case 'inscripción':
                 const pays_ins = await Pay_info.findAndCountAll({
                     where: {
                         id_student: id_student,
@@ -135,69 +143,110 @@ const createPayment = async (req, res = response) => {
                     })
                 }
 
-                const fee_school = getFeeSchoolByMajor(major_name)
-                if (amount < fee_school) {
+                total_to_pay = getFeeSchoolByMajor(major_name)
+                if (amount < total_to_pay) {
                     return res.status(400).json({
                         ok: false,
-                        msg: `El pago por inscripción no se pudo realizar, faltan $${fee_school - amount}.`
+                        msg: `El pago por inscripción no se pudo realizar, faltan $${total_to_pay - amount}.`
                     })
                 }
-                change = amount - fee_school
-                cutoff_date = moment().toDate()
+                cutoff_date = moment().local().format().substr(0, 10)
                 status_payment = 1
+                msg = ""
                 break;
 
-            case 'Materia':
-                const fisrt_sunday = moment().startOf('month').day(7).toDate().toJSON().substr(0, 10)
-                const last_sunday = moment(fisrt_sunday).add(4, 'weeks').toDate().toJSON().substr(0, 10)
+            case 'materia':
+
 
                 const pays_courses = await Pay_info.findAll({
                     where: {
                         [Op.and]: {
                             id_student: id_student,
                             payment_type: { [Op.in]: ['Materia', 'Documento'] },
-                        }
+                        },
                     },
+                    order: [['start_date', 'desc']],
                     attributes: { exclude: ['id'] }
                 })
-                if (pays_courses.filter(({ status_payment }) => status_payment != 1).length > 0) {
+
+                if (pays_courses.filter(({ status_payment, cutoff_date }) => status_payment === 0 && moment().month() === moment(cutoff_date).month()).length > 0) {
                     return res.status(400).json({
                         ok: false,
-                        msg: "Pago denegado, existe un(a) documento/materia pendiente de pagar"
-                    })
-                }
-                
-                if (pays_courses.filter(({ payment_date, payment_type }) => (payment_type === 'Materia' && payment_date >= fisrt_sunday && payment_date <= last_sunday)).length > 0) {
-                    return res.status(400).json({
-                        ok: false,
-                        msg: "La materia correspondiente al mes ya se encuentra pagada o abonada"
+                        msg: "Pago denegado, existe un(a) documento/materia pendiente de pagar."
                     })
                 }
 
+                const courses_already_paid = pays_courses.map(pays => pays.toJSON())
+                const course_already_paid = courses_already_paid.find(paysJSON => (paysJSON.payment_type === 'Materia' && moment(paysJSON.start_date).month() === moment(start_date).month() && moment(paysJSON.start_date).year() >= moment().year()))
+                if (course_already_paid) {
+                    if (moment(course_already_paid['start_date']).year() > moment().year()) {
+                        return res.status(400).json({
+                            ok: false,
+                            msg: `Pago de materia denegado, ya existe un pago de materia del mes de ${moment(start_date).format('MMMM')} adelantado.`
+                        })
+                    }
 
-                const fee_course = getFeeCourseByMajor(major_name)
-                if (amount < fee_course) {
-                    cutoff_date = moment().startOf('week').add(1, 'week');
+                    start_date = moment(start_date).add(1, 'year')
                 } else {
-                    status_payment = 1
-                    cutoff_date = moment().toDate()
+                    if (moment(start_date).isBefore(ins_date)) {
+                        start_date = moment(start_date).add(1, 'year')
+                    }
+                }
+                const { first_day, last_day, overdue } = await getGroupDaysAndOverdue(id_group, start_date)
+                cutoff_date = moment().format().substr(0, 10)
+                // advance and current payments
+                if ((moment(start_date).month() >= moment().month() && moment(start_date).year() >= moment().year()) || (moment(start_date).month() < moment().month() && moment(start_date).year() != moment().year())) {
+                    total_to_pay = getFeeCourseByMajor(major_name) + overdue
+                    if (amount < total_to_pay) {
+                        if (moment(start_date).month() === moment().month() && moment(start_date).year() === moment().year()) {
+                            msg = ''
+                            cutoff_date = moment().local().day(moment(first_day).local().day() + 7).format().substr(0, 10)
+                            if (moment(cutoff_date).month() != moment(first_day).month()) {
+                                cutoff_date = moment().local().endOf('month').format().substr(0, 10)
+                            }
+                        } else {
+                            cutoff_date = moment(start_date).local().day(moment(first_day).local().day() + 7).format().substr(0, 10)
+
+                        }
+                        status_payment = 0
+                    } else {
+                        msg = (moment(start_date).month() === moment().month() && moment(start_date).year() === moment().year()) ? '' : 'Pago adelentado de materia.'
+                        status_payment = 1
+                    }
+
+                }
+                // Payments from the previous month
+                else if (moment().month() - moment(start_date).month() === 1 && moment().diff(moment(start_date).endOf('month'), 'days') < 15) {
+                    const { overdue } = await getGroupDaysAndOverdue(id_group, moment(start_date).endOf('month'))
+                    total_to_pay = getFeeCourseByMajor(major_name) + overdue
+                    if (amount < total_to_pay) {
+                        cutoff_date = moment(start_date).endOf('month').add(15, 'days').format().substr(0, 10);
+                    } else {
+                        status_payment = 1
+                    }
+                    msg = ''
+                } else {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: "Pago de materia denegado, no se pueden pagar materias de meses anteriores al actual con diferencia de mas de 15 días."
+                    })
                 }
 
         }
 
-        
-        const new_payment = new Payment({ payment_method , cutoff_date, amount: (amount - change), status_payment,  ...rest})
+        const payment_date = (status_payment === 1) ? moment().local().format().substr(0, 10) : null
+        change = (amount - total_to_pay > 0) ? amount - total_to_pay : 0
+        const new_payment = new Payment({ cutoff_date, start_date, payment_date, amount: total_to_pay, status_payment, payment_type })
         const payment = await new_payment.save()
         const { id_payment } = payment.toJSON();
         const stu_pay = new Stu_pay({ id_payment, id_student })
         await stu_pay.save();
-        const emp_pay = new Emp_pay({ id_payment, id_employee })
-        await emp_pay.save();
 
-        if(id_card){
-            const card_pay = new Card_pay({ id_card, id_payment})
-            await card_pay.save()
-        }
+        const partial_pay = new Partial_pay({ id_payment, id_card, amount_p: (amount - change), payment_method, date_p: moment().local().format().substr(0, 10) })
+        const par_pay_saved = await partial_pay.save()
+        const { id_partial_pay } = par_pay_saved.toJSON()
+        const emp_par_pay = new Emp_par_pay({ id_partial_pay, id_employee })
+        await emp_par_pay.save();
 
         // create a new request just in case a document was created
         if (id_document) {
@@ -211,7 +260,8 @@ const createPayment = async (req, res = response) => {
             await request.save()
         }
 
-        const msg = (!status_payment) ? "Se ha registrado su pago como abono." : `Pago registrado con exito`
+
+        msg += (status_payment == 0) ? "Se ha registrado su pago como abono." : `Pago registrado con exito.`
         return res.status(201).json({
             ok: true,
             msg,
@@ -226,26 +276,26 @@ const getAllPaymentsByGroup = async (req, res = response) => {
     const { id_group } = req.params
 
     try {
-        
+
         const stu_gro = await Stu_gro.findAll({
             where: { id_group }
         })
-    
+
         const payments = stu_gro.map(async ({ id_student }) => {
-            const student = await Student.findByPk(id_student,{
+            const student = await Student.findByPk(id_student, {
                 attributes: [[fn('concat', col('name'), ' ', col('surname_f'), ' ', col('surname_m')), 'student_fullname'], 'matricula']
             })
             const stu_pays = await getPaymentStudent(id_student, false)
-            return { ...student.toJSON(),id_student, ...stu_pays, missing: (stu_pays.money_exp - stu_pays.money) }
+            return { ...student.toJSON(), id_student, ...stu_pays, missing: (stu_pays.money_exp - stu_pays.money) }
         })
-    
+
         Promise.all(payments).then(stu_pay_info => {
             res.status(200).json({
                 ok: true,
-                payments: stu_pay_info
+                student_payments: stu_pay_info
             })
         })
-    } catch ( err ) {
+    } catch (err) {
         printAndSendError(res, err)
     }
 }
@@ -254,26 +304,27 @@ const getAllPaymentsByStudent = async (req, res = response) => {
     const { id_student } = req
     const { matricula } = req.params
     const { status = null } = req.query
-    const st_pay = (status != null) ? {'status_payment' : status} : {}
+    const st_pay = (status != null) ? { 'status_payment': status } : {}
 
     const student = await Student.findByPk(id_student,
-        { 
-            attributes : [[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')), 'student_fullname']] 
+        {
+            attributes: [[fn('concat', col('name'), " ", col('surname_f'), " ", col('surname_m')), 'student_fullname']]
         })
-    
-    
+
+
     try {
         let payments = await getPaymentStudent(id_student, true, st_pay)
-        payments = {...payments, matricula, id_student, ...student.toJSON()}
+        payments = { ...payments, matricula, id_student, ...student.toJSON() }
 
         return res.status(200).json({
             ok: true,
             student: payments
         })
-    } catch ( err ) {
+    } catch (err) {
         printAndSendError(res, err)
     }
 }
+
 const deletePayment = async (req, res = response) => {
     const { id_payment } = req.params
     try {
@@ -282,14 +333,27 @@ const deletePayment = async (req, res = response) => {
         })
 
         const { payment_type, payment_method } = payment.toJSON()
-        console.log(payment_method)
         await Stu_pay.destroy({
             where: { id_payment }
         })
-        await Emp_pay.destroy({
+
+
+        const partial_pays = await Partial_pay.findAll({
             where: { id_payment }
         })
-        if (payment_type== 'Documento') {
+
+        const delete_partials = partial_pays.map(async (partial_pay) => {
+            const { id_partial_pay } = partial_pay;
+            await Emp_par_pay.destroy({
+                where: { id_partial_pay }
+            })
+
+            partial_pay.destroy()
+        })
+
+        await Promise.all(delete_partials)
+
+        if (payment_type == 'Documento') {
             const request = await Request.findOne({
                 where: { id_payment }
             })
@@ -302,73 +366,88 @@ const deletePayment = async (req, res = response) => {
 
         }
 
-        if(payment_method === 'Tarjeta' || payment_method === 'Depósito'){
-            Card_pay.destroy({
-                where : {id_payment}
-            })
-        }
         await payment.destroy()
 
-        res.sendStatus(200)
+        return res.status(200).json({
+            ok: true,
+            msg: `Pago eliminado corectamente`
+        })
     } catch (err) {
-       printAndSendError(res, err)
+        printAndSendError(res, err)
     }
 }
 
 const payForPayment = async (req, res = response) => {
     const { id_payment } = req.params
-    const { pay_amount } = req.body
+    const { pay_amount, payment_method, id_card } = req.body
     let change = 0;
     let pay = 0
-    
-    
+    let new_status, new_cutoff_date
+
+
     try {
         const payment = await Pay_info.findOne({
             where: { id_payment },
             attributes: { exclude: ['id'] }
         })
-        const { payment_type, amount, major_name } = payment.toJSON()
+        const { payment_type, amount, current, status_payment, cutoff_date, id_group, major_name } = payment.toJSON()
+        const { first_day } = await getGroupDaysAndOverdue(id_group)
 
-        // TODO: La fecha de corte puede cambiar
-        let { status_payment, cutoff_date } = payment.toJSON()
         // Don't pay a payment which is already paid fully
-        if (status_payment) {
+        if (status_payment === 1) {
             return res.status(400).json({
                 ok: false,
                 msg: `El pago con id ${id_payment} ya se encuentra liquidado.`,
             })
         }
+         // Don't pay a payment which is already paid fully
+         if (status_payment === 2) {
+            return res.status(400).json({
+                ok: false,
+                msg: `El pago con id ${id_payment} se encuentra cerrado.`,
+            })
+        }
+
+        if (moment().local().isAfter(moment(cutoff_date)) && moment().local().month() != moment(cutoff_date).month()) {
+            return res.status(400).json({
+                ok: false,
+                msg: `La fecha de corte del pago con id ${id_payment} expiró.`,
+            })
+        }
+        missing = amount - current
+        change = (pay_amount > missing) ? pay_amount - missing : 0
+        pay = pay_amount - change
         switch (payment_type) {
             case 'Documento':
-                const req_pay = await db.query(getReqPay, { replacements: { id: id_payment }, type: QueryTypes.SELECT })
-                const doc_type = req_pay[0]['name']
-                missing = document_types[doc_type]['price'] - amount
-                change = (pay_amount > missing) ? pay_amount - missing : 0
-                pay = pay_amount - change
-                if (amount + pay === document_types[doc_type]['price']) {
-                    status_payment = 1
+                if (current + pay === amount) {
+                    new_status = 1
                 }
                 break;
 
             case 'Materia':
-                missing = getFeeCourseByMajor(major_name) - amount
-                change = (pay_amount > missing) ? pay_amount - missing : 0
-                pay = pay_amount - change
-                if (amount + pay === getFeeCourseByMajor(major_name)) {
-                    status_payment = 1
+                if (current + pay === amount) {
+                    new_status = 1
                 } else {
-                    cutoff_date = moment().startOf('week').add(1, 'week')
+                    new_cutoff_date = moment().local().day(moment(first_day).day() + 7).format().substr(0, 10)
+                    if (moment(new_cutoff_date).month() != moment(first_day).month()) {
+                        new_cutoff_date = moment().local().endOf('month').format().substr(0, 10)
+                    }
                 }
             default:
                 break;
         }
 
-        await Payment.update({
-            amount: (amount + pay),
-            status_payment,
-            cutoff_date,
-            payment_date: moment().toDate()
-        }, { where: { id_payment } })
+
+        if (status_payment != new_status || cutoff_date != new_cutoff_date) {
+            const payment_date = (new_status) ? moment().local().format().substr(0, 10) : null
+            await Payment.update({
+                status_payment: new_status,
+                cutoff_date: new_cutoff_date,
+                payment_date
+            }, { where: { id_payment } })
+        }
+        const partial_pay = new Partial_pay({ id_payment, id_card, amount_p: pay, payment_method, date_p: moment().local().format().substr(0, 10) })
+        await partial_pay.save()
 
         return res.status(200).json({
             ok: true,
@@ -379,6 +458,139 @@ const payForPayment = async (req, res = response) => {
         printAndSendError(res, err)
     }
 }
+
+const updatePayment = async (req, res = response) => {
+    const { cutoff_date } = req.body
+    const { id_payment } = req.params
+
+    try {
+        const payment = await Payment.findOne({
+            where: { id_payment }
+        })
+        const { status_payment, cutoff_date: cuttoff_date_pay } = payment.toJSON()
+        if (status_payment === 1) {
+            return res.status(400).json({
+                ok: false,
+                msg: `Cambio de fecha de corte denegado, el pago ya se encuentra liquidado.`
+            })
+        }
+
+        if (moment(cutoff_date).isSameOrAfter(cuttoff_date_pay)) {
+            await payment.update({ cutoff_date })
+        } else {
+            return res.status(400).json({
+                ok: false,
+                msg: `La nueva fecha corte de pago tiene que ser mayor a la fecha de corte que el pago tenía.`
+            })
+        }
+
+        return res.status(200).json({
+            ok: true,
+            msg: "Fecha de corte actualizada correctamente"
+        })
+    } catch (err) {
+        printAndSendError(res, err)
+    }
+}
+
+const checkPricePayment = async (req, res = response) => {
+    const { payment_type, document_type } = req.body
+    const { matricula } = req.params
+    let { start_date } = req.body
+    const { id_student, enroll } = req
+
+    const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
+    const { major_name, id_group, ins_date } = student
+
+    if (!enroll && payment_type.toLowerCase() != 'inscripción') {
+        return res.status(400).json({
+            ok: false,
+            msg: `Pago denegado, el alumno con matricula ${matricula} no se encuentra inscrito en algun grupo.`
+        })
+    }
+
+    start_date = (start_date === null) ? moment().startOf('month').format().substr(0, 10) : moment().month(start_date).startOf('month').format().substr(0, 10)
+
+    switch (payment_type.toLowerCase()) {
+        case 'documento':
+            total_to_pay = document_types[document_type]['price']
+            break;
+        case 'inscripción':
+            const pays_ins = await Pay_info.findAndCountAll({
+                where: {
+                    id_student: id_student,
+                    payment_type: 'Inscripción'
+                },
+                attributes: { exclude: ['id'] }
+            })
+            if (pays_ins.count != 0) {
+                return res.status(400).json({
+                    ok: false,
+                    msg: `El alumno con matricula ${matricula} ya esta inscrito a un grupo`
+                })
+            }
+
+            total_to_pay = getFeeSchoolByMajor(major_name)
+            break
+        case 'materia':
+            const pays_courses = await Pay_info.findAll({
+                where: {
+                    [Op.and]: {
+                        id_student: id_student,
+                        payment_type: { [Op.in]: ['Materia', 'Documento'] },
+                    },
+                },
+                order: [['start_date', 'desc']],
+                attributes: { exclude: ['id'] }
+            })
+
+            if (pays_courses.filter(({ status_payment, cutoff_date }) => status_payment === 0 &&status_payment === 0 && moment().month() === moment(cutoff_date).month()).length > 0) {
+                return res.status(400).json({
+                    ok: false,
+                    msg: "Pago denegado, existe un(a) documento/materia pendiente de pagar."
+                })
+            }
+
+            const courses_already_paid = pays_courses.map(pays => pays.toJSON())
+            const course_already_paid = courses_already_paid.find((paysJSON) => (paysJSON.payment_type === 'Materia' && moment(paysJSON.start_date).month() === moment(start_date).month() && moment(paysJSON.start_date).year() >= moment().year()))
+
+            if (course_already_paid) {
+                if (moment(course_already_paid['start_date']).year() > moment().year()) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: `Pago de materia denegado, ya existe un pago de materia del mes de ${moment(start_date).format('MMMM')} adelantado.`
+                    })
+                }
+
+                start_date = moment(start_date).add(1, 'year')
+            } else {
+                if (moment(start_date).isBefore(ins_date)) {
+                    start_date = moment(start_date).add(1, 'year')
+                }
+            }
+            const { overdue } = await getGroupDaysAndOverdue(id_group, start_date)
+            // advance and current payments
+            if ((moment(start_date).month() >= moment().month() && moment(start_date).year() >= moment().year()) || (moment(start_date).month() < moment().month() && moment(start_date).year() != moment().year())) {
+                total_to_pay = getFeeCourseByMajor(major_name) + overdue
+            }
+            // Payments from the previous month
+            else if (moment().month() - moment(start_date).month() === 1 && moment().diff(moment(start_date).endOf('month'), 'days') < 15) {
+                const { overdue } = await getGroupDaysAndOverdue(id_group, moment(start_date).endOf('month'))
+                total_to_pay = getFeeCourseByMajor(major_name) + overdue
+            } else {
+                return res.status(400).json({
+                    ok: false,
+                    msg: "Pago de materia denegado, no se pueden pagar materias de meses anteriores al actual con diferencia de mas de 15 días."
+                })
+            }
+            break
+
+    }
+    return res.status(200).json({
+        ok: true,
+        total_to_pay
+    })
+}
 module.exports = {
     getAllPayments,
     createPayment,
@@ -386,5 +598,7 @@ module.exports = {
     payForPayment,
     getAllPaymentsByGroup,
     getAllPaymentsByStudent,
-    getPricesPayments
+    getPricesPayments,
+    updatePayment,
+    checkPricePayment
 }

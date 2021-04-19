@@ -1,17 +1,10 @@
-const { DataTypes } = require("sequelize");
+const { DataTypes, QueryTypes } = require("sequelize");
 const { db } = require("../database/connection");
 
 const Pay_info = db.define('pay_info',{
     id_payment       : {
         type :  DataTypes.INTEGER,
         allowNull : false
-    },
-    payment_method   : {
-        type : DataTypes.ENUM('Tarjeta','Depósito','Efectivo'),
-        allowNull : false,
-        validate : {
-            notEmpty : true
-        }
     },
     payment_type     : {
         type : DataTypes.ENUM('Documento','Inscripción','Materia'),
@@ -32,39 +25,15 @@ const Pay_info = db.define('pay_info',{
         type : DataTypes.DATEONLY,
         allowNull : false
     },
+    start_date : {
+        type : DataTypes.DATEONLY,
+        allowNull : true
+    },
     amount           : {
         type : DataTypes.FLOAT,
         allowNull : false
     },
-    matricula        : {
-        type : DataTypes.STRING,
-        allowNull : false,
-        validate : {
-            notEmpty : true
-        }
-    },
     id_student       : {
-        type :DataTypes.STRING,
-        allowNull : false,
-        validate : {
-            notEmpty : true
-        }
-    },
-    student_fullname : {
-        type :DataTypes.STRING,
-        allowNull : false,
-        validate : {
-            notEmpty : true
-        }
-    },
-    id_employee      : {
-        type :DataTypes.STRING,
-        allowNull : false,
-        validate : {
-            notEmpty : true
-        }
-    },
-    employee_fullname: {
         type :DataTypes.STRING,
         allowNull : false,
         validate : {
@@ -88,6 +57,10 @@ const Pay_info = db.define('pay_info',{
         validate : {
             notEmpty : true
         }
+    },
+    current : {
+        type : DataTypes.FLOAT,
+        allowNull : false
     }
 },
 {

@@ -1,10 +1,8 @@
 const { DataTypes } = require("sequelize");
 const { db } = require("../database/connection");
-const Employees = require("./employee");
-const Payments = require("./payment");
 
-const Emp_pay = db.define('emp_pay',{
-    id_emp_pay : {
+const Emp_par_pay = db.define('emp_par_pay',{
+    id_emp_par_pay : {
         type : DataTypes.INTEGER,
         autoIncrement : true,
         primaryKey : true,
@@ -15,22 +13,14 @@ const Emp_pay = db.define('emp_pay',{
         validate : {
             notEmpty : true
         },
-        references : {
-            model : Employees,
-            key : 'id_employee'
-        }
     },
-    id_payment : {
+    id_partial_pay : {
         type : DataTypes.INTEGER,
         allowNull : null,
-        references : {
-            model : Payments,
-            key : 'id_payment'
-        }
     },
 },{
     timestamps : false,
     freezeTableName : true
 })
 
-module.exports = Emp_pay
+module.exports = Emp_par_pay

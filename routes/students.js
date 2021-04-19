@@ -13,6 +13,8 @@ studentsRouter.get('/', [
 
 studentsRouter.get('/:matricula',[
     check('matricula','La matricula del estudiante es obligatoria.').notEmpty(),
+    validateFields,
+    validateJWT,
     checkStudentExistence
 ], getStudentByMatricula)
 

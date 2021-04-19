@@ -21,7 +21,7 @@ const createRequest = async( req, res =  response) => {
             amount : cost,
             payment_type : 'Documento',
             status_payment : 0,
-            cutoff_date : moment().add(7,'days').toDate(),
+            cutoff_date : moment().local().add(7,'days').toDate(),
             payment_date : null
         })
         const payment = await payment_info.save()

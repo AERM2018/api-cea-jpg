@@ -44,7 +44,7 @@ const checkStudentEnroll = async (req, res = respone, next) => {
         attributes: { exclude: ['id'] }
     })
     req.enroll = (enroll_payments.count > 0) ? true : false
-    console.log(req.enroll)
+    // console.log(req.enroll)
 
     next()
 }
@@ -120,25 +120,25 @@ const checkGroupExistence = async (req, res = response, next) => {
 }
 
 // Checar que el id de card venga en el req cuando sea necesario
-const isValidCard = async ( id_card = null, req) => {
+const isValidCard = async (id_card = null, req) => {
     const { payment_method } = req.body
-    if ((payment_method === 'Tarjeta' || payment_method === 'Depósito')) {
+    if ((payment_method.toLowerCase() === 'tarjeta' || payment_method.toLowerCase() === 'depósito')) {
         if (!id_card) throw Error(`La tarjeta a la cual va dirigo el pago es obligatoria.`)
-    }else{
-        if(id_card || id_card === 0) throw Error(`La tarjeta a la cual va dirigo el pago no es requerida.`) 
+    } else {
+        if (id_card || id_card === 0) throw Error(`La tarjeta a la cual va dirigo el pago no es requerida.`)
     }
 
     return true
 }
 
-const checkCardExistence = async ( req, res = response, next) => {
-    const { id_card } =  req.body
-    if(id_card != null){
+const checkCardExistence = async (req, res = response, next) => {
+    const { id_card } = req.body
+    if (id_card != null) {
         const card = await Card.findByPk(id_card);
-        if(!card){
+        if (!card) {
             return res.status(404).json({
-                ok : false,
-                msg : `La tarjeta con id ${id_card} no existe.`
+                ok: false,
+                msg: `La tarjeta con id ${id_card} no existe.`
             })
         }
     }
@@ -148,17 +148,31 @@ const checkCardExistence = async ( req, res = response, next) => {
 
 
 
-
+// Checar que el document_type venga en el req cuando sea necesario
 const isValidDocument = (document_type = null, req) => {
     const { payment_type } = req.body
-    if (payment_type != 'Documento') {
-        if(document_type || document_type === 0)  throw Error(`El tipo de documento no es requerido.`)
-    }else{
-        if(document_type === null ) throw Error(`El tipo de documento es obligatorio.`)
+    if (payment_type.toLowerCase() != 'documento') {
+        if (document_type || document_type === 0) throw Error(`El tipo de documento no es requerido.`)
+    } else {
+        if (document_type === null) throw Error(`El tipo de documento es obligatorio.`)
     }
     return true
 }
 
+const isValidPaymentMethod = ( payment_method= ' ' ) => {
+    if(!['tarjeta','depósito','efectivo'].includes(payment_method.toLowerCase())){
+        throw Error('Métdodo de pago invalido.')
+    }else{
+        return true
+    }
+}
+const isValidPaymentType = ( payment_type = ' ' ) => {
+    if(!['documento','inscripción','materia'].includes(payment_type.toLowerCase())){
+        throw Error('Tipo de pago invalido.')
+    }else{
+        return true
+    }
+}
 module.exports = {
     checkCampusExistence,
     checkStudentExistence,
@@ -169,5 +183,7 @@ module.exports = {
     checkStudentEnroll,
     isValidCard,
     checkCardExistence,
-    isValidDocument
+    isValidDocument,
+    isValidPaymentMethod,
+    isValidPaymentType
 }

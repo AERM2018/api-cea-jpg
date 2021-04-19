@@ -6,43 +6,24 @@ const Group = require('../models/group');
 const Stu_gro = require('../models/stu_gro');
 const Cam_use = require('../models/cam_use');
 const Campus = require('../models/campus');
-const { Op, QueryTypes, EmptyResultError } = require('sequelize');
+const { Op, QueryTypes, EmptyResultError, where, col } = require('sequelize');
 const { db } = require('../database/connection');
 const { getStudents, getStuInfo } = require('../queries/queries');
 const generateMatricula = require('../helpers/generateMatricula');
-const Stu_pay_status = require('../models/stu_pay_status');
 const { response } = require('express');
 const Major = require('../models/major');
 const Course = require('../models/courses');
-const { getFisrtAndLastSunday } = require('../helpers/dates');
+const { getGroupDaysAndOverdue } = require('../helpers/dates');
 const Gro_cou = require('../models/gro_cou');
 const { getFeeCourseByMajor, document_types, getFeeSchoolByMajor } = require('../types/dictionaries');
 const { printAndSendError } = require('../helpers/responsesOfReq');
+const Gro_tim = require('../models/gro_tim');
+const Time_tables = require('../models/time_tables');
 
 
 const getAllStudents = async (req, res) => {
     try {
         const students = await db.query(getStudents, { type: QueryTypes.SELECT })
-        // const stu_pay = students.map( async (stu) => {
-        //     console.log(moment().startOf('month').day(7))
-        //     const payment = await Stu_pay_status.findAll({
-        //         where : {
-        //             id_student : stu.id_student,
-        //             [Op.and] :[ 
-        //                 {
-        //                     payment_date : { [Op.gte] : moment().startOf('month').day(7).toDate()} 
-        //                 }
-        //                 ,{
-        //                 payment_date : { [Op.lte] : moment().endOf('month').day(7).toDate()} ,
-        //                 }
-        //             ],
-        //             status_payment : 0,
-        //             payment_type : 'Materia'
-        //         },
-        //         attributes : { exclude : ['id']}
-        //     })
-        //     return {...stu,payment}
-        // })
 
         return res.status(200).json({
             ok: true,
@@ -60,7 +41,7 @@ const getStudentByMatricula = async (req, res = response) => {
         Course.hasOne(Gro_cou, { foreignKey: 'id_course' })
         Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
         const { id_group } = student
-        const { fisrt_sunday, last_sunday } = getFisrtAndLastSunday()
+
         const group = await Gro_cou.findOne({
             where: { id_group },
             include: {
@@ -68,23 +49,22 @@ const getStudentByMatricula = async (req, res = response) => {
                 attributes: ['course_name'],
             },
             where: {
-                start_date: fisrt_sunday,
-                end_date: last_sunday,
+                end_date: { [Op.lte]: last_day },
             }
-        })
-        let course;
-        course = (group === null) ? "Materia no ha asignada al alumno" : group.toJSON()['course']['course_name']
 
-        res.json({
+        })
+
+        return res.status(200).json({
             ok: true,
             student: { ...student, course }
         })
-    } catch (err) {
+
+    }catch( err ){
         printAndSendError(res, err)
     }
 }
-const createStudent = async (req, res) => {
 
+const createStudent = async (req, res = response) => {
     const { body } = req;
     const { email } = body;
     const { id_group, id_campus } = body;
@@ -202,6 +182,8 @@ const createStudent = async (req, res) => {
         id_user = userJson['id_user']
 
 
+
+
     } catch (err) {
         printAndSendError(res, err)
     }
@@ -313,7 +295,7 @@ const deleteStudent = async (req, res) => {
 
     try {
         const student = await Student.findOne({
-            where: { id_student: id,  }
+            where: { id_student: id }
         });
         if (!student) {
             return res.status(404).json({
