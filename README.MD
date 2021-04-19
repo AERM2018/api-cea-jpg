@@ -1243,10 +1243,12 @@ It's not neccesary to send a body in the request.
 ## Cards
 
 ### Get Cards
+
+_Here you can get the cards_
 ```
 Endpoint:  URL/cards    HTTP method: GET
 ```
-_Here you can get the cards_
+
 
 _An example:_
 ```
