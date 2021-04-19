@@ -1239,3 +1239,105 @@ Endpoint  URL/payments/id_payment         HTTP METHOD : DELETE
 ``` 
 
 It's not neccesary to send a body in the request.
+
+## Cards
+
+### Get Cards
+```
+Endpoint:  URL/cards    HTTP method: GET
+```
+_Here you can get the cards_
+
+_An example:_
+```
+{
+    "ok": true,
+    "cards": [
+        {
+            "id_card": 1,
+            "card_number": "1234567891012345",
+            "owner": "pablito",
+            "bank": "bancomer",
+            "due_date": "2021-04-09"
+        },
+        {
+            "id_card": 2,
+            "card_number": "1234567891012346",
+            "owner": "pablito",
+            "bank": "bancomer",
+            "due_date": "2021-04-09"
+        }
+    ]
+}
+```
+### Create Card
+_This endopint will create a new card, you need to add some parameters to create the card._
+```
+Endpoint:  URL/cards    HTTP method: POST
+```
+_You need send an object like this in the request's body:_
+```
+{
+    "id_payment":1,
+    "card_number": "1234567891012347",
+    "owner": "pablito",
+    "bank": "bancomer",
+    "due_date": "2021-04-09"
+}
+```
+- If the request is successful you will be able to see:
+```
+    {
+        ok:true,
+        msg: "Tarjeta creada correctamente"
+    }
+```
+- If the request is unsuccessful you will be able to see:
+```
+    {
+        ok: false,
+        msg: "Hable con el administrador",
+    }
+```
+### Modify the card
+_This endopint will update a specific card, you need to add some parameters to update the card._
+```
+Endpoint:  URL/cards/id_card    HTTP method: PUT
+```
+_You need send an object like this in the request's body:_
+```
+{
+    "id_payment":1,
+    "card_number": "1234567891012347",
+    "owner": "pablitx",
+    "bank": "bancomer",
+    "due_date": "2021-04-09"
+}
+```
+- Remeber add the id of the card
+
+_If we have the card correctly updated you receive:_
+```
+    {
+        ok:true,
+        msg: "Los datos de la tarjeta se actualizaron correctamente",
+    }
+```
+## Delete a card
+
+_This endpoint allows you to delete a specific card with the Id_
+
+```
+Endpoint:  URL/cards/id_card    HTTP method: DELETE
+```
+- Do not forget specify the id of card
+
+_It's not neccesary to send a body in the request._
+
+
+
+
+
+
+
+
