@@ -26,7 +26,7 @@ const getGroupDaysAndOverdue = async( id_group = 0, month = {} ) => {
 
     const first_day = time_table_days.find(day => day >= begin_of_month)
 
-    if (!first_day) {
+    if (first_day == undefined) {
         first_day_date = moment(month).local().startOf('month').day(time_table_days[0] + 7)
     } else {
         first_day_date = moment(month).local().startOf('month').day(first_day)
@@ -44,17 +44,14 @@ const getGroupDaysAndOverdue = async( id_group = 0, month = {} ) => {
     last_day_date = last_day_date.format().substr(0, 10)
 
     let overdue;
-    if(moment(month).month() === moment().month()){
+    if(moment(month).month() === moment().month() && moment(month).year() === moment().year()){
         overdue = moment().local().diff(moment(first_day_date),'weeks') * 100
     }else if((moment(month).month() < moment().month()) && (moment(month).year() === moment().year())){
         overdue = moment(month).endOf('month').diff(moment(first_day_date),'weeks') * 100
     }else{
         overdue = 0
     }
-    // console.log(overdue)
-    // const overdue = (moment(month).month() === moment().month()) ? moment().local().diff(moment(first_day_date),'weeks') * 100 :  0;
-   
-    // console.log(moment('2021-05-09').year())
+    
     return { first_day : first_day_date, last_day: last_day_date, overdue }
 }
 

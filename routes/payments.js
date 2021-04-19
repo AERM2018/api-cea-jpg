@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { getAllPayments, createPayment, deletePayment, payForPayment, getAllPaymentsByGroup, getAllPaymentsByStudent, getPricesPayments, updatePayment} = require('../controllers/paymentController');
+const { getAllPayments, createPayment, deletePayment, payForPayment, getAllPaymentsByGroup, getAllPaymentsByStudent, getPricesPayments, updatePayment, checkPricePayment} = require('../controllers/paymentController');
 const { checkStudentExistence, checkPaymentExistence, checkGroupExistence, checkEmployeeExistence, checkStudentEnroll, checkCardExistence, isValidDocument, isValidCard, isValidPaymentType, isValidPaymentMethod } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -71,4 +71,15 @@ paymentsRouter.patch('/:id_payment',[
     validateFields,
     validateJWT
 ], updatePayment)
+
+paymentsRouter.post('/students/:matricula/check',[
+    check('matricula','La matricula del estudiante es obligatoria').notEmpty(),
+    check('payment_type',"El tipo de pago es obligatorio").exists({ checkNull : true}).custom(isValidPaymentType),
+    check('document_type','El tipo de documento es necesario.').exists({ checkNull : false }).custom( (document_type, {req}) => isValidDocument(document_type, req) ),
+    check('start_date','').exists({ checkNull : false }),
+    validateFields,
+    validateJWT,
+    checkStudentExistence,
+    checkStudentEnroll
+],checkPricePayment)
 module.exports = paymentsRouter;

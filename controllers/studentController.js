@@ -42,7 +42,6 @@ const getStudentByMatricula = async (req, res = response) => {
         Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
 
         const { id_group } = student
-        const { first_day, last_day, overdue } = await getGroupDaysAndOverdue(id_group)
 
         const group = await Gro_cou.findOne({
             where: { id_group },

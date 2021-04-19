@@ -499,6 +499,28 @@ _An example_
         ]
 }
 ```
+### Get stundent by matricula
+
+This endpoint will return the stundent who has the matricula specified.
+
+The result looks like this:
+```
+{
+    "ok": true,
+    "student": {
+        "id_student": "ale106009",
+        "matricula": "DEDG202103001",
+        "student_fullname": "Angel Gonzalez Vergas",
+        "name_group": "2 derecho",
+        "id_group": 5,
+        "campus_name": "El mejor campus de todos 2.0",
+        "major_name": "Licenciatura en Derecho",
+        "ins_date": "2021-04-16",
+        "course": "Español avanzado",
+    }
+}
+```
+
 ### Create a student
 
 ```
@@ -1202,12 +1224,14 @@ You need send an object like this in the request's body
    payment_type     : 'Documento' || 'Inscripción' || 'Materia',
    amount           : FLOAT,
    document_type    : INT,
-   id_card          : INT
+   id_card          : INT,
+   start_date       : INT
 }
 ```
 _**Important**_
-- If the payment_type is different to document, send null as payment_type value
-- If the payment_method is different to tarjeta or depósito, send null as payment_method value
+- If the payment_type is different to document, send null as document_type value
+- If the payment_method is different to tarjeta or depósito, send null as id_card value
+- If start_date is null, the system will take it as the current month when the payment is being generated.
 
 -------------------------------------------------------------------
 ### Pay for payment
@@ -1217,14 +1241,67 @@ This endpoint will pay for a payment by its id, if the payment is fully paid, th
 * Put the value of payment's id instead of "id_payment"
 
 ```
-Endpoint  URL/payments/id_payment/payFor         HTTP METHOD : PATCH
+Endpoint  URL/payments/id_payment/payFor         HTTP METHOD : POST
 ```
 
 
 You need send an object like this in the request's body
 ```
 {
-   pay_amount : FLOAT
+   pay_amount       : FLOAT,
+   payment_method   : 'Tarjeta'   || 'Depósito'    || 'Efectivo',
+   id_card          : INT,
+
+
+}
+```
+_**Important**_
+- If the payment_method is different to tarjeta or depósito, send null as payment_method value.
+
+
+
+--------------------------------------------------------------------
+
+### Check price for a payment
+
+This endpoint will return the amount you have to pay for when you generated a payment, the price will take in count the posible charges that the system apply.
+
+* Put the value of payment's id instead of "id_payment"
+
+```
+Endpoint  URL/payments/students/check         HTTP METHOD : POST
+```
+
+
+You need send an object like this in the request's body
+```
+{
+    payment_type     : 'Documento' || 'Inscripción' || 'Materia',
+    document_type    : INT,
+    start_date       : INT  
+
+}
+```
+_**Important**_
+- If the payment_type is different to document, send null as document_type value
+- If start_date is null, the system will take it as the current month when the payment is being generated.
+
+
+--------------------------------------------------------------------
+### Update a payment
+
+This endpoint will update the cutoff date of payment in case it be needed
+
+* Put the value of payment's id instead of "id_payment"
+
+```
+Endpoint  URL/payments/id_payment         HTTP METHOD : PATCH
+``` 
+
+You need send an object like this in the request's body
+```
+{
+    cutoff_date     :   ONLY DATE (Format : YYYY-MM-DD) 
 }
 ```
 --------------------------------------------------------------------
