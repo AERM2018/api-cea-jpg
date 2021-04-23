@@ -20,7 +20,6 @@ const { response } = require("express");
             msg : 'La calificación de cada alumno debe ser un numero entero con punto decimal'
         })
     }
-console.log(except.length)
     next();
  }
 
