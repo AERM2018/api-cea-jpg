@@ -1414,6 +1414,117 @@ Endpoint:  URL/cards/id_card    HTTP method: DELETE
 _It's not neccesary to send a body in the request._
 
 
+## Requests
+
+### Get request by date and status
+
+```
+URL/requests /*Method http: GET*/
+```
+- Possible parameters: fecha, status
+_An example could be_
+```
+URL/requests?fecha=2021-04-22&status=1
+```
+_This endpoint returns the requests of the date that were created and if they are completed or not, if you don't send the date it would take the actual date by default and status in 0_
+
+_An example_
+```
+{
+    "ok": true,
+    "data": [
+        {
+            "request": {
+                "id_request": 77,
+                "id_department": 5,
+                "id_document": 99,
+                "id_payment": 319,
+                "status_request": 1,
+                "creation_date": "2021-04-22"
+            },
+            "student": {
+                "id_student": "ale107060",
+                "matricula": "DE3001",
+                "student_fullname": "cruzecito hernandez Vergas",
+                "name_group": "2 derecho",
+                "id_group": 5,
+                "campus_name": "El mejor campus de todos 2.0",
+                "major_name": "Licenciatura en Derecho",
+                "ins_date": null
+            },
+            "id_department": 5,
+            "req_pay": {
+                "id_request": 77,
+                "id_payment": 319,
+                "status_payment": 0,
+                "name": 3,
+                "cost": 500
+            },
+            "id_document": 99
+        }
+    ]
+}
+```
+
+### Create a request
+
+```
+URL/requests /*Method http: POST*/
+```
+
+
+- _This endpoint you must send an object so as to create a request if you send something wrong it won't create anything_
+- _The next object is an example to know how to send it_
+```
+{
+    "matricula" : "DE3001",
+    "id_department" : 5,
+    "document_type" : 3
+}
+```
+
+
+- _if the request is successful the response would be:_
+```
+{
+    "ok": true,
+    "msg": "Solcitud creada correctamente"
+}
+```
+### Complete a request
+
+```
+URL/requests/id_request  /*Method http: PUT*/
+```
+
+
+- _In the part of the parameter put the id of the request instead of id-request_
+
+
+- _if the request is successful the response would be:_
+```
+{
+    "ok": true,
+    "msg": "La solicitud se completo correctamente"
+}
+```
+
+### Delete a request
+
+```
+URL/requests/id_request  /*Method http: DELETE*/
+```
+
+- _This endpoint is to delete a REQUEST, you just have to put in the params the id of the request instead of id-request_
+- _if the request is successful the response would be:_
+```
+{
+    "ok": true,
+    "msg": "La peticion se elimino correctamente"
+}
+```
+
+
 
 
 

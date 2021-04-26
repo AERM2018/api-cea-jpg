@@ -18,22 +18,26 @@ const checkCampusExistence = async (id_campus = 0) => {
 
 }
 
-const checkStudentExistence = async (req, res = response, next) => {
-    const matricula = req.body.matricula || req.params.matricula
-    const student = await Student.findOne({
-        where: { matricula }
-    })
-    if (!student) {
-        return res.status(404).json({
-            ok: false,
-            msg: `El estudiante con matricula ${matricula} no existe`
+    const checkStudentExistence = async (req, res = response, next) => {
+        const matricula = req.body.matricula || req.params.matricula
+        const student = await Student.findOne({
+            where: { matricula }
         })
+        if (!student) {
+            return res.status(404).json({
+                ok: false,
+                msg: `El estudiante con matricula ${matricula} no existe`
+            })
+        }
+
+        req.id_student = student.toJSON()['id_student']
+        next();
     }
 
-    req.id_student = student.toJSON()['id_student']
-    next();
-}
 
+
+
+        
 const checkStudentEnroll = async (req, res = respone, next) => {
     const { id_student } = req;
     const enroll_payments = await Pay_info.findAndCountAll({
