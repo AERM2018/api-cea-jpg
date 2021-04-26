@@ -42,7 +42,8 @@ const getStudentByMatricula = async (req, res = response) => {
         Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
         const { id_group } = student
 
-        const group = await Gro_cou.findOne({
+        const {last_day} = await getGroupDaysAndOverdue( id_group )
+        const gro_cou = await Gro_cou.findOne({
             where: { id_group },
             include: {
                 model: Course,
@@ -54,9 +55,10 @@ const getStudentByMatricula = async (req, res = response) => {
 
         })
 
+        const { course } = gro_cou.toJSON()
         return res.status(200).json({
             ok: true,
-            student: { ...student, course }
+            student: { ...student, ...course }
         })
 
     }catch( err ){

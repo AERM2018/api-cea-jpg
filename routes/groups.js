@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { getAllGroups, createGroup,
     updateGroup, deleteGroup, addCourseGroup } = require('../controllers/groupsController');
+const { isValidSchedule } = require('../middlewares/schedule');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -16,11 +17,10 @@ groupsRouter.post('/', [
     check('name_group', 'El nombre del grupo es obligaotorio y tiene que tener como maximo 15 caracteres').not().isEmpty().isLength({ max: 15 }),
     // check('entry_year','El año de entrada es obligatorio').notEmpty().isDate(),
     // check('end_year','El año de salida es obligatorio').notEmpty().isDate(),
-
-    check('time_tables', 'Los horarios deben de estar contenidos en un array').isArray(),
+    check('time_tables','Es obligatorio seleccionar por lo menos un dia para el horario').isArray({ min : 1 }),
     validateFields,
-    validateJWT
-
+    validateJWT,
+    isValidSchedule
 ], createGroup);
 
 groupsRouter.put('/:id', [
