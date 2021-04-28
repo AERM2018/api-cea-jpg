@@ -1,19 +1,13 @@
 const { DataTypes } = require("sequelize");
 const { db } = require("../database/connection");
 
+
 const Payment = db.define('payment',{
     id_payment : {
         type : DataTypes.INTEGER,
         autoIncrement : true,
         primaryKey : true,
        
-    },
-    payment_method : {
-        type : DataTypes.ENUM('Tarjeta','Depósito','Efectivo'),
-        allowNull : null,
-        validate : {
-            notEmpty : true
-        }
     },
     payment_type : {
         type : DataTypes.ENUM('Documento','Inscripción','Materia'),

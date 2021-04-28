@@ -6,7 +6,7 @@ const Group = require('../models/group');
 const Stu_gro = require('../models/stu_gro');
 const Cam_use = require('../models/cam_use');
 const Campus = require('../models/campus');
-const { Op, QueryTypes, EmptyResultError } = require('sequelize');
+const { Op, QueryTypes, EmptyResultError, where, col } = require('sequelize');
 const { db } = require('../database/connection');
 const { getStudents, getStuInfo } = require('../queries/queries');
 const generateMatricula = require('../helpers/generateMatricula');
@@ -14,10 +14,12 @@ const Stu_pay_status = require('../models/stu_pay_status');
 const { response } = require('express');
 const Major = require('../models/major');
 const Course = require('../models/courses');
-const { getFisrtAndLastSunday } = require('../helpers/dates');
+const { getFirstAndLastDay, getGroupDaysAndOverdue } = require('../helpers/dates');
 const Gro_cou = require('../models/gro_cou');
 const { getFeeCourseByMajor, document_types, getFeeSchoolByMajor } = require('../types/dictionaries');
 const { printAndSendError } = require('../helpers/responsesOfReq');
+const Gro_tim = require('../models/gro_tim');
+const Time_tables = require('../models/time_tables');
 
 
 const getAllStudents = async (req, res) => {
@@ -59,8 +61,10 @@ const getStudentByMatricula = async( req, res = response ) => {
         const [student] = await  db.query(getStuInfo, { replacements : { id : id_student }, type : QueryTypes.SELECT})
         Course.hasOne(Gro_cou, { foreignKey : 'id_course'})
         Gro_cou.belongsTo(Course, { foreignKey : 'id_course'})
+
         const { id_group } = student
-        const { fisrt_sunday, last_sunday } = getFisrtAndLastSunday()
+        const { first_day, last_day, overdue } = await getGroupDaysAndOverdue( id_group )
+
         const group = await Gro_cou.findOne({
             where : { id_group },
             include : {
@@ -68,16 +72,17 @@ const getStudentByMatricula = async( req, res = response ) => {
                 attributes : ['course_name'],
             },
             where : {
-                start_date : fisrt_sunday,
-                end_date : last_sunday,
+                start_date : first_day,
+                end_date : {[Op.lte] :last_day},
             }
         })
+
         let course;
         course = (group === null) ? "Materia no ha asignada al alumno" : group.toJSON()['course']['course_name']
 
             res.json({
             ok : true,
-            student : {...student,course}
+            student : {...student,course, overdue}
         })
     } catch ( err ) {
         printAndSendError( res, err)
