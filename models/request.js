@@ -19,6 +19,19 @@ const Request = db.define('request',{
         type : DataTypes.INTEGER,
         allowNull : false,
     },
+    status_request: {
+        type : DataTypes.TINYINT,
+        defaultValue : 0,
+        allowNull : true,
+    },
+    creation_date: {
+        type : DataTypes.DATEONLY,
+        defaultValue : Date.now(),
+        allowNull : true,
+    }
+
+
+
 
 },
 {

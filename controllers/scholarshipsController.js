@@ -9,7 +9,7 @@ const Student = require("../models/student");
 const getAllScholarships = async (req, res = response) => {
     try {
         const scholarships = await db.query(getScholarships, { type: QueryTypes.SELECT });
-
+        
         res.status(200).json({
             ok: true,
             scholarships
