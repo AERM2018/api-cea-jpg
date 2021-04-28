@@ -31,7 +31,6 @@ class Server{
         this.middlewares();
         this.base = 'api-ale/v1'
         this.apiPaths = {
-            index : '/',
             auth : `/${this.base}/auth`,
             states : `/${this.base}/states`,
             municipalities : `/${this.base}/municipalities`,
@@ -77,8 +76,8 @@ class Server{
         this.app.use(this.apiPaths.cards, cardsRouter)
         this.app.use(this.apiPaths.payments, paymentsRouter)
         this.app.use(this.apiPaths.requests, requestRouter)
-        this.app.use(this.apiPaths.index, (req, res) => {
-            res.send('Hola mundo')
+        this.app.use('*', (req, res) => {
+            res.status(404).send('404 | Ruta no encontrada')
         })
 
     }
