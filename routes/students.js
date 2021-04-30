@@ -68,6 +68,7 @@ studentsRouter.put('/:id',[
 
 studentsRouter.delete('/:id',[
     param('id','El id es obligatorio y tiene que ser la matricula de un alumno').notEmpty().isString(),
+    check( 'status','El status es invalido ' ).isIn([2,3]).isNumeric(),
     validateFields,
     validateJWT
 ], deleteStudent);

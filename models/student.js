@@ -32,7 +32,7 @@ const Student = db.define('students', {
         allowNull: false
     },
     status: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.TINYINT,
         defaultValue: 1
     },
     mobile_number: {

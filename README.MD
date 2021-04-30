@@ -603,7 +603,7 @@ URL/students/Id_students   /*Method http: PUT*/
 ```
 URL/students/Id_student   /*Method http: DELETE*/
 ```
-- _This endpoint is to delete a student, you just have to put in the params the matricula of the student instead of id-student_
+- _This endpoint is to delete a student, you just have to put in the params the id of the student instead of matricula_
 - _if the request is successful the response would be:_
 ```
 {
@@ -611,6 +611,7 @@ URL/students/Id_student   /*Method http: DELETE*/
     "msg": "El estudiante se elimino correctamente"
 }
 ```
+- Note: Talking about status: 1=active, 2=temporary, 3=definitive
 ## Teachers
 
 ### Get All Teachers

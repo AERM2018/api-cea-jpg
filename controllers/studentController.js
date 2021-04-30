@@ -294,8 +294,9 @@ const updateStudent = async (req, res) => {
 
 const deleteStudent = async (req, res) => {
     const { id } = req.params;
-
+    const {status}=req.body;
     try {
+
         const student = await Student.findOne({
             where: { id_student: id }
         });
@@ -305,22 +306,22 @@ const deleteStudent = async (req, res) => {
                 msg: "No existe un alumno con el id " + id,
             });
         }
-        const studentStatus = await Student.findOne({
-            where: { status:2   }
-        });
-        if (studentStatus) {
+    
+        if (student.status===2 || student.status===3) {
             return res.status(404).json({
                 ok: false,
                 msg: "No existe un alumno con el id " + id,
             });
         }
 
-        await student.update({ status: 2 })
+        await student.update({ status })
         res.status(200).json({
             ok: true,
             msg: "El alumno se elimino correctamente"
         })
-    } catch (error) {
+    }
+
+    catch (error) {
         printAndSendError(res, err)
     }
 }
