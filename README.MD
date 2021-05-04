@@ -1426,6 +1426,7 @@ _An example could be_
 ```
 URL/requests?fecha=2021-04-22&status=1
 ```
+- If you put "all" in fecha you will get all the requests
 _This endpoint returns the requests of the date that were created and if they are completed or not, if you don't send the date it would take the actual date by default and status in 0_
 
 _An example_
@@ -1523,6 +1524,41 @@ URL/requests/id_request  /*Method http: DELETE*/
     "msg": "La peticion se elimino correctamente"
 }
 ```
+
+## Documents
+### GET INFO SO AS TO CREATE DOCUMENT
+
+```
+URL/documents/id_request  /*Method http: GET*/
+```
+
+- _This endpoint is to get a info so as to create the document, you just have to put in the params the id of the request instead of id-request_
+- _if the request is successful the response would be:_
+```
+{
+   {
+    "ok": true,
+    "student": {
+        "id_student": "ale106009",
+        "matricula": "DEDG202103001",
+        "student_fullname": "Angel Gonzalez Vergas",
+        "name_group": "2 derecho",
+        "id_group": 5,
+        "campus_name": "El mejor campus de todos 2.0",
+        "major_name": "Licenciatura en Derecho",
+        "ins_date": "2021-04-01"
+    },
+    "id_student": "ale106009",
+    "id_document": 102,
+    "grades": {
+        "course_name": "Español avanzado",
+        "grade": 10
+    },
+    "name": "Constancia con de estudios. (Con calificaciones)"
+}
+}
+```
+- the grades of the students only will be send them when the document requires them
 
 
 

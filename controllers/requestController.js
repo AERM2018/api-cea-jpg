@@ -11,20 +11,29 @@ const { db } = require('../database/connection');
 const { document_types } = require("../types/dictionaries")
 
 const getAllTheRequests = async (req, res) => {
-    // TODO: calarlo 
     try {
-        const { fecha = moment().local().format("YYYY-MM-DD") } = req.query;
+        let { fecha = moment().local().format("YYYY-MM-DD") } = req.query;
         //const { fecha = Date.now() } = req.query;
-        
+        let requests;
         const { status = 0 } = req.query;
         const estado = status ? 'finalizado' : 'no finalizada'
-        
-        const requests = await Request.findAll({
-            where: {
-                creation_date: fecha,
-                status_request: status
-            }
-        });
+        if (fecha === 'all'){
+             requests = await Request.findAll({
+                where: {
+                    status_request: status
+                }
+            });
+            
+        }
+        else{
+            requests = await Request.findAll({
+               where: {
+                   creation_date: fecha,
+                   status_request: status
+               }
+           });
+
+        }
         if (!requests) {
             return res.status(400).json({
                 ok: false,
@@ -37,21 +46,23 @@ const getAllTheRequests = async (req, res) => {
             const { id_payment, id_document, id_department, id_request, creation_date } = request
            
 
-            const {id_student} = await Stu_pay.findOne({
-                where: { id_payment }
-            })
+           //const {id_student} = await Stu_pay.findOne({
+           //    where: { id_payment }
+           //})
 
-            const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-            const req_pay = await Req_pay.findOne({
+            //const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
+            const {status_payment,name,cost} = await Req_pay.findOne({
                 where: { id_request }
             })
 
             return {
                     request,
-                    student,
-                    id_department,
-                    req_pay,
-                    id_document
+                    //student,
+                    //id_department,
+                    status_payment,
+                    name:document_types[name]['name'],
+                    cost
+                    //id_document
             }
         }))
 
@@ -130,7 +141,7 @@ const completeARequest = async (req, res)=>{
         await request.update({
             status_request: 1
         })
-        // TODO: AQUI HACER VALIDACION SI YA SE PAGO O PURA MERMA
+        
         const {id_payment} = request
         const payment  = await Payment.findByPk(id_payment)
         if (payment.status_payment){
@@ -191,11 +202,9 @@ const deleteRequest = async  (req, res) => {
 }
 
 
-
 module.exports = {
     createRequest,
     getAllTheRequests,
     completeARequest,
     deleteRequest
-
 }

@@ -1,13 +1,13 @@
 const document_types = [
-    { name: 'Constancia con de estudios. (Con calificaciones)', price: 500 },
-    { name: 'Constancia de estudios (Sin calificaciones)', price: 500 },
+    { name: 'Constancia con de estudios. (Con calificaciones)', price: 50 },
+    { name: 'Constancia de estudios (Sin calificaciones)', price: 100 },
     { name: 'Carta maestrante', price: 500 },
     { name: 'Kardex', price: 500 },
     { name: 'Credenciales', price: 500 },
     { name: 'Certificado', price: 500 },
     { name: 'Acta de examen', price: 500 },
     { name: 'Oficio de servicio social y practicas', price: 500 },
-    { name: 'Titulo', price: 500 },
+    { name: 'Titulo', price: 4500 },
     { name: 'Constancia de título en proceso', price: 500 },
 ]
 

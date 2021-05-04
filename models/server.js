@@ -9,6 +9,7 @@ const gradesRouter = require('../routes/grades');
 const authRouter = require('../routes/auth');
 
 
+
 const majorsRouter=require('../routes/majors');
 const departmentsRouter=require('../routes/departments');
 const employeesRouter=require('../routes/employees');
@@ -18,6 +19,7 @@ const teachersRouter = require('../routes/teachers');
 const cardsRouter = require('../routes/cards');
 const paymentsRouter = require('../routes/payments');
 const requestRouter = require('../routes/request');
+const documentsRouter = require('../routes/document')
 class Server{
 
     app = express.application;
@@ -37,6 +39,7 @@ class Server{
             municipalities : `/${this.base}/municipalities`,
             campus : `/${this.base}/campus`,
             courses : `/${this.base}/courses`,
+            documents: `/${this.base}/documents`,
             scholarships : `/${this.base}/scholarships`,
             grades : `/${this.base}/grades`,
             majors : `/${this.base}/majors`,
@@ -77,6 +80,7 @@ class Server{
         this.app.use(this.apiPaths.cards, cardsRouter)
         this.app.use(this.apiPaths.payments, paymentsRouter)
         this.app.use(this.apiPaths.requests, requestRouter)
+        this.app.use(this.apiPaths.documents, documentsRouter)
         this.app.use(this.apiPaths.index, (req, res) => {
             res.send('Hola mundo')
         })

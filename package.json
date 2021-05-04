@@ -8,7 +8,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "author": "Angel Retana,Johan Gonzalez & Brenda Jiménez",
+  "author": "Angel Retana, Johan Gonzalez & Brenda Jiménez",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",

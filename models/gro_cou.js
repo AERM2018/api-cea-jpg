@@ -17,7 +17,8 @@ const Gro_cou = db.define('gro_cou',{
     },
     status : {
         type : DataTypes.BOOLEAN,
-        allowNull : false
+        defaultValue: 1,
+        allowNull : true
     },
     start_date : {
         type : DataTypes.DATEONLY,
