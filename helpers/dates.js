@@ -3,30 +3,6 @@ const moment = require('moment');
 const { col } = require('sequelize');
 const Gro_tim = require('../models/gro_tim');
 const Time_tables = require('../models/time_tables');
-const getFirstAndLastDay = (time_table = []) => {
-    const begin_of_month = moment().startOf('month').day()
-    const end_of_month = moment().endOf('month')
-    let first_day_date, last_day_date;
-
-    const first_day = time_table.find(day => day >= begin_of_month)
-
-    if (!first_day) {
-        first_day_date = moment().startOf('month').day(time_table[0] + 7)
-    } else {
-        first_day_date = moment().startOf('month').day(first_day)
-    }
-
-    const weeks_missing_month = moment(end_of_month).diff(first_day_date, 'weeks') + 1
-
-    const pre_last_day = first_day_date.clone().add(weeks_missing_month, 'weeks')
-
-    last_day = time_table.reverse().find(day => (first_day_date.month() === pre_last_day.day(day).month()))
-    last_day_date = (last_day) ? pre_last_day.day(last_day) : pre_last_day.subtract(1, 'week')
-
-    first_day_date = first_day_date.toDate().toJSON().substr(0, 10)
-    last_day_date = last_day_date.toDate().toJSON().substr(0, 10)
-    return { first_day: first_day_date, last_day: last_day_date }
-}
 
 const getGroupDaysAndOverdue = async( id_group = 0 ) => {
     Time_tables.hasMany(Gro_tim, { foreignKey: 'id_time_table' });
@@ -42,38 +18,38 @@ const getGroupDaysAndOverdue = async( id_group = 0 ) => {
 
     const time_table_days = gro_tim.map( group_time => group_time.toJSON().time_table.day)
 
-    // 
+    // Find the first of month in which the student attends class
 
-    const begin_of_month = moment().startOf('month').day()
-    const end_of_month = moment().endOf('month')
+    const begin_of_month = moment().local().startOf('month').day()
+    const end_of_month = moment().local().endOf('month')
     let first_day_date, last_day_date;
 
     const first_day = time_table_days.find(day => day >= begin_of_month)
 
     if (!first_day) {
-        first_day_date = moment().startOf('month').day(time_table_days[0] + 7)
+        first_day_date = moment().local().startOf('month').day(time_table_days[0] + 7)
     } else {
-        first_day_date = moment().startOf('month').day(first_day)
+        first_day_date = moment().local().startOf('month').day(first_day)
     }
 
     const weeks_missing_month = moment(end_of_month).diff(first_day_date, 'weeks') + 1
 
     const pre_last_day = first_day_date.clone().add(weeks_missing_month, 'weeks')
 
+    // Find the last day in which the stdent attends class
     last_day = time_table_days.reverse().find(day => (first_day_date.month() === pre_last_day.day(day).month()))
     last_day_date = (last_day) ? pre_last_day.day(last_day) : pre_last_day.subtract(1, 'week')
 
-    first_day_date = first_day_date.toDate().toJSON().substr(0, 10)
-    last_day_date = last_day_date.toDate().toJSON().substr(0, 10)
+    first_day_date = first_day_date.format().substr(0, 10)
+    last_day_date = last_day_date.format().substr(0, 10)
 
-    const overdue = moment().diff(moment(first_day_date),'weeks') * 100;
-
-    console.log(moment().toDate())
-    console.log(moment().diff(moment(first_day_date),'weeks'))
+    const overdue = moment().local().diff(moment(first_day_date),'weeks') * 100;
+   
+    console.log(true && (moment().month() === moment('2021-04-30').month()))
+    
     return { first_day : first_day_date, last_day: last_day_date, overdue }
 }
 
 module.exports = {
-    getFirstAndLastDay,
     getGroupDaysAndOverdue
 };

@@ -5,10 +5,7 @@ const { db } = require('./database/connection');
 const Server = require('./models/server');
 const moment = require('moment');
 
-moment.updateLocale("en", { week: {
-    dow: 1, // First day of week is Monday
-    doy: 7  // First week of year must contain 1 January (7 + 1 - 1)
-  }});
+moment.tz('America/Mexico_City')
 
 // console.log(moment().startOf('week').day())
 

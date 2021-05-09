@@ -10,11 +10,10 @@ const { Op, QueryTypes, EmptyResultError, where, col } = require('sequelize');
 const { db } = require('../database/connection');
 const { getStudents, getStuInfo } = require('../queries/queries');
 const generateMatricula = require('../helpers/generateMatricula');
-const Stu_pay_status = require('../models/stu_pay_status');
 const { response } = require('express');
 const Major = require('../models/major');
 const Course = require('../models/courses');
-const { getFirstAndLastDay, getGroupDaysAndOverdue } = require('../helpers/dates');
+const { getGroupDaysAndOverdue } = require('../helpers/dates');
 const Gro_cou = require('../models/gro_cou');
 const { getFeeCourseByMajor, document_types, getFeeSchoolByMajor } = require('../types/dictionaries');
 const { printAndSendError } = require('../helpers/responsesOfReq');
@@ -24,75 +23,55 @@ const Time_tables = require('../models/time_tables');
 
 const getAllStudents = async (req, res) => {
     try {
-        const students = await db.query(getStudents, { type : QueryTypes.SELECT})
-        // const stu_pay = students.map( async (stu) => {
-        //     console.log(moment().startOf('month').day(7))
-        //     const payment = await Stu_pay_status.findAll({
-        //         where : {
-        //             id_student : stu.id_student,
-        //             [Op.and] :[ 
-        //                 {
-        //                     payment_date : { [Op.gte] : moment().startOf('month').day(7).toDate()} 
-        //                 }
-        //                 ,{
-        //                 payment_date : { [Op.lte] : moment().endOf('month').day(7).toDate()} ,
-        //                 }
-        //             ],
-        //             status_payment : 0,
-        //             payment_type : 'Materia'
-        //         },
-        //         attributes : { exclude : ['id']}
-        //     })
-        //     return {...stu,payment}
-        // })
-    
+        const students = await db.query(getStudents, { type: QueryTypes.SELECT })
+
         return res.status(200).json({
             ok: true,
             students
         })
-    } catch ( err ) {
-        printAndSendError( res, err)
+    } catch (err) {
+        printAndSendError(res, err)
     }
 }
 
-const getStudentByMatricula = async( req, res = response ) => {
-    const { id_student }  = req
+const getStudentByMatricula = async (req, res = response) => {
+    const { id_student } = req
     try {
-        const [student] = await  db.query(getStuInfo, { replacements : { id : id_student }, type : QueryTypes.SELECT})
-        Course.hasOne(Gro_cou, { foreignKey : 'id_course'})
-        Gro_cou.belongsTo(Course, { foreignKey : 'id_course'})
+        const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
+        Course.hasOne(Gro_cou, { foreignKey: 'id_course' })
+        Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
 
         const { id_group } = student
-        const { first_day, last_day, overdue } = await getGroupDaysAndOverdue( id_group )
+        const { first_day, last_day, overdue } = await getGroupDaysAndOverdue(id_group)
 
         const group = await Gro_cou.findOne({
-            where : { id_group },
-            include : {
-                model : Course,
-                attributes : ['course_name'],
+            where: { id_group },
+            include: {
+                model: Course,
+                attributes: ['course_name'],
             },
-            where : {
-                start_date : first_day,
-                end_date : {[Op.lte] :last_day},
+            where: {
+                start_date: first_day,
+                end_date: { [Op.lte]: last_day },
             }
         })
 
         let course;
         course = (group === null) ? "Materia no ha asignada al alumno" : group.toJSON()['course']['course_name']
 
-            res.json({
-            ok : true,
-            student : {...student,course, overdue}
+        return res.json({
+            ok: true,
+            student: { ...student, course, overdue }
         })
-    } catch ( err ) {
-        printAndSendError( res, err)
+    } catch (err) {
+        printAndSendError(res, err)
     }
 }
 const createStudent = async (req, res) => {
     const { body } = req;
     const { email } = body;
     const { id_group, id_campus } = body;
-    const { matricula,street,zip,colony,birthdate, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number,  start_date, end_date } = body;
+    const { matricula, street, zip, colony, birthdate, name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number, start_date, end_date } = body;
     let id_user, id_student, user
     try {
         //email
@@ -122,7 +101,7 @@ const createStudent = async (req, res) => {
         if (!group) {
             return res.status(400).json({
                 ok: false,
-                msg: "No existe un grupo con ese id "+id_group,
+                msg: "No existe un grupo con ese id " + id_group,
             })
         }
         const campus = await Campus.findOne({
@@ -131,26 +110,26 @@ const createStudent = async (req, res) => {
         if (!campus) {
             return res.status(400).json({
                 ok: false,
-                msg: "No existe un campus con ese id "+id_campus,
+                msg: "No existe un campus con ese id " + id_campus,
             })
         }
 
 
-            const usern = new User({ user_type: "student", password: "123456" });
-            const newUser = await usern.save()
-            const userJson = newUser.toJSON();
-            id_user = userJson['id_user']
+        const usern = new User({ user_type: "student", password: "123456" });
+        const newUser = await usern.save()
+        const userJson = newUser.toJSON();
+        id_user = userJson['id_user']
 
 
-        
 
-    } catch ( err ) {
+
+    } catch (err) {
         printAndSendError(res, err)
     }
     try {
         //matricula
-        id_student= generateMatricula(id_user) 
-        const student = new Student({id_student, matricula, id_user, name, surname_f,surname_m, group_chief, curp, mobile_number, mobile_back_number, street ,zip,colony,birthdate  });
+        id_student = generateMatricula(id_user)
+        const student = new Student({ id_student, matricula, id_user, name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number, street, zip, colony, birthdate });
         await student.save();
         // password
         const user = await User.findByPk(id_user);
@@ -159,10 +138,10 @@ const createStudent = async (req, res) => {
         await user.update({ password: pass });
 
         const inst_email = `${id_student}@alejandria.edu.mx`
-        await user.update({email : inst_email})
+        await user.update({ email: inst_email })
 
-    } catch ( err ) {
-       printAndSendError(res, err)
+    } catch (err) {
+        printAndSendError(res, err)
     }
     try {
         const group = await Group.findByPk(id_group);
@@ -175,7 +154,7 @@ const createStudent = async (req, res) => {
         const stu_gro = new Stu_gro({ id_student, id_group })
         await stu_gro.save();
 
-    } catch ( err ) {
+    } catch (err) {
         printAndSendError(res, err)
     }
     try {
@@ -192,7 +171,7 @@ const createStudent = async (req, res) => {
     res.status(201).json({
         ok: true,
         msg: "Estudiante creado correctamente"
-})
+    })
 
 
 
@@ -201,7 +180,7 @@ const updateStudent = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
     const { curp } = body
-    const {matricula} = body;
+    const { matricula } = body;
     try {
         const student = await Student.findByPk(id);
         if (!student) {
@@ -212,9 +191,9 @@ const updateStudent = async (req, res) => {
         }
 
         const stu = await Student.findOne({
-            where: { 
+            where: {
                 curp,
-                id_student : {[Op.ne] : id}
+                id_student: { [Op.ne]: id }
             }
         })
         if (stu) {
@@ -224,9 +203,9 @@ const updateStudent = async (req, res) => {
             })
         }
         const stu_matricula = await Student.findOne({
-            where: { 
+            where: {
                 matricula,
-                id_student : {[Op.ne] : id}
+                id_student: { [Op.ne]: id }
             }
         })
         if (stu_matricula) {
@@ -244,7 +223,7 @@ const updateStudent = async (req, res) => {
         })
 
 
-    } catch ( err ) {
+    } catch (err) {
         printAndSendError(res, err)
     }
 }
@@ -254,7 +233,7 @@ const deleteStudent = async (req, res) => {
 
     try {
         const student = await Student.findOne({
-            where : { id_student: id }
+            where: { id_student: id }
         });
         if (!student) {
             return res.status(404).json({
@@ -268,8 +247,7 @@ const deleteStudent = async (req, res) => {
             ok: true,
             msg: "El alumno se elimino correctamente"
         })
-    } catch (error) 
-    {
+    } catch (error) {
         printAndSendError(res, err)
     }
 

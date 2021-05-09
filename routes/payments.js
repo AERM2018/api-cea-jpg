@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { getAllPayments, createPayment, deletePayment, payForPayment, getAllPaymentsByGroup, getAllPaymentsByStudent, getPricesPayments} = require('../controllers/paymentController');
+const { getAllPayments, createPayment, deletePayment, payForPayment, getAllPaymentsByGroup, getAllPaymentsByStudent, getPricesPayments, updatePayment} = require('../controllers/paymentController');
 const { checkStudentExistence, checkPaymentExistence, checkGroupExistence, checkEmployeeExistence, checkStudentEnroll, checkCardExistence, isValidDocument, isValidCard, isValidPaymentType, isValidPaymentMethod } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -52,7 +52,7 @@ paymentsRouter.delete('/:id_payment',[
     validateJWT
 ], deletePayment)
 
-paymentsRouter.patch('/:id_payment/payFor',[
+paymentsRouter.post('/:id_payment/payFor',[
     check('id_payment','El id del pago es obligatorio').isInt().exists({ checkNull : true}),
     check('pay_amount','El monto de abono es obligatorio').isFloat().exists({ checkNull : true}),
     check('payment_method','El metódo de pago es obligatorio').custom( isValidPaymentMethod ),
@@ -62,4 +62,12 @@ paymentsRouter.patch('/:id_payment/payFor',[
     checkCardExistence,
     validateJWT
 ], payForPayment)
+
+paymentsRouter.patch('/:id_payment',[
+    check('id_payment','El id del pago es obligatorio').isInt().exists({ checkNull : true}),
+    check('cutoff_date','La fecha de corte es obligatoria').isDate(),
+    checkPaymentExistence,
+    validateFields,
+    validateJWT
+], updatePayment)
 module.exports = paymentsRouter;
