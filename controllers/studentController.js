@@ -43,7 +43,7 @@ const getStudentByMatricula = async (req, res = response) => {
         Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
         const { id_group } = student
 
-        const {last_day} = await getGroupDaysAndOverdue( id_group )
+        const {first_day,last_day} = await getGroupDaysAndOverdue( id_group )
         const gro_cou = await Gro_cou.findOne({
             where: { id_group },
             include: {
@@ -51,12 +51,13 @@ const getStudentByMatricula = async (req, res = response) => {
                 attributes: ['course_name'],
             },
             where: {
-                end_date: { [Op.lte]: last_day },
+                start_date :{ [Op.gte] : moment(first_day).startOf('month').format().substr(0,10)},
+                end_date: { [Op.lte]: moment(last_day).endOf('month').format().substr(0,10) },
             }
 
         })
 
-        course = (!gro_cou.toJSON().course) ? gro_cou.toJSON().course : 'Materia no asignada'
+        course = (gro_cou) ? gro_cou.toJSON().course : {course_name:'Materia no asignada'}
         return res.status(200).json({
             ok: true,
             student: { ...student, ...course }
