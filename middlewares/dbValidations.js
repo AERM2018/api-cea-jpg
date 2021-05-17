@@ -7,6 +7,7 @@ const Group = require('../models/group');
 const Payment = require('../models/payment');
 const Pay_info = require('../models/pay_info');
 const Student = require('../models/student');
+const { document_types } = require('../types/dictionaries');
 
 const checkCampusExistence = async (id_campus = 0) => {
     const campus = await Campus.findOne({
@@ -159,6 +160,7 @@ const isValidDocument = (document_type = null, req) => {
         if (document_type || document_type === 0) throw Error(`El tipo de documento no es requerido.`)
     } else {
         if (document_type === null) throw Error(`El tipo de documento es obligatorio.`)
+        if (document_type < 0 || document_type >= document_types.length) throw Error(`Tipo de documento invalido`)
     }
     return true
 }
