@@ -36,6 +36,7 @@ const getAllStudents = async (req, res) => {
 
 const getStudentByMatricula = async (req, res = response) => {
     const { id_student } = req
+    let course;
     try {
         const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
         Course.hasOne(Gro_cou, { foreignKey: 'id_course' })
@@ -55,7 +56,7 @@ const getStudentByMatricula = async (req, res = response) => {
 
         })
 
-        const { course } = gro_cou.toJSON()
+        course = (!gro_cou.toJSON().course) ? gro_cou.toJSON().course : 'Materia no asignada'
         return res.status(200).json({
             ok: true,
             student: { ...student, ...course }
