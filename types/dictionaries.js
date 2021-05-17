@@ -10,6 +10,18 @@ const document_types = [
     { name: 'Titulo', price: 4500 },
     { name: 'Constancia de título en proceso', price: 500 },
 ]
+const expenses_type = [
+    'Transporte',
+    'Artículos de limpieza',
+    'Artículos de oficina',
+    'Servicios básicos',
+    'Comida',
+    'Pagos a maestros',
+    'Pagos a personal administrativo',
+    'Pagos al sistema',
+    'Pagos a servicios extras',
+    'Pagos para eventos'
+]
 
 const fee_school = [
     { major_name : 'Licenciatura' , price : 800},
@@ -38,5 +50,6 @@ module.exports = {
     fee_school,
     fee_course,
     getFeeSchoolByMajor,
-    getFeeCourseByMajor
+    getFeeCourseByMajor,
+    expenses_type
 }

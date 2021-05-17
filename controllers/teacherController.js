@@ -172,23 +172,26 @@ const updateTeacher = async (req, res) => {
 }
 const deleteTeacher = async (req, res) => {
     const { id } = req.params;
+    const {active}=req.body;
     try {
-        const teacher = await Teacher.findByPk(id);
+        const teacher = await Teacher.findOne({
+            where: { id_teacher: id }
+        });
         if (!teacher) {
             return res.status(404).json({
                 msg: "No existe un maestro con el id " + id,
             });
         }
-        const teacherActive = await Teacher.findOne({
-            where: {active: 2}
-        });
-        if (teacherActive) {
+       
+        if (teacher.active===2 || teacher.active===3) {
             return res.status(404).json({
-                msg: "No existe un maestro con el id " + id,
+                ok: false,
+                msg: "No existe un alumno con el id " + id,
             });
         }
 
-        await teacher.update({ active: 2 })
+        await teacher.update({ active })
+
 
         res.status(200).json({
             ok: true,

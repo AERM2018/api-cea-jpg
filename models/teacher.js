@@ -46,7 +46,7 @@ const Teacher = db.define('teachers',{
     },
     active : {
         type : DataTypes.TINYINT,
-        defaultValue : true
+        defaultValue : 1
     },
    
 

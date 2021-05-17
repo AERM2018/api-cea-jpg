@@ -227,6 +227,7 @@ const updateEmployee = async (req, res) => {
 }
 const deleteEmployee = async (req, res) => {
     const { id } = req.params;
+    const {active}=req.body;
     try {
         
         const employee = await Employee.findByPk(id);
@@ -236,18 +237,14 @@ const deleteEmployee = async (req, res) => {
                 msg: "No existe un empleado con el id " + id,
             });
         }
-        const employeeActive = await Employee.findOne({
-            where: {active:0}
-        });
-        if (employeeActive) {
+        if (employee.active===2 || employee.active===3) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un empleado con el id " + id,
+                msg: "No existe un alumno con el id " + id,
             });
         }
-    
-        await employee.update({ active: 0 })
-    
+
+        await teacher.update({ active })
     
         res.status(200).json({
             ok: true,
