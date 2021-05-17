@@ -499,7 +499,7 @@ _An example_
         ]
 }
 ```
-### Get stundent by 
+### Get stundent by matricula
 
 ```
 URL/students/matricula  /*Method http: GET*/
@@ -1207,7 +1207,7 @@ The result look like this:
 - current  : how much money have paid.
 - missing  : how much money is missing.
 - name     : payment's concept.
-- status   : 0 (not fullt paid) OR 1 (fully paid).
+- status   : 0 (not fullt paid) OR 1 (fully paid) OR 2(the payment is close).
 
 --------------------------------------------------------------
 ### **Create payment**
@@ -1234,6 +1234,11 @@ You need send an object like this in the request's body
    start_date       : INT
 }
 ```
+#### **Info you might want to know:**
+
+- document_type : type of document you're are paying for,
+- start_date  : number of the month that you're paying
+
 _**Important**_
 - If the payment_type is different to document, send null as document_type value
 - If the payment_method is different to tarjeta or depósito, send null as id_card value
@@ -1261,8 +1266,12 @@ You need send an object like this in the request's body
 
 }
 ```
+#### **Info you might want to know:**
+
+- pay_amount : amount that you're paying
+
 _**Important**_
-- If the payment_method is different to tarjeta or depósito, send null as payment_method value.
+- If the payment_method is different to tarjeta or depósito, send null as id_card value.
 
 
 
@@ -1288,6 +1297,11 @@ You need send an object like this in the request's body
 
 }
 ```
+#### **Info you might want to know:**
+
+- document_type : type of document you're are paying for,
+- start_date  : number of the month that you're paying
+
 _**Important**_
 - If the payment_type is different to document, send null as document_type value
 - If start_date is null, the system will take it as the current month when the payment is being generated.
