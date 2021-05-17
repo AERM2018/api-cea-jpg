@@ -499,7 +499,12 @@ _An example_
         ]
 }
 ```
-### Get stundent by matricula
+### Get stundent by 
+
+```
+URL/students/matricula  /*Method http: GET*/
+```
+* Put the value of matricula instead of "matricula"
 
 This endpoint will return the stundent who has the matricula specified.
 

@@ -44,9 +44,10 @@ const getGroupDaysAndOverdue = async( id_group = 0, date = {} ) => {
     last_day_date = last_day_date.format().substr(0, 10)
 
     let overdue;
+    // console.log(first_day_date,moment().local().diff(moment(first_day_date),'weeks'))
     if(moment(date).month() === moment().month() && moment(date).year() === moment().year()){
         overdue = moment().local().diff(moment(first_day_date),'weeks') * 100
-    }else if((moment(date).month() < moment().month()) && (moment(date).year() === moment().year())){
+    }else if((moment(date).month() < moment().month()) && (moment(date).year() === moment().year()) ||(moment(date).month() > moment().month()) && (moment(date).year() < moment().year())){
         overdue = moment(date).endOf('month').diff(moment(first_day_date),'weeks') * 100
     }else{
         overdue = 0

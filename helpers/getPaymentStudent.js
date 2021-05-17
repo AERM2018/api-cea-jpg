@@ -9,12 +9,12 @@ const Pay_info = require("../models/pay_info");
 const { getGroupDaysAndOverdue } = require("./dates");
 const Payment = require("../models/payment");
 
-const getPaymentStudent = async (id_student = '', details = false, st_payment = {}) => {
+const getPaymentStudent = async (id_student = '', details = false, status_payment = {}) => {
 
     let missing = 0;
 
     const allPaymentsByStudent = await Pay_info.findAll({
-        where: { id_student, ...st_payment },
+        where: { id_student, ...status_payment },
         order: [['payment_date', 'desc']],
         attributes: { exclude: ['id'] }
     })
@@ -43,17 +43,31 @@ const getPaymentStudent = async (id_student = '', details = false, st_payment = 
                 // Change the payment's amount in case it's necessary
                 if(status_payment != 1 ){
                     // Change the status if the date is overdue
-                    if((status_payment === 0 && moment().month() > moment(cutoff_date).month() && moment().year() >= moment(cutoff_date).year())){
-                        if(moment().diff(moment(cutoff_date).endOf('month'),"days") < 15){
+                    if((status_payment === 0 && moment().month() >= moment(cutoff_date).month() && moment().year() >= moment(cutoff_date).year())){
+                        if(moment().month() > moment(cutoff_date).month()){
+                            if(moment().diff(moment(start_date).endOf('month'),"days") >= 15){
+                                status_payment = 2
+                            }
                             await Payment.update({ cutoff_date : moment(cutoff_date).endOf('month').add(15,"days") }, {
-                                where: { id_payment }
-                            })
-                            cutoff_date = moment(cutoff_date).endOf('month').add(15,"days")
-                        }else{
-                            await Payment.update({ status_payment : 2 }, {
-                                where: { id_payment }
-                            })
+                                    where: { id_payment }
+                                })
+                        }else if(moment(start_date).month() != moment(cutoff_date).month() && moment().month() === moment(cutoff_date).month() && moment().diff(moment(start_date).endOf('month'),"days") >= 15){
                             status_payment = 2
+                            
+                        }
+
+                        if(status_payment === 2){
+                            await Payment.update({ status_payment : 2 }, {
+                                        where: { id_payment }
+                                    })
+                        }else{
+                            // Changing the cutoff date if it is within the start_date's month
+                            if(moment().local().day(moment(first_day).day() + 7).isSameOrBefore(moment(start_date).endOf('month'))) {
+                                await Payment.update({ cutoff_date : moment().local().day(moment(first_day).day() + 7).format().substr(0, 10)}, {
+                                    where: { id_payment }
+                                })
+                            }
+                           
                         }
                     }
                     if((status_payment === 0 && moment().month() === moment(cutoff_date).month()) || (status_payment === 2 && moment().month() != moment(cutoff_date).month())){
