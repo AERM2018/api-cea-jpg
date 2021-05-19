@@ -1152,7 +1152,7 @@ Endpoint  URL/payments/students/matricula           HTTP METHOD : GET
 ```
 
 Query params you can use:
-- status : 0 (payments don't fully paid) OR 1 (payments fully paid)
+- status : 0 (payments don't fully paid) OR 1 (payments fully paid) OR 2(the payment is close)
 
 If the query params are not send, the endpoint will return payment with status 0 and 1.
 
@@ -1297,6 +1297,14 @@ You need send an object like this in the request's body
 
 }
 ```
+
+The result looks like this:
+```
+{
+    "ok": true,
+    "total_to_pay": 800
+}
+```
 #### **Info you might want to know:**
 
 - document_type : type of document you're are paying for,
@@ -1377,7 +1385,6 @@ Endpoint:  URL/cards    HTTP method: POST
 _You need send an object like this in the request's body:_
 ```
 {
-    "id_payment":1,
     "card_number": "1234567891012347",
     "owner": "pablito",
     "bank": "bancomer",
@@ -1406,7 +1413,6 @@ Endpoint:  URL/cards/id_card    HTTP method: PUT
 _You need send an object like this in the request's body:_
 ```
 {
-    "id_payment":1,
     "card_number": "1234567891012347",
     "owner": "pablitx",
     "bank": "bancomer",
@@ -1586,4 +1592,14 @@ URL/documents/id_request  /*Method http: GET*/
 
 
 
-
+### Documents list
+0: Constancia con de estudios. (Con calificaciones)
+1: Constancia de estudios (Sin calificaciones)
+2: Carta maestrante
+3: Kardex
+4: Credenciales
+5: Certificado
+6: Acta de examen
+7: Oficio de servicio social y practicas
+8: Titulo
+9: Constancia de título en proceso

@@ -25,26 +25,17 @@ const getAllCards = async (req, res) =>{
 const createCard = async (req, res)=>{
 
     const {body}=req;
-    const {id_payment, card_number, owner, bank, due_date}= body;
+    const {card_number, owner, bank, due_date}= body;
     
     try{
-        // check if the card already exist
-        const payment = await Payment.findByPk(id_payment) 
-        if(!payment){
-            return res.status(404).json({
-                ok: false,
-                msg: `El pago con id ${id_payment} no existe` 
-            });
-        }
+       
         // create and save 
         const cardNumber= await Card.findOne({
             where:{card_number}
         })
         if(!cardNumber){
-            const card = new Card({id_payment, card_number, owner, bank, due_date});
-            const newCard = await card.save();
-            const cardJson = newCard.toJSON();
-            id_card= cardJson['id_card']
+            const card = new Card({card_number, owner, bank, due_date});
+            await card.save();
         }
         else{
             return res.status(400).json({
@@ -52,6 +43,10 @@ const createCard = async (req, res)=>{
                 msg:"Ya existe un resgistro con el numero de tarjeta "+ card_number,
             });
         }
+        res.status(201).json({
+            ok:true,
+            msg: "Tarjeta creada correctamente"
+        });
     }catch(error){
         console.log(error)
         return res.status(500).json({
@@ -60,17 +55,13 @@ const createCard = async (req, res)=>{
         });
     }
 
-    res.status(201).json({
-        ok:true,
-        msg: "Tarjeta creada correctamente"
-    });
 
 }
 
 const updateCard = async(req, res)=>{
     const {id}=req.params;
     const {body}=req;
-    const {id_payment, card_number}= body;
+    const {card_number}= body;
     try{
         const card= await Card.findByPk(id);
         if(!card){
@@ -79,14 +70,7 @@ const updateCard = async(req, res)=>{
                 msg: "No existe una tarjeta con el id " + id,
             });
         }
-        const payment = await Payment.findByPk(id_payment);
-        if(!payment){
-            return res.status(404).json({
-                ok: false,
-                msg: "No existe un pago con el id " + id_payment
-            });
-        }
-
+        
         const cardNumber = await Card.findOne({
             where:{
                 card_number,

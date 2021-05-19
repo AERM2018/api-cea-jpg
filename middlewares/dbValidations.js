@@ -179,6 +179,14 @@ const isValidPaymentType = ( payment_type = ' ' ) => {
         return true
     }
 }
+
+const isValidStartDate = ( start_date ) => {
+    if(start_date != null){
+        if(start_date < 0 || start_date > 11) throw new Error('Start date inválido')
+    }
+
+    return true
+}
 module.exports = {
     checkCampusExistence,
     checkStudentExistence,
@@ -191,5 +199,6 @@ module.exports = {
     checkCardExistence,
     isValidDocument,
     isValidPaymentMethod,
-    isValidPaymentType
+    isValidPaymentType,
+    isValidStartDate
 }

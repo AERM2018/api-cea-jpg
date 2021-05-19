@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 const { getAllPayments, createPayment, deletePayment, payForPayment, getAllPaymentsByGroup, getAllPaymentsByStudent, getPricesPayments, updatePayment, checkPricePayment} = require('../controllers/paymentController');
-const { checkStudentExistence, checkPaymentExistence, checkGroupExistence, checkEmployeeExistence, checkStudentEnroll, checkCardExistence, isValidDocument, isValidCard, isValidPaymentType, isValidPaymentMethod } = require('../middlewares/dbValidations');
+const { checkStudentExistence, checkPaymentExistence, checkGroupExistence, checkEmployeeExistence, checkStudentEnroll, checkCardExistence, isValidDocument, isValidCard, isValidPaymentType, isValidPaymentMethod, isValidStartDate } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -37,7 +37,7 @@ paymentsRouter.post('/',[
     check('amount',"El monto del pago es obligatorio").isFloat().exists({ checkNull : true }),
     check('id_card','La tarjeta a la cual va dirigo el pago es necesario.').exists({ checkNull : false }).custom( (id_card,{req}) => isValidCard(id_card, req)),
     check('document_type','El tipo de documento es necesario.').exists({ checkNull : false }).custom( (document_type, {req}) => isValidDocument(document_type, req) ),
-    check('start_date','').exists({ checkNull : false }),
+    check('start_date','').exists({ checkNull : false }).custom(isValidStartDate),
     validateFields,
     validateJWT,
     checkStudentExistence,
@@ -76,7 +76,7 @@ paymentsRouter.post('/students/:matricula/check',[
     check('matricula','La matricula del estudiante es obligatoria').notEmpty(),
     check('payment_type',"El tipo de pago es obligatorio").exists({ checkNull : true}).custom(isValidPaymentType),
     check('document_type','El tipo de documento es necesario.').exists({ checkNull : false }).custom( (document_type, {req}) => isValidDocument(document_type, req) ),
-    check('start_date','').exists({ checkNull : false }),
+    check('start_date','').exists({ checkNull : false }).custom(isValidStartDate),
     validateFields,
     validateJWT,
     checkStudentExistence,
