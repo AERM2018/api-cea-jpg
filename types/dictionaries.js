@@ -24,17 +24,17 @@ const expenses_type = [
 ]
 
 const fee_school = [
-    { major_name : 'Licenciatura' , price : 800},
-    { major_name : 'Maestria' , price : 1500}
+    { major_name : 'licenciatura' , price : 800},
+    { major_name : 'maestria' , price : 1500}
 ]
 
 const fee_course = [
-    { major_name : 'Licenciatura' , price : 800},
-    { major_name : 'Maestria' , price : 1500}
+    { major_name : 'licenciatura' , price : 800},
+    { major_name : 'maestria' , price : 1500}
 ]
 
 const getFeeSchoolByMajor = ( major  = ' ') => {
-    const fee = fee_school.find( ({major_name}) => major.includes(major_name));
+    const fee = fee_school.find( ({major_name}) => major_name.includes(major.toLowerCase()));
     return fee.price
      
 }

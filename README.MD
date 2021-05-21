@@ -1281,10 +1281,10 @@ _**Important**_
 
 This endpoint will return the amount you have to pay for when you generated a payment, the price will take in count the posible charges that the system apply.
 
-* Put the value of payment's id instead of "id_payment"
+* Put the value of matricula instead of "matricula"
 
 ```
-Endpoint  URL/payments/students/check         HTTP METHOD : POST
+Endpoint  URL/payments/students/matricula/check         HTTP METHOD : POST
 ```
 
 

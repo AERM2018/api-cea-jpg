@@ -187,6 +187,11 @@ const isValidStartDate = ( start_date ) => {
 
     return true
 }
+const isValidEduLevel = ( edu_level ) => {
+        if(![1,2].includes(edu_level)) throw new Error('Nivel de eduación inválido')
+
+    return true
+}
 module.exports = {
     checkCampusExistence,
     checkStudentExistence,
@@ -200,5 +205,6 @@ module.exports = {
     isValidDocument,
     isValidPaymentMethod,
     isValidPaymentType,
-    isValidStartDate
+    isValidStartDate,
+    isValidEduLevel
 }

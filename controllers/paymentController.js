@@ -122,7 +122,7 @@ const createPayment = async (req, res = response) => {
       replacements: { id: id_student },
       type: QueryTypes.SELECT,
     });
-    const { major_name, id_group, ins_date } = student;
+    const { major_name, id_group, ins_date, educational_level } = student;
 
     if (!enroll && payment_type.toLowerCase() != "inscripción") {
       return res.status(400).json({
@@ -164,7 +164,7 @@ const createPayment = async (req, res = response) => {
           });
         }
 
-        total_to_pay = getFeeSchoolByMajor(major_name);
+        total_to_pay = getFeeSchoolByMajor(educational_level);
         if (amount < total_to_pay) {
           return res.status(400).json({
             ok: false,
@@ -249,7 +249,7 @@ const createPayment = async (req, res = response) => {
             moment().year() === moment(start_date).year()) ||
           moment().month() - moment(start_date).month() === -11
         ) {
-          total_to_pay = getFeeCourseByMajor(major_name);
+          total_to_pay = getFeeCourseByMajor(educational_level);
 
           if (moment().diff(moment(start_date).endOf("month"), "days") < 15) {
             total_to_pay += overdue;
@@ -274,7 +274,7 @@ const createPayment = async (req, res = response) => {
           (moment(start_date).month() < moment().month() &&
             moment(start_date).year() != moment().year())
         ) {
-          total_to_pay = getFeeCourseByMajor(major_name) + overdue;
+          total_to_pay = getFeeCourseByMajor(educational_level) + overdue;
           if (amount < total_to_pay) {
             if (
               moment(start_date).month() === moment().month() &&
@@ -648,7 +648,7 @@ const checkPricePayment = async (req, res = response) => {
       replacements: { id: id_student },
       type: QueryTypes.SELECT,
     });
-    const { major_name, id_group, ins_date } = student;
+    const { major_name, id_group, ins_date, educational_level } = student;
 
     if (!enroll && payment_type.toLowerCase() != "inscripción") {
       return res.status(400).json({
@@ -681,7 +681,7 @@ const checkPricePayment = async (req, res = response) => {
           });
         }
 
-        total_to_pay = getFeeSchoolByMajor(major_name);
+        total_to_pay = getFeeSchoolByMajor(educational_level);
         break;
       case "materia":
         const pays_courses = await Pay_info.findAll({
@@ -752,7 +752,7 @@ const checkPricePayment = async (req, res = response) => {
           moment().month() > moment(start_date).month() ||
           moment().month() - moment(start_date).month() === -11
         ) {
-          total_to_pay = getFeeCourseByMajor(major_name);
+          total_to_pay = getFeeCourseByMajor(educational_level);
           if (moment().diff(moment(start_date).endOf("month"), "days") < 15) {
             total_to_pay += overdue;
           } else {
@@ -765,11 +765,10 @@ const checkPricePayment = async (req, res = response) => {
           (moment(start_date).month() < moment().month() &&
             moment(start_date).year() != moment().year())
         ) {
-          total_to_pay = getFeeCourseByMajor(major_name) + overdue;
+          total_to_pay = getFeeCourseByMajor(educational_level) + overdue;
         }
         break;
     }
-    console.log(start_date);
     return res.status(200).json({
       ok: true,
       total_to_pay,
