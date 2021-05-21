@@ -41,7 +41,7 @@ const getFeeSchoolByMajor = ( major  = ' ') => {
 
 
 const getFeeCourseByMajor = ( major  = ' ') => {
-    const fee = fee_course.find( ({major_name}) =>  major.includes(major_name))
+    const fee = fee_course.find( ({major_name}) =>  major_name.includes(major.toLowerCase()))
     return fee.price
 }
 
