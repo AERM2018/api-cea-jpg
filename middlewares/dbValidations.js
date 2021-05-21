@@ -62,7 +62,7 @@ const checkEmployeeExistence = async (req, res = response, next) => {
     if (!employee) {
         return res.status(404).json({
             ok: false,
-            msg: `El trabajador con matricula ${id_user} no existe`
+            msg: `El trabajador con id ${id_user} no existe`
         })
     }
 
