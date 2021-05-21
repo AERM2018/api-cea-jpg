@@ -23,7 +23,7 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
 
     const moneyFromPayments = allPaymentsByStudent.map(async (pay_info) => {
         let expected
-        const { payment_type, id_payment, id_group, major_name, payment_date, start_date,current,  } = pay_info
+        const { payment_type, id_payment, id_group, major_name, payment_date, start_date,current, educational_level } = pay_info
         let { amount, status_payment, cutoff_date } = pay_info
         expected = amount
         switch (payment_type) {
@@ -39,7 +39,7 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
                 break;
             case 'Materia':
                 const { first_day, last_day, overdue } = await getGroupDaysAndOverdue(id_group, start_date)
-                const amount_origin = getFeeCourseByMajor(major_name)
+                const amount_origin = getFeeCourseByMajor(educational_level)
                 // Change the payment's amount in case it's necessary
                 if(status_payment != 1 ){
                     // Change the status if the date is overdue

@@ -61,7 +61,12 @@ const Pay_info = db.define('pay_info',{
     current : {
         type : DataTypes.FLOAT,
         allowNull : false
+    },
+    current : {
+        type : DataTypes.STRING,
+        allowNull : false
     }
+
 },
 {
     timestamps :  false,
