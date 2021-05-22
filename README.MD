@@ -1688,28 +1688,29 @@ URL/documents/id_request  /*Method http: GET*/
 
 ### Types of expenses
 
-0: Transporte
-1: Artículos de limpieza
-2: Artículos de oficina
-3: Servicios básicos
-4: Comida
-5: Pagos a maestros
-6: Pagos a personal adminisativo',
-7: Pagos al sistema
-8: Pagos a servicios extras
-9: Pagos para evento
+
+- 0: Transporte
+- 1: Artículos de limpieza
+- 2: Artículos de oficina
+- 3: Servicios básicos
+- 4: Comida
+- 5: Pagos a maestros
+- 6: Pagos a personal adminisativo',
+- 7: Pagos al sistema
+- 8: Pagos a servicios extras
+- 9: Pagos para evento
 
 
 
 
 ### Documents list
-0: Constancia con de estudios. (Con calificaciones)
-1: Constancia de estudios (Sin calificaciones)
-2: Carta maestrante
-3: Kardex
-4: Credenciales
-5: Certificado
-6: Acta de examen
-7: Oficio de servicio social y practicas
-8: Titulo
-9: Constancia de título en proceso
+- 0: Constancia con de estudios. (Con calificaciones)
+- 1: Constancia de estudios (Sin calificaciones)
+- 2: Carta maestrante
+- 3: Kardex
+- 4: Credenciales
+- 5: Certificado
+- 6: Acta de examen
+- 7: Oficio de servicio social y practicas
+- 8: Titulo
+- 9: Constancia de título en proceso
