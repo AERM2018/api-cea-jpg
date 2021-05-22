@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 const { db } = require('../database/connection');
 const Card = db.define('card',{
     id_card:{
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER(4),
         primaryKey: true,
         autoIncrement: true
     },
