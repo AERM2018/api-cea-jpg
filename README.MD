@@ -1177,7 +1177,9 @@ The result look like this:
                 "id_employee": "ale104691",
                 "employee_fullname": "Angel Cruz Cruz",
                 "status_payment": 1,
-                "payment_date": "2021-04-11"
+                "payment_date": "2021-04-11",
+                "last_payment_date":"2021-04-11",
+                "payment_type":"Inscripción"
             },
             {
                 "expected": 800,
@@ -1189,7 +1191,9 @@ The result look like this:
                 "id_employee": "ale104691",
                 "employee_fullname": "Angel Cruz Cruz",
                 "status_payment": 1,
-                "payment_date": "2021-04-11"
+                "payment_date": "2021-04-11",
+                "last_payment_date":"2021-04-11",
+                "payment_type":"Materia"
             },...
         ]
     },...
@@ -1208,6 +1212,8 @@ The result look like this:
 - missing  : how much money is missing.
 - name     : payment's concept.
 - status   : 0 (not fullt paid) OR 1 (fully paid) OR 2(the payment is close).
+- last_payment_date : Last date a payment was paid.
+- payment_type : The type of payment it was asked for.
 
 --------------------------------------------------------------
 ### **Create payment**
