@@ -18,6 +18,7 @@ const studentsRouter= require('../routes/students');
 const teachersRouter = require('../routes/teachers');
 const cardsRouter = require('../routes/cards');
 const paymentsRouter = require('../routes/payments');
+const expenseRouter = require('../routes/expenses')
 const requestRouter = require('../routes/request');
 const documentsRouter = require('../routes/document')
 class Server{
@@ -50,6 +51,7 @@ class Server{
             cards: `/${this.base}/cards`,
             payments: `/${this.base}/payments`,
             requests: `/${this.base}/requests`,
+            expenses: `/${this.base}/expenses`
         }
         this.routes();
     }
@@ -68,7 +70,7 @@ class Server{
         this.app.use(this.apiPaths.courses, coursesRouter);
         this.app.use(this.apiPaths.scholarships, scholarshipRouter);
         this.app.use(this.apiPaths.grades, gradesRouter);
-
+        this.app.use(this.apiPaths.expenses, expenseRouter)
         this.app.use(this.apiPaths.campus, campusRouter)
         this.app.use(this.apiPaths.majors, majorsRouter)
         this.app.use(this.apiPaths.departments, departmentsRouter)

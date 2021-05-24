@@ -1550,6 +1550,105 @@ URL/requests/id_request  /*Method http: DELETE*/
     "msg": "La peticion se elimino correctamente"
 }
 ```
+## Expenses
+
+### Get expense by date
+
+```
+URL/expenses /*Method http: GET*/
+```
+- Possible parameters: fecha
+_An example could be_
+```
+URL/expenses?fecha=2021-04-22
+```
+- If you put "all" in fecha you will get all the requests
+_This endpoint returns the expenses of the date that were created , if you don't send the date it would take the actual date by default_
+
+_An example_
+```
+{
+    "ok": true,
+    "data": [
+        {
+            "id_expense": 6,
+            "amount": 600,
+            "expense_type": "Artículos de limpieza",
+            "observation": "una obersavacion gg",
+            "id_employee": "ale104691"
+        }
+    ]
+}
+
+```
+
+### Create a expense
+
+```
+URL/expenses /*Method http: POST*/
+```
+
+
+- _This endpoint you must send an object so as to create an expense if you send something wrong it won't create anything_
+- _The next object is an example to know how to send it_
+```
+{
+    "observation": "una obersavacion",
+    "amount":500.25,
+    "expense_type":1,
+    "id_user": 104
+
+}
+```
+
+
+- _if the request is successful the response would be:_
+```
+{
+    "ok": true,
+    "msg": "Gasto creado correctamente"
+}
+```
+### Update an expense
+
+```
+URL/expenses/id_expense  /*Method http: PUT*/
+```
+- _the options that you can send in order to update an expense are:_
+```
+{
+    "observation": "una obersavacion ggg",
+    "amount":600,
+    "expense_type":2
+
+}
+```
+
+- _In the part of the parameter put the id of the expense instead of id-expense_
+
+
+- _if the request is successful the response would be:_
+```
+{
+    "ok": true,
+    "msg": "El gasto se actualizo correctamente"
+}
+```
+
+### Delete an expense
+
+```
+URL/expenses/id_expense  /*Method http: DELETE*/
+```
+
+- _This endpoint is to delete AN EXPENSE, you just have to put in the params the id of the expense instead of id-expense_
+- _if the request is successful the response would be:_
+```
+{
+    "ok": true,
+    "msg": "El gasto se elimino correctamente"
+}
+```
 
 ## Documents
 ### GET INFO SO AS TO CREATE DOCUMENT
@@ -1587,19 +1686,31 @@ URL/documents/id_request  /*Method http: GET*/
 - the grades of the students only will be send them when the document requires them
 
 
+### Types of expenses
 
+
+- 0: Transporte
+- 1: Artículos de limpieza
+- 2: Artículos de oficina
+- 3: Servicios básicos
+- 4: Comida
+- 5: Pagos a maestros
+- 6: Pagos a personal adminisativo',
+- 7: Pagos al sistema
+- 8: Pagos a servicios extras
+- 9: Pagos para evento
 
 
 
 
 ### Documents list
-0: Constancia con de estudios. (Con calificaciones)
-1: Constancia de estudios (Sin calificaciones)
-2: Carta maestrante
-3: Kardex
-4: Credenciales
-5: Certificado
-6: Acta de examen
-7: Oficio de servicio social y practicas
-8: Titulo
-9: Constancia de título en proceso
+- 0: Constancia con de estudios. (Con calificaciones)
+- 1: Constancia de estudios (Sin calificaciones)
+- 2: Carta maestrante
+- 3: Kardex
+- 4: Credenciales
+- 5: Certificado
+- 6: Acta de examen
+- 7: Oficio de servicio social y practicas
+- 8: Titulo
+- 9: Constancia de título en proceso

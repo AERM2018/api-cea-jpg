@@ -17,7 +17,7 @@ cardsRouter.post('/', [
     check('card_number','El número de tarjeta es obligatorio y debe tener como máximo 16 caracteres').not().isEmpty().isString().isLength( { max: 16 } ),
     check('owner','El propietario de la tarjeta es obligatorio y debe tener como máximo 20 caracteres').not().isEmpty().isString().isLength( { max:20  } ),
     check('bank','El banco al que pertenece la tarjeta es obligatorio y debe tener como máximo 20 caracteres').not().isEmpty().isString().isLength( { max: 20 } ),
-    check('due_date','La fecha de vencimiento de la tarjeta es obligatoria').isDate(),
+    check('due_date','La fecha de vencimiento de la tarjeta es obligatoria con formato YYYY-MM-DD').isDate(),
     validateFields,
     validateJWT
 ],createCard);
