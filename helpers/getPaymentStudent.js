@@ -8,6 +8,7 @@ const { getReqPay } = require('../queries/queries');
 const Pay_info = require("../models/pay_info");
 const { getGroupDaysAndOverdue } = require("./dates");
 const Payment = require("../models/payment");
+const Partial_pay = require("../models/partial_pay");
 
 const getPaymentStudent = async (id_student = '', details = false, status_payment = {}) => {
 
@@ -26,6 +27,12 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
         const { payment_type, id_payment, id_group, major_name, payment_date, start_date,current, educational_level } = pay_info
         let { amount, status_payment, cutoff_date } = pay_info
         expected = amount
+        const partial_pays_payment = await Partial_pay.findAll({
+            where : {
+                id_payment
+            }
+        })
+        const last_payment_date = partial_pays_payment[partial_pays_payment.length - 1].toJSON()['date_p']
         switch (payment_type) {
             case 'Documento':
                 let req_pay = await db.query(getReqPay, { replacements: { id: id_payment }, type: QueryTypes.SELECT })
@@ -115,7 +122,7 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
                 break;
         }
 
-        extra = { ...extra, id_payment, status_payment, payment_date }
+        extra = { ...extra, id_payment, status_payment, payment_date,last_payment_date, payment_type }
         return (details) ? { expected, current, missing: (expected - current), ...extra } : { expected, current }
     })
 

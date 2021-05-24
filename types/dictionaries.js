@@ -36,7 +36,7 @@ const fee_course = [
 const getFeeSchoolByMajor = ( major  = ' ') => {
     const fee = fee_school.find( ({major_name}) => major_name.includes(major.toLowerCase()));
     return fee.price
-     
+    
 }
 
 

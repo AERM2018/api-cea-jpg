@@ -62,7 +62,7 @@ const Pay_info = db.define('pay_info',{
         type : DataTypes.FLOAT,
         allowNull : false
     },
-    current : {
+    educational_level : {
         type : DataTypes.STRING,
         allowNull : false
     }
