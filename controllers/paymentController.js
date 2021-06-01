@@ -407,7 +407,7 @@ const getAllPaymentsByGroup = async (req, res = response) => {
     Promise.all(payments).then((stu_pay_info) => {
       res.status(200).json({
         ok: true,
-        student_payments: stu_pay_info,
+        payments: stu_pay_info,
       });
     });
   } catch (err) {
