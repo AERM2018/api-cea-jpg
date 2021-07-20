@@ -1,18 +1,18 @@
 const { DataTypes } = require("sequelize");
 const { db } = require("../database/connection");
 
-const Grades = db.define('grades',{
-    id_grade : {
+const Stu_extracou = db.define('stu_extracou',{
+    id_stu_extracou : {
         type : DataTypes.INTEGER,
         primaryKey : true,
         autoIncrement : true
     },
-    id_course : {
-        type : DataTypes.INTEGER,
-        allowNull : false
-    },
     id_student : {
         type : DataTypes.STRING(15),
+        allowNull : false
+    },
+    id_ext_cou : {
+        type : DataTypes.INTEGER,
         allowNull : false
     },
     grade : {
@@ -24,4 +24,4 @@ const Grades = db.define('grades',{
     freezeTableName : true
 })
 
-module.exports = Grades
+module.exports = Stu_extracou;

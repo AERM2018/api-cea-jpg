@@ -16,24 +16,24 @@ const Teacher = db.define('teachers',{
         allowNull: false
     },
     name : {
-        type : DataTypes.STRING,
+        type : DataTypes.STRING(35),
         allowNull: false
     },
     surname_f : {
-        type : DataTypes.STRING,
+        type : DataTypes.STRING(45),
         allowNull: false
     },
     surname_m : {
-        type : DataTypes.STRING,
+        type : DataTypes.STRING(45),
         allowNull: false
     },
     rfc : {
-        type : DataTypes.STRING,
+        type : DataTypes.STRING(13),
         allowNull: false
     },
    
     mobile_number : {
-        type : DataTypes.STRING,
+        type : DataTypes.STRING(10),
         allowNull: false
     },
     id_ext_cou : {
@@ -41,11 +41,11 @@ const Teacher = db.define('teachers',{
         defaultValue : null
     },
     courses : {
-        type : DataTypes.TINYINT,
+        type : DataTypes.TINYINT(1),
         defaultValue : 0
     },
     active : {
-        type : DataTypes.TINYINT,
+        type : DataTypes.TINYINT(1),
         defaultValue : 1
     },
    
