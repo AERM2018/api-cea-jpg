@@ -1,7 +1,6 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { getAllCards, createCard,updateCard, deleteCard } = require('../controllers/cardsController');
-
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 

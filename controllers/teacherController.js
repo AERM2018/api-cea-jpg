@@ -186,7 +186,7 @@ const deleteTeacher = async (req, res) => {
         if (teacher.active===2 || teacher.active===3) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un alumno con el id " + id,
+                msg: "No existe un maestro con el id " + id,
             });
         }
 

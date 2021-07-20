@@ -8,8 +8,9 @@ const { validateFields } = require('../middlewares/validateFields');
 const gradesRouter = Router();
 
 gradesRouter.get( '/:id_course', [
-    check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    check('id_group',"El id del grupo es un numero entero y es obligatorio").isNumeric().exists({checkNull:true}),
+    check('id_course','El id del curso es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
+    check('id_student',"El id del estudiante es un número entero y es obligatorio").isNumeric().exists({checkNull:true}),
+    check('grade',"El campo grade es de tipo float de 4 y es obligatorio").isFloat(4).exists({checkNull:true}),
     validateFields,
     validateJWT
 ] ,getAllGradesByCourse);
@@ -24,6 +25,7 @@ gradesRouter.post('/:id_course', [
 ], uploadGrades);
 
 gradesRouter.put( '/:id_course', [
+    param('id_grade','Llave ').not().isEmpty().isInt(),
     check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
     check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
     check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),

@@ -2,26 +2,17 @@ const {DataTypes} = require("sequelize");
 const {db} = require('../database/connection')
 
 
-const Cou_tea =  db.define('cou_tea',{
-    id_sub_tea : {
+const Graduation_section =  db.define('graduation_section',{
+    id_graduation_section : {
         primaryKey : true,
         type : DataTypes.INTEGER,
         autoIncrement : true
-    },
-    id_course : {
-        type : DataTypes.INTEGER,
-        validate : {
-            notEmpty : true
-        }
     },
     id_teacher : {
         type : DataTypes.STRING(30),
         validate : {
             notEmpty : true
         }
-    },
-    status : {
-        type : DataTypes.BOOLEAN
     },
     start_date : {
         type : DataTypes.DATE,
@@ -30,7 +21,16 @@ const Cou_tea =  db.define('cou_tea',{
         }
     },
     end_date : {
-        type : DataTypes.DATE
+        type : DataTypes.DATE,
+        validate : {
+            notEmpty : true
+        }
+    },
+    in_progress : {
+        type : DataTypes.TINYINT(1),
+        validate : {
+            notEmpty : true
+        }
     }
 },{
     timestamps : false,
@@ -38,4 +38,4 @@ const Cou_tea =  db.define('cou_tea',{
 }
 )
 
-module.exports = Cou_tea;
+module.exports = Graduation_section;
