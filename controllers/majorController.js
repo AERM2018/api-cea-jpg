@@ -1,4 +1,4 @@
-const { Op } = require('sequelize');
+const { Op, fn, col } = require('sequelize');
 const Educational_level = require('../models/educational_level');
 const Major = require('../models/major')
 
@@ -11,7 +11,10 @@ const getAllMajors = async (req, res) => {
             model : Educational_level,
             attributes : [['educational_level','name']],
             
-        }
+        },
+        // attributes : [[fn('concat',col('educational_level')," en ",col('major_name')),'major_name']]
+        
+        
     });
   
     

@@ -10,7 +10,7 @@ const { getGroupDaysAndOverdue } = require("./dates");
 const Payment = require("../models/payment");
 const Partial_pay = require("../models/partial_pay");
 
-const getPaymentStudent = async (id_student = '', details = false, status_payment = {}) => {
+const getPaymentStudent = async (id_student = '', details = false, status_payment = {}, edu_level = "") => {
 
     let missing = 0;
 
@@ -118,7 +118,7 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
                 break;
 
             case 'Inscripción':
-                extra = { name: `Inscripción a ${major_name}` }
+                extra = { name: `Inscripción a ${edu_level} en ${major_name}` }
                 break;
         }
 

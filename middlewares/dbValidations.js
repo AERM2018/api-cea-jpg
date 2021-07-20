@@ -109,9 +109,7 @@ const checkPaymentExistence = async (req, res = response, next) => {
 const checkGroupExistence = async (req, res = response, next) => {
     const { id_group } = req.params
     const group = await Group.findOne({
-        where: {
-            id_group: id_group
-        }
+        where: { id_group }
     });
 
     if (!group) {

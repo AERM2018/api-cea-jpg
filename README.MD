@@ -1163,7 +1163,8 @@ The result look like this:
     "student": {
         "matricula": "DEDG202103001",
         "id_student": "ale106009",
-        "student_fullname": "Angel Gonzalez Vergas"
+        "student_fullname": "Angel Gonzalez Vergas",
+        "educational_level": "Licenciatura",
         "money_exp": 2600,
         "money": 2600,
         "missing": 0,
