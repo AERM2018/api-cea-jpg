@@ -49,7 +49,7 @@ const getAllGradesByCourse = async (req, res = response) => {
     }
 }
 
-const getAllGroupsGrade = async ( req, res =  response)=>{
+const getAllGroupsGrades = async ( req, res =  response)=>{
     const { edu_level, major} = req.query
 
     const groups = await Group.findAll({
@@ -140,21 +140,21 @@ const getAllGradesByStudent = async ( req, res = response ) => {
     const {id_student} = req;
 
     try{
-        Course.hasOne(Grades,{ foreignKey: 'id_course' });
-        Grades.belongsTo(Course, { foreignKey : 'id_course'})
-        let gradesStudents = await Grades.findAll({
-            where : { 'id_student' : id_student },
-            include: { model: Course, attributes: ['course_name']},
-            attributes : ['grade']
-        })
+        
+        // let gradesStudents = await Grades.findAll({
+        //     where : { 'id_student' : id_student },
+        //     include: { model: Course, attributes: ['course_name']},
+        //     attributes : ['grade']
+        // })
 
-        gradesStudents = gradesStudents.map(({grade,course}) => {
-            return {grade,course_name : course.course_name}
-        })
+        // gradesStudents = gradesStudents.map(({grade,course}) => {
+        //     return {grade,course_name : course.course_name}
+        // })
+        const gradesStudent = await getGradesStudent(id_student,false)
         
         res.json({
             ok: true,
-            grades : gradesStudents
+            grades : gradesStudent
         })
     }catch( err ){
         printAndSendError(res, err)
@@ -380,6 +380,6 @@ module.exports = {
     updateGrades,
     deleteGradeByStudentId,
     getAllGradesByStudent,
-    getAllGroupsGrade,
+    getAllGroupsGrades,
     getAllGradesByGroup
 }
