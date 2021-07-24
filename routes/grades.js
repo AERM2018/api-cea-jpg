@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { check } = require('express-validator');
+const { check, param } = require('express-validator');
 const { getAllGradesByCourse, uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByStudent, getAllGradesByGroups, getAllGroupsGrade, getAllGradesByGroup } = require('../controllers/gradesController');
 const { checkStudentExistence, checkGroupExistence } = require('../middlewares/dbValidations');
 const checkGrades = require('../middlewares/grades');
