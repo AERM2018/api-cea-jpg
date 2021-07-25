@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { check } = require('express-validator');
+const { check, param } = require('express-validator');
 const { getAllGradesByCourse, uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByStudent, getAllGradesByGroups, getAllGroupsGrade, getAllGradesByGroup, getAllGroupsGrades } = require('../controllers/gradesController');
 const { checkStudentExistence, checkGroupExistence } = require('../middlewares/dbValidations');
 const checkGrades = require('../middlewares/grades');
@@ -54,7 +54,8 @@ gradesRouter.put( '/:id_course', [
 
 gradesRouter.delete( '/:id_course', [
     check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    check('id_student',"El id del estudiante es obligatorio y debe tener como máximo 15 caracteres").isString().notEmpty().isLength( { max : 15} ),
+    check('matricula',"El id del estudiante es obligatorio y debe tener como máximo 15 caracteres").isString().notEmpty().isLength( { max : 15} ),
+    checkStudentExistence,
     validateFields,
     validateJWT
 ], deleteGradeByStudentId)

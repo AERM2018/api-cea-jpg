@@ -960,47 +960,87 @@ It's not neccesary to send a body in the request
 
 ## Grades
 
-### **Get grades from a group of a specific course**
+### **Get grades from all groups**
 
-This endopint will find all the scholarships that exists, the result of this will be a list of the scholarships with information about them.
+This endopint will find the grades of all the groups and it will give the general average of each group
 
-The course's id and group's id need to be sent as parameter
+
 ```
-Endpoint:  URL/grades/id_course?id_group=id_group   HTTP method: GET
+Endpoint:  URL/grades/   HTTP method: GET
 ```
-
-* Put the value of id group after the "=" in "id_group="
-* Put the value of id course instead of "id_course"
-
 
 The result look like:
 ```
 {
-   "ok": true,
-    "grades": [
+    "ok": true,
+    "groups": [
         {
-            "id_course": 5,
-            "course_name": "Materia 1",
-            "id_student": "DEDG202103001",
-            "student_full_name": "Angel Solis",
-            "grade": 8.1
-        },
-        {
-            "id_course": 5,
-            "course_name": "Materia 1",
-            "id_student": "DEDG202103002",
-            "student_full_name": "Hugo Fernandez",
-            "grade": 10
-        }...
+            "id_group": 5,
+            "name_group": "2 derecho",
+            "avg": 8.025
+        },...
     ]
 }
 ```
 
+
+### **Get grades from a group**
+
+This endopint will find the grades of a group and it will give the general average of each student who belong to the group
+
+
+```
+Endpoint:  URL/grades/id_group   HTTP method: GET
+```
+* Put the value of id group instead of "id_group"
+The result look like:
+```
+{
+    "ok": true,
+    "students": [
+        {
+            "id_student": "ale105083",
+            "fullname": "Angel Retana Retana",
+            "avg": 8.5
+        },
+        {
+            "id_student": "ale106009",
+            "fullname": "Angel Gonzalez Vergas",
+            "avg": 7.55
+        }
+    ]
+}
+```
+
+### **Get grades from a student**
+
+This endopint will find the grades of a student and it will give information such as teacher who gave the class, when the student took the class and the grade the student got
+
+
+```
+Endpoint:  URL/grades/students/matricula   HTTP method: GET
+```
+* Put the value of matricula instead of "matricula"
+The result look like:
+```
+{
+    "ok": true,
+    "grades": [
+        {
+            "id_course": 6,
+            "grade": 7,
+            "course": "Español avanzado 2.0",
+            "teacher": "Johan Gonzalez Vargas",
+            "date": "Julio,2021"
+        }
+    ]
+}
+```
 ### **Upload grades of a group**
 
 This endopint will upload the grades of a couse by the group's id, some parameters will be needed for doing it.
 
-The course's id needs no to be sent in the url as parameter
+The course's id needs  to be sent in the url as parameter
 ```
 Endpoint:  URL/grades/id_course    HTTP method: POST
 ```

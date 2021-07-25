@@ -6,7 +6,7 @@ const Group = require('../models/group');
 const Stu_gro = require('../models/stu_gro');
 const Cam_use = require('../models/cam_use');
 const Campus = require('../models/campus');
-const { Op, QueryTypes, EmptyResultError, where, col } = require('sequelize');
+const { Op, QueryTypes, EmptyResultError, where, fn, col } = require('sequelize');
 const { db } = require('../database/connection');
 const { getStudents, getStuInfo } = require('../queries/queries');
 const generateMatricula = require('../helpers/generateMatricula');
@@ -19,6 +19,8 @@ const { getFeeCourseByMajor, document_types, getFeeSchoolByMajor } = require('..
 const { printAndSendError } = require('../helpers/responsesOfReq');
 const Gro_tim = require('../models/gro_tim');
 const Time_tables = require('../models/time_tables');
+const Cou_tea = require('../models/cou_tea');
+const Teacher = require('../models/teacher');
 
 
 const getAllStudents = async (req, res) => {
@@ -45,19 +47,34 @@ const getStudentByMatricula = async (req, res = response) => {
 
         const {first_day,last_day} = await getGroupDaysAndOverdue( id_group )
         const gro_cou = await Gro_cou.findOne({
-            where: { id_group },
             include: {
                 model: Course,
                 attributes: ['course_name'],
             },
             where: {
+                id_group,
                 start_date :{ [Op.gte] : moment(first_day).startOf('month').format().substr(0,10)},
                 end_date: { [Op.lte]: moment(last_day).endOf('month').format().substr(0,10) },
             }
 
         })
 
-        course = (gro_cou) ? gro_cou.toJSON().course : {course_name:'Materia no asignada'}
+        if(gro_cou){
+            course = {course_name: gro_cou.toJSON().course.course_name}
+            const {id_course} = gro_cou
+            Cou_tea.belongsTo(Teacher, {foreignKey: 'id_teacher'})
+            Teacher.hasMany(Cou_tea, {foreignKey : 'id_teacher'})
+            let courseTeacher = await Cou_tea.findOne({
+                where : {id_course},
+                include : {model : Teacher, attributes: [
+                    [fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name'],
+                ]}
+            })
+            course = {...course, teacher : courseTeacher.toJSON().teacher.name}
+        }else{
+            course = {course_name:'Materia no asignada'}
+        }
+
         return res.status(200).json({
             ok: true,
             student: { ...student, ...course }

@@ -40,7 +40,7 @@ groupsRouter.delete('/:id', [
 
 ], deleteGroup);
 
-groupsRouter.post('/:id', [
+groupsRouter.post('/:id/addcourse', [
     param('id', 'El id del grupo es obligatorio y debe ser un numero entero').isNumeric(),
     check('id_course', 'El id de la materia es obligatorio y tiene que un numero entero').notEmpty().isNumeric(),
     check('start_date', 'La fecha de inicio es obligatorio').notEmpty().isDate(),
