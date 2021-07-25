@@ -36,10 +36,6 @@ const Teacher = db.define('teachers',{
         type : DataTypes.STRING(10),
         allowNull: false
     },
-    id_ext_cou : {
-        type : DataTypes.INTEGER,
-        defaultValue : null
-    },
     courses : {
         type : DataTypes.TINYINT(1),
         defaultValue : 0

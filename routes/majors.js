@@ -21,6 +21,7 @@ majorsRouter.put( '/:id', [
     param('id','El id de la carrera es obligatorio y debe de ser un numero entero').isNumeric(),
     check('major_name','El nombre de la carrera es obligatario y tiene que tener como maximo 70 caracteres').not().isEmpty().isLength({max:70}),
     check('edu_level',"El nivel de eduación es obligatorio").isInt().custom( isValidEduLevel ),
+    check('active',"El status de la carrera es obligatorio").isBoolean().notEmpty(),
     validateFields,
     validateJWT
 

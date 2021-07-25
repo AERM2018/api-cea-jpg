@@ -3,10 +3,13 @@ const Campus = require('../models/campus');
 const Card = require('../models/card');
 const Department = require('../models/department');
 const Employees = require('../models/employee');
+const Graduation_courses = require('../models/graduation_courses');
 const Group = require('../models/group');
+const Major = require('../models/major');
 const Payment = require('../models/payment');
 const Pay_info = require('../models/pay_info');
 const Student = require('../models/student');
+const Teacher = require('../models/teacher');
 const { document_types } = require('../types/dictionaries');
 
 const checkCampusExistence = async (id_campus = 0) => {
@@ -190,6 +193,45 @@ const isValidEduLevel = ( edu_level ) => {
 
     return true
 }
+
+const checkTeacherExistence = async (req, res = response, next) => {
+    const id_teacher = req.body.id_teacher || req.params.id_teacher
+    const teacher = await Teacher.findByPk(id_teacher)
+    if (!teacher) {
+        return res.status(404).json({
+            ok: false,
+            msg: `El teacher con el id ${id_teacher} no existe`
+        })
+    }
+    console.log("te test");
+    next();
+}
+
+const checkGraduationCourseExistence = async (req, res = response, next) => {
+    const id_graduation_course = req.body.id_graduation_course || req.params.id_graduation_course
+    const graduationCourse = await Graduation_courses.findByPk(id_graduation_course)
+    if (!graduationCourse) {
+        return res.status(404).json({
+            ok: false,
+            msg: `El curso de graduación con el id ${id_graduation_course} no existe`
+        })
+    }
+    console.log("gce test");
+    next();
+}
+
+const checkMajorExistence = async (req, res = response, next) => {
+    const id_major = req.body.id_major || req.params.id_major
+    const major = await Major.findByPk(id_major)
+    if (!major) {
+        return res.status(404).json({
+            ok: false,
+            msg: `La carrera con el id ${id_major} no existe`
+        })
+    }
+    next();
+}
+
 module.exports = {
     checkCampusExistence,
     checkStudentExistence,
@@ -204,5 +246,8 @@ module.exports = {
     isValidPaymentMethod,
     isValidPaymentType,
     isValidStartDate,
-    isValidEduLevel
+    isValidEduLevel,
+    checkTeacherExistence,
+    checkGraduationCourseExistence,
+    checkMajorExistence
 }

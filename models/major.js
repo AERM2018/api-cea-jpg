@@ -14,6 +14,11 @@ const Major = db.define('majors',{
     major_name : {
         type : DataTypes.STRING,
         allowNull: false
+    },
+    active: {
+        type : DataTypes.TINYINT,
+        allowNull: false,
+        defaultValue: true
     }
 
 },{
