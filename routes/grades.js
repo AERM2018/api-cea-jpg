@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { getAllGradesByCourse, uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByStudent, getAllGradesByGroups, getAllGroupsGrade, getAllGradesByGroup } = require('../controllers/gradesController');
+const { getAllGradesByCourse, uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByStudent, getAllGradesByGroups, getAllGroupsGrade, getAllGradesByGroup, getAllGroupsGrades } = require('../controllers/gradesController');
 const { checkStudentExistence, checkGroupExistence } = require('../middlewares/dbValidations');
 const checkGrades = require('../middlewares/grades');
 const validateJWT = require('../middlewares/validar-jwt');
@@ -10,13 +10,19 @@ const gradesRouter = Router();
 
 gradesRouter.get('/groups/',[
     validateJWT
-], getAllGroupsGrade)
+], getAllGroupsGrades)
 
 gradesRouter.get('/groups/:id_group',[
     check('id_group',"El id del grupo es obligatorio y debe ser un numero entero").isInt().notEmpty(),
     checkGroupExistence,
     validateJWT
 ], getAllGradesByGroup)
+
+gradesRouter.get('/students/:matricula',[
+    check('matricula',"La matricula del estudiante es obligatoria").notEmpty(),
+    checkStudentExistence,
+    validateJWT
+], getAllGradesByStudent)
 
 gradesRouter.get( '/:id_course', [
     check('id_course','El id del curso es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
@@ -48,7 +54,8 @@ gradesRouter.put( '/:id_course', [
 
 gradesRouter.delete( '/:id_course', [
     check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    check('id_student',"El id del estudiante es obligatorio y debe tener como máximo 15 caracteres").isString().notEmpty().isLength( { max : 15} ),
+    check('matricula',"El id del estudiante es obligatorio y debe tener como máximo 15 caracteres").isString().notEmpty().isLength( { max : 15} ),
+    checkStudentExistence,
     validateFields,
     validateJWT
 ], deleteGradeByStudentId)

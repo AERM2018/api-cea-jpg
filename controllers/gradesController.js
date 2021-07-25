@@ -1,3 +1,4 @@
+const moment = require('moment');
 const Grades = require("../models/grades")
 const { db } = require('../database/connection');
 const { QueryTypes, Op, where, fn, col } = require('sequelize');
@@ -9,6 +10,9 @@ const Stu_gro = require("../models/stu_gro");
 const Student = require("../models/student");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const { getGradesStudent } = require("../helpers/getGradeStudent");
+const { getGroupDaysAndOverdue } = require("../helpers/dates");
+const Payment = require("../models/payment");
+const Stu_pay = require("../models/stu_pay");
 
 const getAllGradesByCourse = async (req, res = response) => {
     const { id_course } = req.params
@@ -41,15 +45,11 @@ const getAllGradesByCourse = async (req, res = response) => {
             grades
         })
     } catch (err) {
-        console.log(err)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador."
-        })
+        printAndSendError(err);
     }
 }
 
-const getAllGroupsGrade = async ( req, res =  response)=>{
+const getAllGroupsGrades = async ( req, res =  response)=>{
     const { edu_level, major} = req.query
 
     const groups = await Group.findAll({
@@ -85,7 +85,7 @@ const getAllGroupsGrade = async ( req, res =  response)=>{
         return {
             id_group,
             name_group,
-            avgGroup
+            avg : avgGroup
         }
     
         
@@ -140,21 +140,21 @@ const getAllGradesByStudent = async ( req, res = response ) => {
     const {id_student} = req;
 
     try{
-        Course.hasOne(Grades,{ foreignKey: 'id_course' });
-        Grades.belongsTo(Course, { foreignKey : 'id_course'})
-        let gradesStudents = await Grades.findAll({
-            where : { 'id_student' : id_student },
-            include: { model: Course, attributes: ['course_name']},
-            attributes : ['grade']
-        })
+        
+        // let gradesStudents = await Grades.findAll({
+        //     where : { 'id_student' : id_student },
+        //     include: { model: Course, attributes: ['course_name']},
+        //     attributes : ['grade']
+        // })
 
-        gradesStudents = gradesStudents.map(({grade,course}) => {
-            return {grade,course_name : course.course_name}
-        })
+        // gradesStudents = gradesStudents.map(({grade,course}) => {
+        //     return {grade,course_name : course.course_name}
+        // })
+        const gradesStudent = await getGradesStudent(id_student,false)
         
         res.json({
             ok: true,
-            grades : gradesStudents
+            grades : gradesStudent
         })
     }catch( err ){
         printAndSendError(res, err)
@@ -191,7 +191,6 @@ const uploadGrades = async (req, res = response) => {
         }
 
         // get ids' of the students which belong to the group
-
         const stu_gro = await Stu_gro.findAll({
             where: { 'id_group': id_group },
             
@@ -203,9 +202,8 @@ const uploadGrades = async (req, res = response) => {
             if(!idstudents_group.includes(id_student)){
                 except.push(id_student)
                 return {}
-            }else{
-                return {...student, id_student}
             }
+            return {...student, id_student}
             
         })
 
@@ -237,33 +235,25 @@ const uploadGrades = async (req, res = response) => {
         
         // // iterate array to get every student and create his grade voiding dupliactes
         Promise.all(students_grades).then((grades) => {
-            grades.map( async({id_student, grade}) => {
+            grades.map( async(grade) => {
+                console.log(grade)
                 try {
-                    const studentGrade = new Grades({ id_course, id_student, grade })
-                    await studentGrade.save();
-    
+                        const studentGrade = new Grades({ id_course, id_student : grade.id_student, grade : grade.grade })
+                        await studentGrade.save();
                 } catch (err) {
-                    console.log(`Ya existe una calificación para el alumno con id ${id_student}, no se registró para evitar un duplicado`)
-    
+                    console.log(err)
                 }
             })
         })
 
-        
-            
 
-        // });
         res.status(200).json({
             ok: true,
             msg: "Calificaciones cargadas correctamente.",
             except
         })
     } catch (err) {
-        console.log(err)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador."
-        })
+        printAndSendError(err);
     }
 }
 
@@ -333,7 +323,7 @@ const updateGrades = async (req, res = response) => {
 
 const deleteGradeByStudentId = async (req, res = response) => {
     const { id_course } = req.params;
-    const { id_student } = req.body;
+    const { id_student } = req;
 
     try {
         // Check if the course exists
@@ -380,6 +370,6 @@ module.exports = {
     updateGrades,
     deleteGradeByStudentId,
     getAllGradesByStudent,
-    getAllGroupsGrade,
+    getAllGroupsGrades,
     getAllGradesByGroup
 }
