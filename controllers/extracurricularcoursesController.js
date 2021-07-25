@@ -8,9 +8,23 @@ const {printAndSendError} = require("../helpers/responsesOfReq");
 const ExtraCurricularCourses = require("../models/extracurricularcourses");
 
 const getAllExtraCurricularCourses = async (req=request, res = response) => {
+    let {teacherName}= req.query;
+
+    ExtraCurricularCourses.belongsTo(Teacher, {foreignKey: 'id_teacher'})
+    Teacher.hasMany(ExtraCurricularCourses,{foreignKey:'id_teacher'})
 
     try{
-        const extraCurricularCourses = await ExtraCurricularCourses.findAll();
+
+        if(teacherName==undefined){
+            teacherName='';
+        }
+        const extraCurricularCourses = await ExtraCurricularCourses.findAll({
+            include: {model:Teacher,
+            where: {[Op.or]:[{
+                name: {[Op.like]: `%${teacherName}%`}
+            }, {surname_f: {[Op.like]: `%${teacherName}%`}}, {surname_m: {[Op.like]: `%${teacherName}%`}}
+            ]} }
+        });
         return res.status(200).json({//200 means success
             ok: true,
             extraCurricularCourses

@@ -7,9 +7,17 @@ const { Op, fn, col } = require("sequelize");
 const {printAndSendError} = require("../helpers/responsesOfReq");
 
 const getAllGraduationCourses = async (req=request, res = response) => {
+    let {courseGradName} = req.query;
 
     try{
-        const graduation_courses = await Graduation_courses.findAll();
+        if(courseGradName==undefined){
+            courseGradName='';
+        }
+        const graduation_courses = await Graduation_courses.findAll({
+            where: {[Op.or]:[{
+                course_grad_name: {[Op.like]: `%${courseGradName}%`}
+            }]}
+        });
         return res.status(200).json({//200 means success
             ok: true,
             graduation_courses

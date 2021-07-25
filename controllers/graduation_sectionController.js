@@ -4,11 +4,49 @@ const Teacher = require('../models/teacher');
 const Graduation_section = require('../models/graduation_section');
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Graduation_courses = require("../models/graduation_courses");
+const { Op } = require("sequelize");
+
 
 const getAllGraduationSections = async (req, res = response) => {
+    let {teacherName}= req.query ;
+    let {graCourseName}= req.query;
+    let {graSecName}= req.query;
+
+    Graduation_section.belongsTo(Teacher, {foreignKey: 'id_teacher'})
+    Teacher.hasMany(Graduation_section,{foreignKey:'id_teacher'})
+
+    Graduation_section.belongsTo(Graduation_courses, {foreignKey: 'id_graduation_course'})
+    Graduation_courses.hasMany(Graduation_section,{foreignKey:'id_graduation_course'})
 
     try{
-        const graduation_sections = await Graduation_section.findAll();
+        if(teacherName==undefined){
+            teacherName='';
+        }
+        if(graCourseName==undefined){
+            graCourseName='';
+        }
+        if(graSecName==undefined){
+            graSecName='';
+        }
+        const graduation_sections = await Graduation_section.findAll({
+
+            include: [{model: Teacher,
+                where: {[Op.or]:[{
+                    name: {[Op.like]: `%${teacherName}%`}
+                }, {surname_f: {[Op.like]: `%${teacherName}%`}}, {surname_m: {[Op.like]: `%${teacherName}%`}}
+                ]} },
+                {model: Graduation_courses,
+                    where: {[Op.or]:[{
+                        course_grad_name: {[Op.like]: `%${graCourseName}%`}
+                    }
+                    ]} }
+            ],where: {[Op.or]:[{
+                graduation_section_name: {[Op.like]: `%${graSecName}%`}
+            }
+            ]}
+
+
+        });
         return res.status(200).json({//200 means success
             ok: true,
             graduation_sections

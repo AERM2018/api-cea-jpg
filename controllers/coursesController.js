@@ -1,22 +1,40 @@
 const { response } = require("express")
 const Course = require("../models/courses")
 const { db } = require("../database/connection")
-const { QueryTypes } = require("sequelize")
+const { QueryTypes, Op} = require("sequelize")
 const { getCourses } = require("../queries/queries")
 const Major = require("../models/major")
 
 const getAllCourses = async (req, res = response) => {
 
-    
-    const courses = await db.query(
-        getCourses,{ type : QueryTypes.SELECT}
-    )
-    
-    
-    res.status(200).json({
-        ok: true,
-        courses
-    })
+    let {courseName}= req.query;
+
+    Course.belongsTo(Major, {foreignKey: 'id_major'})
+    Major.hasMany(Course,{foreignKey:'id_major'})
+
+    try{
+
+        if(courseName==undefined){
+            courseName='';
+        }
+        const courses = await Course.findAll({
+            include:{ model: Major, attributes: ['major_name']},
+            where: {[Op.or]:[{
+                course_name: {[Op.like]: `%${courseName}%`}
+            }]}
+        });
+        return res.status(200).json({//200 means success
+            ok: true,
+            courses
+        })
+    } catch(err){
+        console.log(err);
+        return res.status(500).json({//500 error en el servidor
+            ok: false,
+            msg: 'Hable con el administrador'
+        })
+       
+    }
 }
 
 const createCourse = async (req, res = response) => {
