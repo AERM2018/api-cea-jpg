@@ -9,6 +9,12 @@ const {db} = require('../database/connection');
 const { getTeachers } = require('../queries/queries');
 const { primaryKeyAttributes } = require('../models/user');
 const generateMatricula = require('../helpers/generateMatricula');
+const Cou_tea = require('../models/cou_tea');
+const Gro_cou = require('../models/gro_cou');
+const Group = require('../models/group');
+const { printAndSendError } = require('../helpers/responsesOfReq');
+const Course = require('../models/courses');
+const ExtraCurricularCourses = require('../models/extracurricularcourses');
 
 const getAllTeachers = async (req, res) => {
     const teachers = await db.query(getTeachers, { type : QueryTypes.SELECT})
@@ -208,7 +214,66 @@ const deleteTeacher = async (req, res) => {
 
 }
 
+const getAllCoursesTeacherGiven = async( req, res = response) => {
+    const { id_teacher } = req.params
 
+    try{
+
+        // Regular courses
+        Cou_tea.belongsTo( Course, { foreignKey : 'id_course'})
+        Course.hasOne( Cou_tea, { foreignKey : 'id_course'})
+        let coursesTeacherGiven =  await Cou_tea.findAll({
+            include : {
+                model : Course,
+                attributes : ['course_name'],
+            },
+            attributes : ['id_course','status','start_date','end_date'],
+            where : { id_teacher },
+
+        })
+        coursesTeacherGiven = coursesTeacherGiven.map( async(course) => {
+            const { id_course, course:courseInfo, ...restoCourse} = course.toJSON()
+
+            Gro_cou.belongsTo( Group, { foreignKey : 'id_group'})
+            Group.hasOne( Gro_cou, { foreignKey : 'id_group'})
+            const groupTookCourse = await Gro_cou.findOne({
+                include : {
+                    model : Group,
+                    attributes : { include: ['name_group','id_group'], exclude : ['id_course']}
+                },
+                where : { id_course }
+            })
+
+
+            return {
+                ...{id:id_course,...restoCourse,course:courseInfo.course_name},
+                ...groupTookCourse.toJSON().groupss,
+                type : 'regular'
+            }
+        })
+
+        coursesTeacherGiven = await Promise.all(coursesTeacherGiven)
+
+
+        // Extracurricular courses
+        let extCoursesTeacherGiven = await ExtraCurricularCourses.findAll({
+            where : { id_teacher }, attributes : { exclude : ['id_teacher']}
+        })
+
+        extCoursesTeacherGiven = extCoursesTeacherGiven.map( extCou => {
+            // {...extCou.toJSON(),type : 'extra'}
+            const {id_ext_cou, ...restoExtCou} = extCou.toJSON()
+            return {id:id_ext_cou,...restoExtCou,type:'extra'}
+        })
+
+        res.json({
+            ok : true,
+            courses : [...coursesTeacherGiven, ...extCoursesTeacherGiven]
+        })
+    }catch( err ){
+        printAndSendError( res, err )
+    }
+}
 
 
 
@@ -217,5 +282,6 @@ module.exports = {
     getAllTeachers,
     createTeacher,
     updateTeacher,
-    deleteTeacher
+    deleteTeacher,
+    getAllCoursesTeacherGiven
 }

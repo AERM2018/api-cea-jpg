@@ -203,7 +203,6 @@ const checkTeacherExistence = async (req, res = response, next) => {
             msg: `El teacher con el id ${id_teacher} no existe`
         })
     }
-    console.log("te test");
     next();
 }
 

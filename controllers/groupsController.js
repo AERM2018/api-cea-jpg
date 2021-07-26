@@ -3,11 +3,14 @@ const Group = require('../models/group');
 const Time_tables = require('../models/time_tables');
 const Major = require('../models/major');
 const Stu_gro = require('../models/stu_gro');
-const { Op, QueryTypes } = require('sequelize');
+const { Op, QueryTypes, fn, col } = require('sequelize');
 const { db } = require('../database/connection');
 const { getGroups } = require('../queries/queries');
 const Courses = require('../models/courses')
-const Gro_cou = require('../models/gro_cou')
+const Gro_cou = require('../models/gro_cou');
+const { response } = require('express');
+const Student = require('../models/student');
+const { printAndSendError } = require('../helpers/responsesOfReq');
 
 const getAllGroups = async (req, res) => {
     try {
@@ -187,8 +190,6 @@ const updateGroup = async (req, res) => {
     }
 }
 
-
-
 const deleteGroup = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
@@ -233,6 +234,7 @@ const deleteGroup = async (req, res) => {
     }
 
 }
+
 const addCourseGroup = async (req, res) => {
     const { id:id_group} = req.params
     const { id_course, ...resto } = req.body;
@@ -289,6 +291,29 @@ const addCourseGroup = async (req, res) => {
 
 }
 
+const getStudentsFromGroup = async( req, res = response) => {
+    const { id_group } = req.params
+    try{
+        Stu_gro.belongsTo( Student, { foreignKey : 'id_student'})
+        Student.hasOne( Stu_gro, { foreignKey : 'id_student'})
+        let studentsGroup = await Stu_gro.findAll({
+            include : {
+                model : Student,
+                attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name']]
+            },
+            where : { id_group }
+        })
+
+        studentsGroup = studentsGroup.map( student => ({...student.toJSON(),...student.toJSON().student,student : undefined}))
+
+        res.json({
+            ok : true,
+            students : studentsGroup
+        })
+    }catch( err ){
+        printAndSendError( res, err)
+    }
+}
 
 
 
@@ -298,5 +323,6 @@ module.exports = {
     createGroup,
     updateGroup,
     deleteGroup,
-    addCourseGroup
+    addCourseGroup,
+    getStudentsFromGroup
 }
