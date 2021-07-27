@@ -20,56 +20,37 @@ const Teacher = require('../models/teacher');
 
 const getAllGrades = async( req, res = response) => {
     let grades;
-    let {id_course, id_ext_cou, id_tesine, id_group} = req.query
-    if(id_course){
-        Grades.belongsTo(Student, {foreignKey : 'id_student'})
-        Student.hasMany( Grades, {foreignKey : 'id_student'})
-        grades = await Grades.findAll({
-            include: {
-                model : Student
-            },
-            where : {
-                id_student : {
-                    [Op.in] :[literal(`SELECT id_student FROM stu_gro${(id_group ? ` WHERE id_group = ${id_group}` : '')}`)]
-                }
-            }
-        })
-    }else if(id_ext_cou){
-        Stu_extracou.belongsTo(Student, {foreignKey : 'id_student'})
-        Student.hasMany(Stu_extracou, {foreignKey : 'id_student'})
-        grades = await Stu_extracou.findAll({
-            include : {
-                model : Student,
-                attributes : [[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'student_name'],'id_student','matricula']
-            },
-            attributes : { exclude : ['id_student']},
-            where : { id_ext_cou}
-        })
+    let {q}=req.query
+    q=q.split(' ').join('');
+    // let {id_course, id_ext_cou, id_tesine, id_group} = req.query
 
-        grades = grades.map( grade => ({...grade.toJSON(),...grade.toJSON().student, student : undefined}))
-    }else if(id_tesine){
-        Tesine.belongsTo(Teacher, { foreignKey: 'id_teacher'})
-        Teacher.hasMany(Tesine, { foreignKey: 'id_teacher'})
-        grades = await Tesine.findByPk(id_tesine,{
-            include : {
-                model : Teacher,
-                attributes : [[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'teacher_name'],'id_teacher']
-            }
-        })
-        
-            const {teacher, ...restoTesineGrade} = grades.toJSON()
-            grades =  {
-                ...restoTesineGrade,
-                ...teacher
-            }
-        
-        grades = (grades) ? grades : []
 
-    }
+    Grades.belongsTo(Student, {foreignKey: 'id_student', as: 'student'})
+    Student.hasMany(Grades, {foreignKey: 'id_student'})
+
+    Stu_gro.belongsTo(Student, {foreignKey: 'id_student'})
+    Student.hasMany(Stu_gro, {foreignKey: 'id_student'})
+
+
+    Stu_gro.belongsTo(Group, {foreignKey: 'id_group',as: 'group'})
+    Group.hasMany(Stu_gro, {foreignKey: 'id_group'})
+
+    const coursesGrades = await Grades.findAll({
+        include: {model: Student, as: "student",
+             include:{model: Stu_gro,
+                include:{model:Group, as: "group"}
+            }
+        }, where:{[Op.or]: [ 
+            where(fn('concat','$student.name$', '$student.surname_f$', '$student.surname_m$'),{[Op.like]: `%${q}%`}),
+            {'$student.matricula$': {[Op.like]: `%${q}%`}},
+            {'$group.name_group$':{[Op.like]: `%${q}%`}}
+         ]}
+    })
+
 
     res.json({
         ok : true,
-        grades
+        coursesGrades
     })
 }
 
@@ -143,12 +124,7 @@ const getAllGroupsGrades = async ( req, res =  response)=>{
             id_group,
             name_group,
             avg : avgGroup
-        }
-    
-        
-        
-        
-        
+        }      
     })
 
     Promise.all(groupsGrades).then( grades => {
