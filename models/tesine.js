@@ -29,7 +29,6 @@ const Tesine = db.define('tesine',{
     }
 },{
     timestamps : false,
-    freezeTableName : true
 })
 
 module.exports = Tesine;

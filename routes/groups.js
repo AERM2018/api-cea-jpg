@@ -1,7 +1,8 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { getAllGroups, createGroup,
-    updateGroup, deleteGroup, addCourseGroup } = require('../controllers/groupsController');
+    updateGroup, deleteGroup, addCourseGroup, getStudentsFromGroup } = require('../controllers/groupsController');
+const { checkGroupExistence } = require('../middlewares/dbValidations');
 const { isValidSchedule } = require('../middlewares/schedule');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -49,5 +50,12 @@ groupsRouter.post('/:id/addcourse', [
     validateJWT
 
 ], addCourseGroup);
+
+groupsRouter.get('/:id_group/students',[
+    check('id_group','El id del grupo es obligatorio y debe de ser un numero entero').isNumeric(),
+    checkGroupExistence,
+    validateFields,
+    validateJWT
+], getStudentsFromGroup)
 
 module.exports = groupsRouter;

@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { getAllTeachers,createTeacher,updateTeacher,deleteTeacher} = require('../controllers/teacherController');
+const { getAllTeachers,createTeacher,updateTeacher,deleteTeacher, getAllCoursesTeacherGiven} = require('../controllers/teacherController');
+const { checkTeacherExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -44,9 +45,16 @@ teachersRouter.put('/:id',[
 ], updateTeacher);
 
 teachersRouter.delete('/:id',[
-    param('id','el id del maestro tiene que ser una cadena de texto y es obligatoria ').isString().notEmpty(),
+    param('id','el id del maestro tiene que ser una cadena de texto y es obligatorio').isString().notEmpty(),
     validateFields,
     validateJWT
 ], deleteTeacher);
+
+teachersRouter.get('/:id_teacher/courses',[
+    check('id_teacher','El id del maestro tiene que ser una cadena de texto y es obligatorio').isString().notEmpty(),
+    checkTeacherExistence,
+    validateFields,
+    validateJWT
+], getAllCoursesTeacherGiven)
 
 module.exports = teachersRouter;

@@ -24,6 +24,7 @@ const documentsRouter = require('../routes/document');
 const graduation_sections_router = require('../routes/graduation_sections');
 const Graduation_courses_Router = require('../routes/graduation_courses');
 const extraCurricularCoursesRouter = require('../routes/extracurricularcourses');
+const assitsRouter = require('../routes/assits');
 
 class Server{
 
@@ -58,7 +59,8 @@ class Server{
             expenses: `/${this.base}/expenses`,
             graduation_sections: `/${this.base}/graduation_sections`,
             graduation_courses: `/${this.base}/graduation_courses`,
-            extracurricular_courses: `/${this.base}/extracurricular_courses`
+            extracurricular_courses: `/${this.base}/extracurricular_courses`,
+            assits: `/${this.base}/assits`,
 
         }
         this.routes();
@@ -93,6 +95,7 @@ class Server{
         this.app.use(this.apiPaths.graduation_sections, graduation_sections_router)
         this.app.use(this.apiPaths.graduation_courses, Graduation_courses_Router)
         this.app.use(this.apiPaths.extracurricular_courses, extraCurricularCoursesRouter)
+        this.app.use(this.apiPaths.assits, assitsRouter)
 
         this.app.use('*', (req, res) => {
             res.status(404).send('404 | Ruta no encontrada')
