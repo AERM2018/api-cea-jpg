@@ -15,9 +15,9 @@ const Assit = db.define('assits',{
     attended : {
         type : DataTypes.TINYINT,
         allowNull : false,
-        validate : {
-            isIn : {msg:"El valor de la asistenica debe ser entre 0 y 2",args : [0,1,2]}
-        }
+        // validate : {
+        //     isIn : {msg:"El valor de la asistenica debe ser entre 0 y 2",args : [0,1,2]}
+        // }
 
     }
 },

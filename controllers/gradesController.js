@@ -15,6 +15,8 @@ const Payment = require("../models/payment");
 const Stu_pay = require("../models/stu_pay");
 const Stu_extracou = require('../models/stu_extracou');
 const Gro_cou = require('../models/gro_cou');
+const Tesine = require('../models/tesine');
+const Teacher = require('../models/teacher');
 
 const getAllGrades = async( req, res = response) => {
     let grades;
@@ -38,7 +40,7 @@ const getAllGrades = async( req, res = response) => {
         grades = await Stu_extracou.findAll({
             include : {
                 model : Student,
-                attributes : [[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name'],'id_student']
+                attributes : [[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'student_name'],'id_student','matricula']
             },
             attributes : { exclude : ['id_student']},
             where : { id_ext_cou}
@@ -46,6 +48,22 @@ const getAllGrades = async( req, res = response) => {
 
         grades = grades.map( grade => ({...grade.toJSON(),...grade.toJSON().student, student : undefined}))
     }else if(id_tesine){
+        Tesine.belongsTo(Teacher, { foreignKey: 'id_teacher'})
+        Teacher.hasMany(Tesine, { foreignKey: 'id_teacher'})
+        grades = await Tesine.findByPk(id_tesine,{
+            include : {
+                model : Teacher,
+                attributes : [[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'teacher_name'],'id_teacher']
+            }
+        })
+        
+            const {teacher, ...restoTesineGrade} = grades.toJSON()
+            grades =  {
+                ...restoTesineGrade,
+                ...teacher
+            }
+        
+        grades = (grades) ? grades : []
 
     }
 
@@ -146,7 +164,6 @@ const getAllGradesByGroup = async( req, res = response) => {
     let {id_group = 0, group_name = ''} = req.query
     if(id_group == 0 && group_name == '') return res.redirect('all')
 
-    console.log('id_group',id_group)
     const group = await Group.findOne({
         where : {
             [Op.or] : [
@@ -182,11 +199,13 @@ const getAllGradesByGroup = async( req, res = response) => {
     Promise.all(studentsGroup).then( students => {
         res.json({
             ok: true,
+            id_group : group.toJSON().id_group,
+            group_name : group.toJSON().name_group,
             students
         })
     })
 }
-const searchGradesByStudent = async ( req, res = response ) => { 
+const searchAverageByStudent = async ( req, res = response ) => { 
     const {  name = ''} = req.query
 
     try{
@@ -222,11 +241,11 @@ const getAllGradesByMatricula = async( req, res = response) => {
         const grades = await getGradesStudent( id_student, false )
 
         res.json({
-            ok : false,
+            ok : true,
             grades
         })
     } catch ( err ) {
-        
+        printAndSendError( res, err)
     }
 
 }
@@ -438,7 +457,7 @@ module.exports = {
     uploadGrades,
     updateGrades,
     deleteGradeByStudentId,
-    searchGradesByStudent,
+    searchAverageByStudent,
     getAllGroupsGrades,
     getAllGradesByGroup,
     getAllGrades,

@@ -4,7 +4,7 @@ const Teacher = require('../models/teacher');
 const bcrypt = require('bcryptjs');
 const Cam_use = require('../models/cam_use');
 const Campus = require('../models/campus');
-const { Op, QueryTypes } = require('sequelize');
+const { Op, QueryTypes,fn, col } = require('sequelize');
 const {db} = require('../database/connection');
 const { getTeachers } = require('../queries/queries');
 const { primaryKeyAttributes } = require('../models/user');
@@ -15,6 +15,10 @@ const Group = require('../models/group');
 const { printAndSendError } = require('../helpers/responsesOfReq');
 const Course = require('../models/courses');
 const ExtraCurricularCourses = require('../models/extracurricularcourses');
+const Graduation_section = require('../models/graduation_section');
+const Major = require('../models/major');
+const Educational_level = require('../models/educational_level');
+const Graduation_courses = require('../models/graduation_courses');
 
 const getAllTeachers = async (req, res) => {
     const teachers = await db.query(getTeachers, { type : QueryTypes.SELECT})
@@ -236,18 +240,31 @@ const getAllCoursesTeacherGiven = async( req, res = response) => {
 
             Gro_cou.belongsTo( Group, { foreignKey : 'id_group'})
             Group.hasOne( Gro_cou, { foreignKey : 'id_group'})
-            const groupTookCourse = await Gro_cou.findOne({
+            Group.belongsTo(Major, { foreignKey : 'id_major'})
+            Major.hasMany( Group, { foreignKey : 'id_major'})
+            Major.belongsTo(Educational_level, { foreignKey : 'id_edu_lev'})
+            Educational_level.hasOne(Major, { foreignKey : 'id_edu_lev'})
+            let groupTookCourse = await Gro_cou.findOne({
                 include : {
                     model : Group,
-                    attributes : { include: ['name_group','id_group'], exclude : ['id_course']}
+                    attributes : { include: ['name_group','id_group'], exclude : ['id_course']},
+                    include : {
+                        model : Major,
+                        include : {
+                            model : Educational_level
+                        }
+                    }
                 },
                 where : { id_course }
             })
 
+            const {major,...restGroupTookCourse} = groupTookCourse.toJSON().groupss
+            const {educational_level} = major
 
             return {
                 ...{id:id_course,...restoCourse,course:courseInfo.course_name},
-                ...groupTookCourse.toJSON().groupss,
+                ...restGroupTookCourse,
+                major_name : `${educational_level.educational_level} en ${major.major_name}`,
                 type : 'regular'
             }
         })
@@ -256,19 +273,45 @@ const getAllCoursesTeacherGiven = async( req, res = response) => {
 
 
         // Extracurricular courses
+        ExtraCurricularCourses.belongsTo(Major, { foreignKey : 'id_major'})
+        Major.hasMany( ExtraCurricularCourses, { foreignKey : 'id_major'})
+        Major.belongsTo(Educational_level, { foreignKey : 'id_edu_lev'})
+        Educational_level.hasOne(Major, { foreignKey : 'id_edu_lev'})
         let extCoursesTeacherGiven = await ExtraCurricularCourses.findAll({
+            include : {
+                model : Major,
+                include : {
+                    model : Educational_level
+                }
+            },
             where : { id_teacher }, attributes : { exclude : ['id_teacher']}
         })
 
         extCoursesTeacherGiven = extCoursesTeacherGiven.map( extCou => {
-            // {...extCou.toJSON(),type : 'extra'}
-            const {id_ext_cou, ...restoExtCou} = extCou.toJSON()
-            return {id:id_ext_cou,...restoExtCou,type:'extra'}
+            const {id_ext_cou,major,...restoExtCou} = extCou.toJSON()
+            const {educational_level} = major
+            return {id:id_ext_cou,major_name : `${educational_level.educational_level} en ${major.major_name}`,...restoExtCou,type:'extra'}
         })
 
+        //Graduation sections
+        Graduation_section.belongsTo(Graduation_courses, {foreignKey : 'id_graduation_course'})
+        Graduation_courses.belongsTo(Graduation_section, {foreignKey : 'id_graduation_course'})
+        let gradSectionsTeacherGiven = await Graduation_section.findAll({
+            include : {
+                model : Graduation_courses,
+                attributes : ['course_grad_name']
+            },
+            where : { id_teacher },
+            attributes : { exclude : ['id_teacher']}
+        })
+
+        gradSectionsTeacherGiven =  gradSectionsTeacherGiven.map( gradSection => {
+            const {id_graduation_section, graduation_course,...restoGradSection} = gradSection.toJSON()
+            return {id:id_graduation_section,...graduation_course,...restoGradSection,type:'graduation_section'}
+        })
         res.json({
             ok : true,
-            courses : [...coursesTeacherGiven, ...extCoursesTeacherGiven]
+            courses : {regular:[...coursesTeacherGiven], extra:[...extCoursesTeacherGiven], graduation_section : [...gradSectionsTeacherGiven]}
         })
     }catch( err ){
         printAndSendError( res, err )
