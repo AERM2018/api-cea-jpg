@@ -9,7 +9,7 @@ const { getGrades } = require("../queries/queries");
 const Stu_gro = require("../models/stu_gro");
 const Student = require("../models/student");
 const { printAndSendError } = require("../helpers/responsesOfReq");
-const { getGradesStudent } = require("../helpers/getGradeStudent");
+const { getGradesStudent, getExtraCoursesGradesStudent, getTesineGradeStudent } = require("../helpers/getGradeStudent");
 const { getGroupDaysAndOverdue } = require("../helpers/dates");
 const Payment = require("../models/payment");
 const Stu_pay = require("../models/stu_pay");
@@ -17,40 +17,90 @@ const Stu_extracou = require('../models/stu_extracou');
 const Gro_cou = require('../models/gro_cou');
 const Tesine = require('../models/tesine');
 const Teacher = require('../models/teacher');
+const { filterGradesStudent } = require('../helpers/filters');
+const Stu_gracou = require('../models/stu_gracou');
 
 const getAllGrades = async( req, res = response) => {
     let grades;
-    let {q}=req.query
+    let {q = '', page = 1}=req.query
     q=q.split(' ').join('');
-    // let {id_course, id_ext_cou, id_tesine, id_group} = req.query
 
+    // Obtener grades de cursos regulares 
+    Grades.belongsTo(Student, {foreignKey: 'id_student'})
+    Student.hasMany(Grades,{foreignKey : 'id_student'})
 
-    Grades.belongsTo(Student, {foreignKey: 'id_student', as: 'student'})
-    Student.hasMany(Grades, {foreignKey: 'id_student'})
-
-    Stu_gro.belongsTo(Student, {foreignKey: 'id_student'})
-    Student.hasMany(Stu_gro, {foreignKey: 'id_student'})
-
-
-    Stu_gro.belongsTo(Group, {foreignKey: 'id_group',as: 'group'})
-    Group.hasMany(Stu_gro, {foreignKey: 'id_group'})
-
-    const coursesGrades = await Grades.findAll({
-        include: {model: Student, as: "student",
-             include:{model: Stu_gro,
-                include:{model:Group, as: "group"}
-            }
-        }, where:{[Op.or]: [ 
-            where(fn('concat','$student.name$', '$student.surname_f$', '$student.surname_m$'),{[Op.like]: `%${q}%`}),
-            {'$student.matricula$': {[Op.like]: `%${q}%`}},
-            {'$group.name_group$':{[Op.like]: `%${q}%`}}
-         ]}
+    let avgByStudents = await Grades.findAll({
+        include: {model: Student,
+        }, group : ['id_student'],
+        limit : [10*(page-1),10]    
     })
 
+    avgByStudents = filterGradesStudent(avgByStudents,q)
+    avgByStudents = avgByStudents.map( async(courseGrade) => {
+        const { student,q } = courseGrade
+        return {
+            id_student  : student.id_student,
+            matricula : student.matricula,
+            studenet_name : `${student.name} ${student.surname_f} ${student.surname_m}`,
+            avg : await getGradesStudent( student.id_student, true),
+            q
+        }
+    })
+    avgByStudents = await Promise.all(avgByStudents)
 
+    let groups = await Group.findAll({ limit:[10*(page-1),10]})
+    groups = groups.filter( ({name_group}) => name_group.split(' ').join('').includes(q))
+    let avgByGroups = groups.map( async(group) => {
+        const studentsBelongToGroup = await Stu_gro.findAll({
+            where : {id_group : group.id_group}
+        })
+
+        let avgStudents = studentsBelongToGroup.map( async(student) => await(getGradesStudent(student.id_student,true)))
+        avgStudents = await Promise.all(avgStudents)
+
+        let avgGroup = avgStudents.reduce( (pre,cur) => (pre+cur))
+        avgGroup /= avgStudents.length
+
+        return {
+            id_group : group.id_group,
+            group_name : group.name_group,
+            avg : avgGroup,
+            q : 'group_name'
+        }
+    })
+    avgByGroups = await Promise.all(avgByGroups)
+    // // Obtener grades de cursos extracurriculares
+    // Stu_extracou.belongsTo(Student, {foreignKey: 'id_student'})
+    // Student.hasMany(Stu_extracou,{foreignKey : 'id_student'})
+    // let extraCoursesGrades = await Stu_extracou.findAll({
+    //     include: {
+    //         model : Student
+    //     }
+    // })
+
+    // extraCoursesGrades = filterGradesStudent(extraCoursesGrades,q)
+
+    // // Obtener grades de tesines
+    // Stu_gracou.belongsTo(Student, {foreignKey: 'id_student'})
+    // Student.hasOne(Stu_gracou,{foreignKey : 'id_student'})
+    
+    // Stu_gracou.belongsTo(Tesine, {foreignKey: 'id_tesine'})
+    // Tesine.belongsTo(Stu_gracou, {foreignKey: 'id_tesine'})
+
+    // let tesinesGrade = await Stu_gracou.findAll({
+    //     include: [{
+    //         model : Student
+    //     },{
+    //         model : Tesine
+    //     }]
+    // })
+
+    // tesinesGrade = filterGradesStudent(tesinesGrade,q)
+
+    grades = [...avgByStudents,...avgByGroups]
     res.json({
         ok : true,
-        coursesGrades
+        grades
     })
 }
 
@@ -88,7 +138,7 @@ const getAllGradesByCourse = async (req, res = response) => {
         printAndSendError(err);
     }
 }
-
+// It's not working
 const getAllGroupsGrades = async ( req, res =  response)=>{
     const { edu_level, major, group_name = '',id_group = 0} = req.query
 
@@ -137,16 +187,10 @@ const getAllGroupsGrades = async ( req, res =  response)=>{
 }
 
 const getAllGradesByGroup = async( req, res = response) => {
-    let {id_group = 0, group_name = ''} = req.query
-    if(id_group == 0 && group_name == '') return res.redirect('all')
+    let {id_group = 0 } = req.params
 
     const group = await Group.findOne({
-        where : {
-            [Op.or] : [
-                {id_group},
-                {name_group :group_name}
-            ]
-        },
+        where :  {id_group},
         attributes : ['id_group','name_group']
     })
 
@@ -213,9 +257,18 @@ const searchAverageByStudent = async ( req, res = response ) => {
 
 const getAllGradesByMatricula = async( req, res = response) => {
     const { id_student } = req;
-    try {   
-        const grades = await getGradesStudent( id_student, false )
+    try {
+        let grades   
+        const coursesGrades = await getGradesStudent( id_student, false )
 
+        const extraCoursesGrades = await getExtraCoursesGradesStudent(id_student)
+
+        const tesineGrade = await getTesineGradeStudent( id_student )
+
+        // const gradCoruseGrade = await Stu_gracou.findOne({
+        //     where : {id_student}
+        // })
+        grades = [...coursesGrades,...extraCoursesGrades,tesineGrade]
         res.json({
             ok : true,
             grades

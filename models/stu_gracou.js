@@ -2,7 +2,7 @@ const {DataTypes} = require("sequelize");
 const {db} = require('../database/connection')
 
 
-const stu_gracou =  db.define('stu_gracou',{
+const Stu_gracou =  db.define('stu_gracou',{
     id_stu_gracou : {
         primaryKey : true,
         type : DataTypes.INTEGER,
@@ -33,4 +33,4 @@ const stu_gracou =  db.define('stu_gracou',{
     }
 )
 
-module.exports = stu_gracou;
+module.exports = Stu_gracou;

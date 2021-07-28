@@ -12,17 +12,17 @@ gradesRouter.get('/all',[
     validateJWT
 ],getAllGrades)
 
-gradesRouter.get('/groups/all',[
-    validateJWT
-], getAllGroupsGrades)
+// gradesRouter.get('/groups/all',[
+//     validateJWT
+// ], getAllGroupsGrades)
 
-gradesRouter.get('/groups',[
+gradesRouter.get('/groups/:id_group',[
     validateJWT
 ], getAllGradesByGroup)
 
-gradesRouter.get('/students/all',[
-    validateJWT
-], searchAverageByStudent)
+// gradesRouter.get('/students/all',[
+//     validateJWT
+// ], searchAverageByStudent)
 
 gradesRouter.get('/students/:matricula',[
     check('matricula','La matricula del estudiante es una cadena de texto y es obligatorio').isString().isLength({ max: 15}),
