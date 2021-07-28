@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { getAllGradesByCourse, uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByStudent, getAllGradesByGroups, getAllGroupsGrade, getAllGradesByGroup, getAllGroupsGrades, getAllGrades, searchAverageByStudent, getAllGradesByMatricula } = require('../controllers/gradesController');
-const { checkStudentExistence, checkGroupExistence } = require('../middlewares/dbValidations');
+const { getAllGradesByCourse, uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByGroup, getAllGroupsGrades, getAllGrades, getAllGradesByMatricula } = require('../controllers/gradesController');
+const { checkStudentExistence, checkGradeCourseExistence, checkGradeTesineExistence, checkStuExtraCouExistence, checkExtraCurCourExistence } = require('../middlewares/dbValidations');
 const checkGrades = require('../middlewares/grades');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -49,13 +49,36 @@ gradesRouter.post('/:id_course', [
     validateJWT
 ], uploadGrades);
 
-gradesRouter.put( '/:id_course', [
+gradesRouter.put( 'regular/:id_grade', [
     param('id_grade','Llave ').not().isEmpty().isInt(),
-    check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
-    check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
+    // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
+    // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
+    // check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
+    check('grade', 'Calificación es de tipo float obligatoria').isFloat().notEmpty(),
+    checkGradeCourseExistence,
     validateFields,
-    checkGrades,
+    validateJWT
+], updateGrades);
+
+gradesRouter.put( 'extra/:id_stu_extracou', [
+    param('id_stu_extracou','Llave ').not().isEmpty().isInt(),
+    // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
+    // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
+    // check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
+    check('grade', 'Calificación es de tipo float obligatoria').isFloat().notEmpty(),
+    checkExtraCurCourExistence,
+    validateFields,
+    validateJWT
+], updateGrades);
+
+gradesRouter.put( 'tesine/:id_tesine', [
+    param('id_tesine','Llave ').not().isEmpty().isInt(),
+    // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
+    // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
+    // check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
+    check('grade', 'Calificación es de tipo float obligatoria').isFloat().notEmpty(),
+    checkGradeTesineExistence,
+    validateFields,
     validateJWT
 ], updateGrades);
 

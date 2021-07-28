@@ -1,15 +1,20 @@
 const { response } = require('express');
 const Campus = require('../models/campus');
 const Card = require('../models/card');
+const Course = require('../models/courses');
 const Department = require('../models/department');
 const Employees = require('../models/employee');
+const ExtraCurricularCourses = require('../models/extracurricularcourses');
+const Grades = require('../models/grades');
 const Graduation_courses = require('../models/graduation_courses');
 const Group = require('../models/group');
 const Major = require('../models/major');
 const Payment = require('../models/payment');
 const Pay_info = require('../models/pay_info');
 const Student = require('../models/student');
+const Stu_extracou = require('../models/stu_extracou');
 const Teacher = require('../models/teacher');
+const Tesine = require('../models/tesine');
 const { document_types } = require('../types/dictionaries');
 
 const checkCampusExistence = async (id_campus = 0) => {
@@ -231,6 +236,54 @@ const checkMajorExistence = async (req, res = response, next) => {
     next();
 }
 
+const checkGradeCourseExistence = async (req, res, next) =>{
+    const id_grade = req.body.id_grade || req.params.id_grade
+    const grade = await Grades.findByPk(id_grade)
+    if(!grade){
+        return res.status(404).json({
+            ok:false,
+            msg:`La calificación con id ${id_grade} no existe`
+        })
+    }
+    next();
+}
+const checkGradeExtraCurCoureExistence = async (req, res, next) =>{
+    const id_stu_extracou = req.body.id_stu_extracou || req.params.id_stu_extracou
+    const grade = await Stu_extracou.findByPk(id_stu_extracou)
+    if(!grade){
+        return res.status(404).json({
+            ok:false,
+            msg:`La calificación con id ${id_stu_extracou} no existe`
+        })
+    }
+    next();
+}
+const checkGradeTesineExistence = async (req, res, next) =>{
+    const id_tesine = req.body.id_tesine || req.params.id_tesine
+    const grade = await Tesine.findByPk(id_tesine)
+    if(!grade){
+        return res.status(404).json({
+            ok:false,
+            msg:`La calificación con id ${id_tesine} no existe`
+        })
+    }
+    next();
+}
+
+const checkExtraCurCourExistence = async (req, res, next) =>{
+    const id_ext_cou = req.body.id_ext_cou || req.params.id_ext_cou
+    const extraCurCour = await ExtraCurricularCourses.findByPk(id_ext_cou)
+    if(!extraCurCour){
+        return res.status(404).json({
+            ok:false,
+            msg:`El curso extra curricular con id ${id_ext_cou} no existe.`
+        })
+    }
+    next();
+}
+// De nada, te ahorré trabajo 
+
+
 module.exports = {
     checkCampusExistence,
     checkStudentExistence,
@@ -248,5 +301,9 @@ module.exports = {
     isValidEduLevel,
     checkTeacherExistence,
     checkGraduationCourseExistence,
-    checkMajorExistence
+    checkMajorExistence,
+    checkGradeCourseExistence,
+    checkGradeExtraCurCoureExistence,
+    checkGradeTesineExistence,
+    checkExtraCurCourExistence
 }

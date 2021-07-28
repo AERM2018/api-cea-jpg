@@ -24,7 +24,7 @@ const getGradesStudent = async (id_student = "", getAvg = false) => {
   const gradesStudent = await Grades.findAll({
     where: { id_student },
     include : { model: Course},
-    attributes: ["id_course", "grade"],
+    attributes: ["id_course", "grade", "id_grade"],
   });
 
   gradesStudentPaidCourses = gradesStudent.map( async( grade ) => {
@@ -159,6 +159,7 @@ const getTesineGradeStudent = async( id_student = '') => {
     where : { id_student }
   })
 
+ if(tesineGradeStudent){
   const {graduation_course, tesine, ...restoTesineGrade} = tesineGradeStudent.toJSON()
   const { teacher, ...restoTesine} = tesine
   // const dateDelivery = moment(restoTesine.delivery_date).format('MMMM,YYYY')
@@ -173,6 +174,8 @@ const getTesineGradeStudent = async( id_student = '') => {
 
   }
   return tesineGradeStudent
+ }
+ return {}
 }
 
 module.exports = {

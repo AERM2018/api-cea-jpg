@@ -278,7 +278,7 @@ const getAllGradesByMatricula = async( req, res = response) => {
     }
 
 }
-const uploadGrades = async (req, res = response) => {
+const uploadCourseGrades = async (req, res = response) => {
 
     const { id_course } = req.params;
     const {id_group } = req.body;
@@ -374,68 +374,92 @@ const uploadGrades = async (req, res = response) => {
     }
 }
 
-const updateGrades = async (req, res = response) => {
-    const { id_course } = req.params;
-    const { students, id_group } = req.body;
+const uploadExtraCurCourGrades = async (req, res) =>{
+
+    const {id_ext_cou}=req.params;
+    let  {students}  = req.body;
 
     try {
-        // check if the course exists
-        const course = await Course.findByPk(id_course);
-        if (!course) {
-            return res.status(404).json({
-                ok: false,
-                msg: `El curso con id ${id_course} no existe, verifiquelo por favor.`
-            })
-        }
-
-        // check if the group exists
-        const group = await Group.findOne({
-            where: { 'id_group': id_group }
+        students=students.map( async({id_student, grade})=>{
+          
+            await Stu_extracou.update({grade}, {where: {[Op.and]:[{id_student},{id_ext_cou}]}})
         })
-        if (!group) {
-            return res.status(404).json({
-                ok: false,
-                msg: `El grupo con id ${id_group} no existe, verifiquelo por favor.`
-            })
-        }
-
-        // get ids' of the students which belong to the group
-        const stu_gro = await Stu_gro.findAll({
-            where: { 'id_group': id_group }
-        })
-
-        const idstudents_group = stu_gro.map(e => e['id_student'])
-        let except = [];
-        students.forEach(({ id_student }) => {
-            if (!idstudents_group.includes(id_student)) {
-                except.push(id_student)
-            }
-        })
-
-        if (except.length > 0) {
-            return res.status(404).json({
-                ok: false,
-                msg: `No se ha podido actualizar calificaciones debido a id(s) no registrados con el grupo con id ${id_group} `,
-                "id´s": except
-            })
-        }
-
-        // iterate array to get every student and modify his grade
-        students.forEach(async ({ id_student, grade }) => {
-            await Grades.update({ grade }, { where: { 'id_student': id_student } })
-        });
-
-        res.status(200).json({
-            ok: true,
-            msg: "Calificaciones actualizadas correctamente."
-        })
+        
     } catch (err) {
-        console.log(err)
-        res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador."
-        })
+        printAndSendError(res, err)
     }
+
+
+}
+
+const uploadTesineGrade = async (req, res) =>{
+
+    const {id_ext_cou}=req.params;
+    let  {students}  = req.body;
+
+    try {
+        students=students.map( async({id_student, grade})=>{
+          
+            await Stu_extracou.update({grade}, {where: {[Op.and]:[{id_student},{id_ext_cou}]}})
+        })
+        
+    } catch (err) {
+        printAndSendError(res, err)
+    }
+
+
+}
+
+const updateGrades = async (req, res = response) => {
+    const { id_grade  } = req.params;
+    const { grade }= req.body;
+
+    try {
+         await Grades.update({grade},{where: {id_grade} });
+
+        res.json({
+            ok:true,
+            msg: 'Calificación de materia actualizada correctamente.'
+        })
+        
+    } catch (err) {
+
+    printAndSendError(res,err)
+        
+    }
+}
+
+const updateExtraCurCourGrades =async (req, res)=>{
+    const {id_stu_extracou}= req.params;
+    const {grade}=req.body;
+
+    try{
+        await Stu_extracou.update({grade},{where:{id_stu_extracou}});
+
+        res.json({
+            ok:true,
+            msg: 'Calificación de curso extra curricular actualizada correctamente.'
+        })
+    }catch(err){
+        printAndSendError(res, err)
+    }
+
+}
+const updateTesineGrades =async (req, res)=>{
+    const {id_tesine}= req.params;
+    const {grade}=req.body;
+
+    try{
+        await Tesine.update({grade},{where:{id_tesine}});
+
+        res.json({
+            ok:true,
+            msg: 'Calificación de tesina actualizada correctamente.'
+        })
+    }catch(err){
+        printAndSendError(res, err)
+    }
+
 }
 
 const deleteGradeByStudentId = async (req, res = response) => {
@@ -483,12 +507,15 @@ const deleteGradeByStudentId = async (req, res = response) => {
 
 module.exports = {
     getAllGradesByCourse,
-    uploadGrades,
+    uploadCourseGrades,
     updateGrades,
     deleteGradeByStudentId,
     searchAverageByStudent,
     getAllGroupsGrades,
     getAllGradesByGroup,
     getAllGrades,
-    getAllGradesByMatricula
+    getAllGradesByMatricula,
+    updateExtraCurCourGrades,
+    updateTesineGrades,
+    uploadExtraCurCourGrades
 }
