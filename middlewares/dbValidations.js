@@ -7,6 +7,7 @@ const Employees = require('../models/employee');
 const ExtraCurricularCourses = require('../models/extracurricularcourses');
 const Grades = require('../models/grades');
 const Graduation_courses = require('../models/graduation_courses');
+const Graduation_section = require('../models/graduation_section');
 const Group = require('../models/group');
 const Major = require('../models/major');
 const Payment = require('../models/payment');
@@ -283,6 +284,29 @@ const checkExtraCurCourExistence = async (req, res, next) =>{
 }
 // De nada, te ahorré trabajo 
 
+const checkGraSecExistence = async (req, res, next) =>{
+    const id_graduation_section = req.body.id_graduation_section || req.params.id_graduation_section
+    const graSec = await Graduation_section.findByPk(id_graduation_section)
+    if(!graSec){
+        return res.status(404).json({
+            ok:false,
+            msg:`La sección del curso extracurricular id ${id_graduation_section} no existe.`
+        })
+    }
+    next();
+}
+const checkCourseExistence = async (req, res, next) =>{
+    const id_course = req.body.id_course || req.params.id_course
+    const course = await Course.findByPk(id_course)
+    if(!course){
+        return res.status(404).json({
+            ok:false,
+            msg:`El curso con id ${id_course} no existe.`
+        })
+    }
+    next();
+}
+
 
 module.exports = {
     checkCampusExistence,
@@ -305,5 +329,7 @@ module.exports = {
     checkGradeCourseExistence,
     checkGradeExtraCurCoureExistence,
     checkGradeTesineExistence,
-    checkExtraCurCourExistence
+    checkExtraCurCourExistence,
+    checkGraSecExistence,
+    checkCourseExistence
 }

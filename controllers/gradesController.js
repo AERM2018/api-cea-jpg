@@ -69,33 +69,6 @@ const getAllGrades = async( req, res = response) => {
         }
     })
     avgByGroups = await Promise.all(avgByGroups)
-    // // Obtener grades de cursos extracurriculares
-    // Stu_extracou.belongsTo(Student, {foreignKey: 'id_student'})
-    // Student.hasMany(Stu_extracou,{foreignKey : 'id_student'})
-    // let extraCoursesGrades = await Stu_extracou.findAll({
-    //     include: {
-    //         model : Student
-    //     }
-    // })
-
-    // extraCoursesGrades = filterGradesStudent(extraCoursesGrades,q)
-
-    // // Obtener grades de tesines
-    // Stu_gracou.belongsTo(Student, {foreignKey: 'id_student'})
-    // Student.hasOne(Stu_gracou,{foreignKey : 'id_student'})
-    
-    // Stu_gracou.belongsTo(Tesine, {foreignKey: 'id_tesine'})
-    // Tesine.belongsTo(Stu_gracou, {foreignKey: 'id_tesine'})
-
-    // let tesinesGrade = await Stu_gracou.findAll({
-    //     include: [{
-    //         model : Student
-    //     },{
-    //         model : Tesine
-    //     }]
-    // })
-
-    // tesinesGrade = filterGradesStudent(tesinesGrade,q)
 
     grades = [...avgByStudents,...avgByGroups]
     res.json({

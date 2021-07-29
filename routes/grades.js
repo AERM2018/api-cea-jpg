@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { getAllGradesByCourse, uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByGroup, getAllGroupsGrades, getAllGrades, getAllGradesByMatricula } = require('../controllers/gradesController');
+const { getAllGradesByCourse, uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByGroup, getAllGroupsGrades, getAllGrades, getAllGradesByMatricula, uploadCourseGrades } = require('../controllers/gradesController');
 const { checkStudentExistence, checkGradeCourseExistence, checkGradeTesineExistence, checkStuExtraCouExistence, checkExtraCurCourExistence } = require('../middlewares/dbValidations');
 const checkGrades = require('../middlewares/grades');
 const validateJWT = require('../middlewares/validar-jwt');
@@ -47,7 +47,7 @@ gradesRouter.post('/:id_course', [
     validateFields,
     checkGrades,
     validateJWT
-], uploadGrades);
+], uploadCourseGrades);
 
 gradesRouter.put( 'regular/:id_grade', [
     param('id_grade','Llave ').not().isEmpty().isInt(),
