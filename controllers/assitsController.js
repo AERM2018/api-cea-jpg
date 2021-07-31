@@ -19,9 +19,14 @@ const getAllCourseAssistance = async (req, res)=>{
 
   Gro_cou.belongsTo(Group,{foreignKey:'id_group'})
   Group.hasMany(Gro_cou,{foreignKey:'id_group'})
-
   Gro_cou.belongsTo(Course,{foreignKey:'id_course'})
   Course.hasMany(Gro_cou,{foreignKey:'id_course'})
+
+  Extracurricularcourse_ass.belongsTo(ExtraCurricularCourses,{foreignKey:'id_ext_cou'})
+  ExtraCurricularCourses.hasMany(Extracurricularcourse_ass,{foreignKey:'id_ext_cou'})
+
+  Gra_sec_ass.belongsTo(Graduation_section,{foreignKey:'id_graduation_section'})
+  Graduation_section.hasMany(Gra_sec_ass,{foreignKey:'id_graduation_section'})
 
   let students = await Student.findAll({
     attributes: ['id_student','matricula', [fn('concat',col('name'),'',col('surname_f'),'',col('surname_m')),'name']],
@@ -95,7 +100,8 @@ const getAllCourseAssistance = async (req, res)=>{
   assistence= [...await Promise.all(studentAssistance)];
 
 
-
+  
+  // Filtrado por grupo y curso
   let groCouAss = await Gro_cou.findAll({
     include: [{model: Group},
              {model: Course}
@@ -122,15 +128,45 @@ groCouAss= groCouAss.filter((item)=>{
 
 })
 
-// Filtar por nombre extracurso
-// Filtrar por nombre
+// Filtado por nombre de extracurricular course 
 
-assistence= [...assistence, ...groCouAss]
+    let extracurCouAss = await Extracurricularcourse_ass.findAll({
+      include: {model: ExtraCurricularCourses},
+      limit : [10*(page-1),10]
+    })
+
+    extracurCouAss= extracurCouAss.filter((extraItem)=>{
+      const {extracurricular_course, ...restoIteam}=extraItem.toJSON()
+      console.log(extraItem.toJSON())
+      if(extracurricular_course.ext_cou_name.split(' ').join('').toLowerCase().includes(q)){
+        return {
+          ext_cou_name: extracurricular_course.ext_cou_name,
+          q:'ext_cou_name'
+        }
+      }return
+    })
+
+// Filtrado por nombre de graduation section
+    let graSecAss = await Gra_sec_ass.findAll({
+      include: {model: Graduation_section},
+      limit : [10*(page-1),10]
+    })
+    graSecAss= graSecAss.filter((graSecItem)=>{
+      const {graduation_section, ...restoIteam}=graSecItem.toJSON()
+      console.log(graSecItem.toJSON())
+      if(graduation_section.graduation_section_name.split(' ').join('').toLowerCase().includes(q)){
+        return {
+          graduation_section_name: graduation_section.graduation_section_name,
+          q:'graduation_section_name'
+        }
+      }return
+    })
+
+assistence= [...assistence, ...groCouAss, ...extracurCouAss, ...graSecAss]
 
 res.json({
   ok:true,
   assistence
-  
 })
 
 }
@@ -167,47 +203,47 @@ const takeCourseAssistance = async (req, res = response) => {
 };
 
 const updateCourseAssitence = async (req, res = response)=>{
+  // usar id_assistance
+  // ¿Este se puede usar para todos los cursos?
 
-  const { id_gro_cou_ass } = req.params;
-  const { attended } = req.body;
-  try {
-      const assit = new Assit({ attended });
-      const { id_assistance } = await assit.update({attended},{where: {[Op.and]:[{id_gro_cou_ass},{id_assistance},{id_student}]}});
+    const { id_assistance } = req.params;
+    const { date_assistance, attended }= req.body;
 
-      // Guardado en gro_cou_ass
-      // const gro_cou_ass = new Gro_cou_ass({
-      //   // id_gro_cou,
-      //   // id_assistance,
-      //   id_student,
-      // });
-      // await assit.update({attended},{where: {id_assistance} });
-      res.json({
-          ok : true,
-          msg : "..."
-      })
-  } catch (err) {
-      printAndSendError( res, err )
-  }
+    try {
+        await Assit.update({date_assistance, attended},{where: {id_assistance} });
 
+        res.json({
+            ok:true,
+            msg: 'Asistencia actualizada correctamente.'
+        })
+        
+    } catch (err) {
+
+    printAndSendError(res,err)
+        
+    }
 }
 
 const deleteCourseAssistence = async (req, res = response)=>{
-  const { id_gro_cou_ass} = req.params;
+
+  // usar id_assistance
+  // ¿Este se puede usar para todos los cursos?
+  const { id_assistance} = req.params;
   const { body } = req;
 
   try {
-      const courseAssistance = await Gro_cou_ass.findByPk(id_gro_cou_ass);
+      const courseAssistance = await Assit.findByPk(id_assistance);
       if (!courseAssistance) {
           return res.status(404).json({
               ok:false,
-              msg: "No existe un registro de asistencia con el id " + id_gro_cou_ass,
+              msg: "No existe un registro de asistencia con el id " + id_assistance,
           });
       }
   
       await courseAssistance.destroy(body);
       res.status(200).json({
           ok: true,
-          msg: "La asistencia se elimino correctamente",
+          msg: "La asistencia se eliminó correctamente",
           
       })
   } catch ( err ) {

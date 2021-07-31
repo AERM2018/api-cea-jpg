@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { check } = require('express-validator');
+const { check, param } = require('express-validator');
 const { takeCourseAssistance, deleteCourseAssistence, deleteExtracurCourAssistance, deleteGraSecAssistance, updateGraSecAssistance, updateExtracurCourAssistance, updateCourseAssitence, getAllCourseAssistance, getAllExtracurCourAssistance, getAllGraSecAssistance, takeExtracurCourAssistance, takeGraSecAssistance } = require('../controllers/assitsController');
 const { checkExtraCurCourExistence, checkGraSecExistence, checkCourseExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
@@ -43,28 +43,29 @@ assitsRouter.post('/courses/:id_course',[
     validateJWT
 ] ,takeCourseAssistance);
 
-// assitsRouter.post('/extra/:id_ext_cou',[
-//     check('id_ext_cou','id_ext_cou de tipo integer, campo obligatorio').isInt().notEmpty(),
-//     checkExtraCurCourExistence,
-//     validateFields,
-//     validateJWT
-// ] ,takeExtracurCourAssistance);
+assitsRouter.post('/extra/:id_ext_cou',[
+    check('id_ext_cou','id_ext_cou de tipo integer, campo obligatorio').isInt().notEmpty(),
+    checkExtraCurCourExistence,
+    validateFields,
+    validateJWT
+] ,takeExtracurCourAssistance);
 
-// assitsRouter.post('/grasec/:id_graduation_section',[
-//     check('id_graduation_section','id_graduation_section de tipo integer, campo obligatorio').isInt().notEmpty(),
-//     checkGraSecExistence,
-//     validateFields,
-//     validateJWT
-// ] ,takeGraSecAssistance);
+assitsRouter.post('/grasec/:id_graduation_section',[
+    check('id_graduation_section','id_graduation_section de tipo integer, campo obligatorio').isInt().notEmpty(),
+    checkGraSecExistence,
+    validateFields,
+    validateJWT
+] ,takeGraSecAssistance);
 
 // // UPDATES
 
-// assitsRouter.put( 'regular/:id_gro_cou_ass', [
-//     param('id_gro_cou_ass','Llave ').not().isEmpty().isInt(),
-//     // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-//     validateFields,
-//     validateJWT
-// ], updateCourseAssitence);
+assitsRouter.put( '/:id_assistance', [
+    param('id_assistance','Campo de tipo integer, obligatorio').not().isEmpty().isInt(),
+    check('date_assistance','El id del curso es un numero entero y es obligatorio').isDate().notEmpty(),
+    check('attended','Campo de tipo tinyint, obligatorio. 0=Falta, 1=Asistencia, 2=Falta justificada').isNumeric().notEmpty(),
+    validateFields,
+    validateJWT
+], updateCourseAssitence);
 
 // assitsRouter.put( 'regular/:id', [
 //     param('','Llave ').not().isEmpty().isInt(),
@@ -86,11 +87,11 @@ assitsRouter.post('/courses/:id_course',[
 // // DELETES
 // // TODO:Pendientes...
 
-// assitsRouter.delete( '/:id_gro_cou_ass', [
-//     check('id_gro_cou_ass','El id es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
-//     validateFields,
-//     validateJWT
-// ], deleteCourseAssistence);
+assitsRouter.delete( '/:id_assistance', [
+    check('id_assistance','El id es un número entero y es obligatorio').isNumeric(),
+    validateFields,
+    validateJWT
+], deleteCourseAssistence);
 
 // assitsRouter.delete( '/:id_course', [
 //     check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
