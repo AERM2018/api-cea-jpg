@@ -70,11 +70,16 @@ const getAllCourseAssistance = async (req, res)=>{
     Gra_sec_ass.belongsTo(Graduation_section,{foreignKey:'id_graduation_section'})
     Graduation_section.hasMany(Gra_sec_ass,{foreignKey:'id_graduation_section'})
 
-    const courseAssistence = await Gro_cou_ass.findAll({
+    let courseAssistence = await Gro_cou_ass.findAll({
       include: [{model: Gro_cou, attributes:['id_course'],
         include:{model:Course, attributes: ['course_name']}},
               {model: Assit, attributes: ['id_assistance','date_assistance','attended']} ],
       where: {id_student}
+    })
+    courseAssistence= courseAssistence.map((ass)=>{
+      return {...ass.toJSON(),
+              assType: "Regular Course"}
+
     })
 
     const extraAssistence = await Extracurricularcourse_ass.findAll({
@@ -82,11 +87,20 @@ const getAllCourseAssistance = async (req, res)=>{
                 {model: Assit, attributes: ['id_assistance','date_assistance','attended']}],
                 where:{id_student}
     })
+    extraAssistence= extraAssistence.map((ass)=>{
+      return {...ass.toJSON(),
+              assType:"Extracurricular Course"}
+    })
 
     const graSecAssistance = await Gra_sec_ass.findAll({
       include: [{model:Graduation_section, attributes:['graduation_section_name']},
                 {model:Assit, attributes: ['id_assistance','date_assistance','attended']}],
                 where:{id_student}
+    })
+    graSecAssistance=graSecAssistance.map((ass)=>{
+      return {...ass.toJSON(),
+        assType:"Graduation Section Course"}
+
     })
 
 
@@ -185,6 +199,7 @@ const takeCourseAssistance = async (req, res = response) => {
       const { id_assistance } = await assit.save();
 
       // Guardado en gro_cou_ass
+
       const gro_cou_ass = new Gro_cou_ass({
         id_gro_cou,
         id_assistance,
@@ -225,33 +240,61 @@ const updateCourseAssitence = async (req, res = response)=>{
 }
 
 const deleteCourseAssistence = async (req, res = response)=>{
+const {id_assistance}=req.params;
+const {assType}=req.body;
 
-  // usar id_assistance
-  // ¿Este se puede usar para todos los cursos?
-  const { id_assistance} = req.params;
-  const { body } = req;
-
-  try {
-      const courseAssistance = await Assit.findByPk(id_assistance);
-      if (!courseAssistance) {
-          return res.status(404).json({
-              ok:false,
-              msg: "No existe un registro de asistencia con el id " + id_assistance,
-          });
-      }
+try{
+  // const course = await Course.findByPk( id );
+  let result ;
   
-      await courseAssistance.destroy(body);
-      res.status(200).json({
-          ok: true,
-          msg: "La asistencia se eliminó correctamente",
-          
+  switch (assType) {
+    case "Regular Course":
+    result = await Gro_cou_ass.findOne({
+      where:{ id_assistance}
+    })
+      break;
+  
+    case "Extracurricular Course":
+      result = await Extracurricularcourse_ass.findOne({
+        where:{ id_assistance}
       })
-  } catch ( err ) {
-      console.log(err)
-      return res.status(500).json({
-          msg: "Hable con el administrador"
+      break;
+      
+    case "Graduation Section Course":
+      result = await Gra_sec_ass.findOne({
+        where:{ id_assistance}
       })
+    
+        break;
+  
+    default:
+      return res.status(404).json({
+        ok:false,
+        msg:`Asistencia con id ${id_assistance} no existe`
+      })
+
+      break;
   }
+  // Delete the record of the course
+  await result.destroy();
+  await Assit.destroy({
+    where:{ id_assistance}
+  });
+
+
+  res.status(200).json({
+      ok : true,
+      msg : 'Asistencia eliminada correctamente'
+  })
+
+}catch( err ){
+  console.log(err)
+  return res.status(500).json({
+      ok : false,
+      msg : 'Hable con el administrador'
+  })
+}
+
 }
 
 // EXTRACURRICULAR COURSES
