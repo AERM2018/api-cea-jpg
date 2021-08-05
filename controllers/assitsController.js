@@ -82,17 +82,17 @@ const getAllCourseAssistance = async (req, res)=>{
 
     })
 
-    const extraAssistence = await Extracurricularcourse_ass.findAll({
+    let extraAssistence = await Extracurricularcourse_ass.findAll({
       include:[{model: ExtraCurricularCourses, attributes:['ext_cou_name']},
                 {model: Assit, attributes: ['id_assistance','date_assistance','attended']}],
                 where:{id_student}
     })
-    extraAssistence= extraAssistence.map((ass)=>{
+    extraAssistence = extraAssistence.map((ass)=>{
       return {...ass.toJSON(),
               assType:"Extracurricular Course"}
     })
 
-    const graSecAssistance = await Gra_sec_ass.findAll({
+    let graSecAssistance = await Gra_sec_ass.findAll({
       include: [{model:Graduation_section, attributes:['graduation_section_name']},
                 {model:Assit, attributes: ['id_assistance','date_assistance','attended']}],
                 where:{id_student}
