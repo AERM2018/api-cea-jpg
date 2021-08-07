@@ -3,7 +3,7 @@
 ## Welcome to the API for the Control escolar "Alejandria".
 
 #### The first thing is to get access to the URL which help you to start requesting data.
-URL: http://api.alejandria.edu.mx/api-ale/v1/
+[BASE_URL]:URL: http://api.alejandria.edu.mx/api-ale/v1/
 
 **Note:** Don't forget that you need a token to get the data, otherwise you won't be able to get it.
 
@@ -38,11 +38,42 @@ fetch(URL, {
 
 **Note:** The only endpoint that don't need token is the login
 
-## Here is a list of the endpoint that you can consult and the neccesary parameters to do it.
 
-**Don't forget you need the url in order to get access of any of the endpoints**
+
+## Error handeling
+
+The endpoints may respond an error due to several reasons. The errros may be display different info, the following examples are how they will look like:
+
+*1)* When the request is being proccesding, but the request cannot be fullfilled due to the action that is requested cannot be performed or there is a problem with the database the request's answer looks like this:
+```
+{
+    ok : false,
+    msg : "Something went wrong, try again"
+}
+```
+This kind of error most of the time has an code error *404* or *500*
+
+*2)* When the request is sent, but the request does not have the right attributes or the attributes' validation failed the request's answer looks like this:
+```
+{
+    "ok": false,
+    "msg": "Ocurrio un error al procesar tu petición",
+    "errors": {
+        "edu_level": {
+            "msg": "El nivel de eduación es obligatorio",
+            "param": "edu_level",
+            "location": "body"
+        }
+    }
+}
+```
+All the errors will be in the object "errors" . Each attribute of the object will be the name of the attribute that failed, its value will be the info about it.
+This kind of error most of the time has an code error *400*
+
 
 ------------------------------------------------------------------------------
+# Endpints
+
 
 ## Authentication
 
@@ -55,7 +86,7 @@ Endpoint:  URL/auth/login   HTTP method: POST
 ```
 
 
-You need send an object like this in the request's body:
+**You need to send an object like this in the request's body:**
 ```
 {
     "id" : STRING,
@@ -63,75 +94,80 @@ You need send an object like this in the request's body:
 }
 ```
 
-The result look like:
+**The result will look like this:**
 ```
 {
     "ok": true,
-    "token" : "your token"
+    "token": your token,
+    "id_user": 1,
+    "email": "admin@alejandria.edu.mx",
+    "user_type": "admin",
+    "id_role": 1,
+    "user": {}
 }
 ```
+The attribute "user" on the body's response will contain more data about it such as id corresponding to the type of user and name. It looks like this:
 
+```
+"user": {
+        "id_student": "ale107805",
+        "name": "Rafudo fudo Fudo Fudo"
+    }
+```
 -------------------------------------------------------------------------------------
-
 
 ## Majors
 
 ### Get all the majors
 
+This endpoint will return all the careers registed.
+
 ```
-URL/majors /*Method http: GET*/
+URL/majors /*HTTP method: GET*/
 ```
 
-_This endpoint returns all the careers_
-
-_An example_
+**The result will look like:**
 ```
 {
     "ok": true,
     "majors": [
         {
             "id_major": 1,
-            "major_name": "matematicas"
+            "id_edu_lev": 1
+            "major_name": "Matématicas",
         }
     ]
 }
 ```
 
-### Modify a major
-
+**If there're no majors, the request's answer will be an empty array []. It looks like this:**
 ```
-URL/majors/Id_major   /*Method http: PUT*/
+    {
+        "ok": true,
+        "majors": []
+    }
 ```
-
-- _This endpoint you must send an object so as to modify a major if you send something wrong it won't create anything_
-- _In the part of the parameter put the id of the major instead of id-major_
-- _The next object is an example to know how to send it_
-
-```
-        {
-                 "major_name":"name of the major"   
-        }
-```
-
-
 
 ### Create a major
 
+This endpoint will create a new major
 ```
-/api-wp/v1/majors    /*Method http: POST*/
+URL/majors   /*HTTP method: POST*/
 ```
 
-
-- _This endpoint you must send an object so as to create a major if you send something wrong it won't create anything_
-- _The next object is an example to know how to send it_
+**You need to send an onject like this in the request's body:**
 ```
         {
-                 "major_name":"name of the major"   
+                 "major_name":STRING,
+                 "edu_level":NUMBER,
         }
 ```
+_This is the value that "edu_level" could take:_  
+1 : Licenciatura  
 
+2 : Maestría 
 
-- _if the request is successful the response would be:_
+**if the request is successful, the response will be like this:**
 ```
 {
     "ok": true,
@@ -139,17 +175,52 @@ URL/majors/Id_major   /*Method http: PUT*/
 }
 ```
 
-### Delete major
+### Modify a major
+
+This endpoint will update a existing major, send the major id in the url.
 
 ```
-/api-wp/v1/majors/id_major  /*Method http: DELETE*/
+URL/majors/id_major   /*HTTP method: PUT*/
 ```
-- _This endpoint is to delete a major, you just have to put in the params the id of the major instead of id-major_
-- _if the request is successful the response would be:_
+
+* Put the value of major id instead of "id_major".
+
+**You need to send an object like this in the request's body:**
+
+```
+        {
+                 "major_name":STRING,
+                 "edu_level":NUMBER,
+                 "active": BOOLEAN
+        }
+```
+
+
+**if the request is successful, the response will be like this:**
 ```
 {
     "ok": true,
-    "msg": "La materia se elimino correctamente"
+    "msg": "La carrera se actualizo correctamente"
+}
+```
+
+### Delete major
+
+This endpoint will delete a major, you need to send the major id in the url
+
+```
+/api-wp/v1/majors/id_major  /*HTTP method: DELETE*/
+
+```
+* Put the value of major id instead of "id_major"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "msg": "La carrera se elimino correctamente"
 }
 ```
 
@@ -158,13 +229,13 @@ URL/majors/Id_major   /*Method http: PUT*/
 
 ### Get All Departments
 
+This endpoint will return all the departments that exist.
+
 ```
-URL/departments /*Method http: GET*/
+URL/departments /*HTTP method: GET*/
 ```
 
-_This endpoint returns all the departments_
-
-_An example_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -176,72 +247,98 @@ _An example_
     ]
 }
 ```
+
+**If there're no departments, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "departments": []
+    }
+```
+
 ### Create a department
 
+This endpoint will create a new deparment.
+
 ```
-/api-wp/v1/departments    /*Method http: POST*/
+URL/departments    /*HTTP method: POST*/
 ```
 
 
-- _This endpoint you must send an object so as to create a department if you send something wrong it won't create anything_
-- _The next object is an example to know how to send it_
+**You need to send an object like this in the request's body:**
 ```
         {
-                 "department_name":"name of the department"   
+            "department_name":STRING  
         }
 ```
 
 
-- _if the request is successful the response would be:_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
-    "msg": "department creado correctamente"
+    "msg": "El departamento se creo correctamente"
 }
 ```
 
 ### Modify a department
 
+This endpoint will update an existing department. You need send the department id in the url.
+
 ```
-URL/departments/Id_deparment   /*Method http: PUT*/
+URL/departments/id_deparment   /*HTTP method: PUT*/
 ```
 
-- _This endpoint you must send an object so as to modify a deparment if you send something wrong it won't create anything_
-- _In the part of the parameter put the id of the department instead of id-department_
-- _The next object is an example to know how to send it_
+* Put the value of department id instead of "id_deparment"
+
+**You need to send an object like this in the request's body:**
 
 ```
         {
-                 "department_name":"name of the department"   
+                 "department_name":STRING   
         }
 ```
 
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "msg": "El departamento se actualizo correctamente"
+}
+```
 
 ### Delete department
 
+This endpoint will delete an existing department. You need to send the department id in the url.
+
 ```
-URL/departments/Id_deparment  /*Method http: DELETE*/
+URL/departments/id_deparment  /*HTTP method: DELETE*/
 ```
-- _This endpoint is to delete a department, you just have to put in the params the id of the department instead of id-department_
-- _if the request is successful the response would be:_
+
+**It's not neccesary to send a body in the request**
+
+
+**If the request is successful, the response would be:**
+
 ```
 {
     "ok": true,
     "msg": "El departamento se elimino correctamente"
 }
 ```
-
+------------------------------------------------------------
 ## Groups
 
 ### Get All groups
 
+This endpoint will return a list of all the groups
+
 ```
-URL/groups /*Method http: GET*/
+URL/groups         /*HTTP method: GET*/
 ```
 
-_This endpoint returns all the groups_
 
-_An example_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -252,72 +349,96 @@ _An example_
             "name_group": "1 derecho",
             "entry_year": "1000-01-01",
             "end_year": "2000-01-01",
-            "major_name": "Licenciatura en derecho"
+            "major_name": "Licenciatura en derecho",
+            "time_table": [
+                {
+                    "day": 0,
+                    "start_hour": "09:00:00",
+                    "finish_hour": "19:00:00"
+                }
+            ]
         },...
     ]
 }
 ```
 
+**If there're no groups, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "groups": []
+    }
+```
+
+
 ### Create a group
 
+This endpoint will create a new group.
+
 ```
-/api-wp/v1/groups    /*Method http: POST*/
+URL/groups    /*HTTP method: POST*/
 ```
 
-
-- _This endpoint you must send an object so as to create a group if you send something wrong it won't create anything_
-- _The next object is an example to know how to send it_
+**You need to send an object like this in the request's body:**
 ```
        {
-    "id_major": 1,
-    "name_group": "gro",
+    "id_major": NUMBER,
+    "name_group": STRING,
     "time_tables": [
         {
-            "day": 7,
-            "start_hour": "1:00:00",
-            "finish_hour": "2:00:00"
+            "day": INT,
+            "start_hour": STRING,
+            "finish_hour": STRING
         },
         {
-            "day": 1,
-            "start_hour": "1:00:00",
-            "finish_hour": "2:00:00"
+            "day": NUMBER,
+            "start_hour": STRING,
+            "finish_hour": STRING
         },
         {
-            "day": 5,
-            "start_hour": "12:15:04",
-            "finish_hour": "1:15:04"
+            "day": NUMBER,
+            "start_hour": STRING,
+            "finish_hour": STRING
         }
     ]
 }
 ```
+**Important**
+
+- The day's value is from 0 to 6. It represents the days from Sunday(0) to Saturday(6).
+- The hour must be in 24hrs format in order to avoid some problems with the date validation.  
 
 
-- _if the request is successful the response would be:_
+
+
+_if the request is successful the response would be:_
 ```
 {
     "ok": true,
     "msg": "Grupo creado correctamente"
 }
 ```
+
+
 ### Modify a group
 
-```
-URL/groups/Id_group   /*Method http: PUT*/
-```
-
-- _This endpoint you must send an object so as to modify a group if you send something wrong it won't create anything_
-- _In the part of the parameter put the id of the group instead of id-group_
-- _The next object is an example to know how to send it_
+This endpoint will update an existing group. You need to pass the group id in the url.
 
 ```
-      {
-    "id_major": 2,
-    "name_group": "4c",
-    "entry_year": "1000-01-01",
-    "end_year": "2000-01-01"
-}
+URL/groups/id_group   /*HTTP method: PUT*/
 ```
 
+* Put the value of group id instead of "id_group"
+
+**You need to send an object like this in the request's body:**
+```
+    {
+        "id_major": 2,
+        "name_group": "4c",
+        "entry_year": "1000-01-01",
+        "end_year": "2000-01-01"
+    }
+```
 
 - _if the request is successful the response would be:_
 ```
@@ -329,122 +450,156 @@ URL/groups/Id_group   /*Method http: PUT*/
 
 ### Delete group
 
+This endpoint will delete an existing group. You need to pass the group id in the url.
+
 ```
-URL/groups/Id_group   /*Method http: DELETE*/
+URL/groups/id_group   /*HTTP method: DELETE*/
 ```
-- _This endpoint is to delete a group, you just have to put in the params the id of the group instead of id-group_
-- _if the request is successful the response would be:_
+
+* Put the value of group id instead of "id_group"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
-    "msg": "El departamento se elimino correctamente"
+    "msg": "El grupo se elimino correctamente"
 }
 ```
+
+------------------------------------------------------------
 ## Employees
 
 ### Get All Employees
 
-```
-URL/employees /*Method http: GET*/
-```
+This endpoint will return a list of all the employees.
 
-_This endpoint returns all the employees_
+[URL][BASE_URL] /employees    /*HTTP method: GET*/
 
-_An example_
+**If the request is successful, the response would be:**
 ```
 {
-    "ok": true,
+"ok": true,
     "employees": [
         {
-            "id_employee": "ale14.Angel.Cruz",
-            "id_user": 14,
+            "id_employee": "ale104691",
+            "id_user": 104,
             "name": "Angel",
-            "surname_f": "Cruz",
-            "surname_m": "Cruz",
-            "rfc": "rfcunico11",
-            "curp": "curpunico11",
+            "rfc": "rfcuxsnaio113",
+            "curp": "cuarpniscox121",
             "mobile_number": "6182593051",
             "active": 1,
             "salary": 5000,
-            "campus_name": "Alejandria 222",
-            "department_name": "Contraloria"
-        },...
+            "surname_f": "Cruz",
+            "surname_m": "Cruz",
+            "campus_name": "El mejor campus de todos 2.0",
+            "department_name": "Administrativo",
+            "time_table": [
+                {
+                    "day": 3,
+                    "start_hour": "13:00:00",
+                    "finish_hour": "14:00:00"
+                },
+                {
+                    "day": 1,
+                    "start_hour": "13:00:00",
+                    "finish_hour": "14:00:00"
+                },
+                {
+                    "day": 5,
+                    "start_hour": "12:15:04",
+                    "finish_hour": "13:15:04"
+                }
+            ]
+        }
     ]
 }
 ```
+
+**If there're no employees, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "employees": []
+    }
+
+```
 ### Create an employee
 
+This endpoint will create a new employee
+
 ```
-/api-wp/v1/employees    /*Method http: POST*/
+URL/employees    /*HTTP method: POST*/
 ```
 
-
-- _This endpoint you must send an object so as to create a employee if you send something wrong it won't create anything_
-- _The next object is an example to know how to send it_
+**You need to send an object like this in the request's body:**
 ```
    {
-    "email": "email@gmail.com",
-    "name": "nombre",
-    "surname_f": "surname_1",
-    "surname_m": "surname_2",,
-    "curp": "curpunico11",
-    "mobile_number": "6182593051",
-    "rfc": "rfcunico11",
-    "id_campus":1,
-    "id_department":1,
-    "salary":1000,
-   "time_tables" : [{
-    "day":7,
-    "start_hour": "1:00:00",
-    "finish_hour": "2:00:00"
-    },{
-    "day":1,
-    "start_hour": "1:00:00",
-   "finish_hour": "2:00:00"
-                        },{
-    "day":5,
-    "start_hour": "12:15:04",
-    "finish_hour": "1:15:04"
-    }]
+    "email": STRING,
+    "name": STRING,
+    "surname_f": STRING,
+    "surname_m": STRING,
+    "curp": STRING,
+    "mobile_number": STRING,
+    "rfc": STRING,
+    "id_campus":NUMBER,
+    "id_department":NUMBER,
+    "salary":NUMBER,
+    "time_tables" : [
+        {
+            "day": INT,
+            "start_hour": STRING,
+            "finish_hour": STRING
+        },
+        {
+            "day": NUMBER,
+            "start_hour": STRING,
+            "finish_hour": STRING
+        }
+    ]
     
 }
 ```
 
+**Important**
 
-- _if the request is successful the response would be:_
+- The day's value is from 0 to 6. It represents the days from Sunday(0) to Saturday(6).
+- The hour must be in 24hrs format in order to avoid some problems with the date validation
+
+**if the request is successful the response would be:_**
 ```
 {
     "ok": true,
-    "msg": "Empleado creado correctamente"
+    "msg": "Empleado creado correctamente con id: ale136345"
 }
 ```
+
 ### Modify a employee
 
-```
-URL/employees/Id_employee   /*Method http: PUT*/
-```
-
-- _This endpoint you must send an object so as to modify a employee if you send something wrong it won't create anything_
-- _In the part of the parameter put the id of the employee instead of id-employee_
-- _The next object is an example to know how to send it_
+This endpoint will update an existing employee. You need to send the employee id in the url.
 
 ```
-      {
-    "name": "name",
-    "surname_f": "surname_1",
-    "surname_m": "surname_2",,
-    "curp": "curp",
-    "salary":1000,
-    "mobile_number": "6182593051",
-    "mobile_back_number": "4223",
-    "rfc": "rfc"
-   
-}
+URL/employees/id_employee   /*HTTP method: PUT*/
 ```
 
+* Put the value of employee id instead of "id_employee"
 
+**You need to send an object like this in the request's body:**
+```
+    {
+        "name": STRING,
+        "surname_f": STRING,
+        "surname_m": STRING,,
+        "curp": STRING,
+        "salary":NUMBER,
+        "mobile_number": STRING,
+        "mobile_back_number": STRING,
+        "rfc": STRING
+    }
+```
 
-- _if the request is successful the response would be:_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -453,11 +608,17 @@ URL/employees/Id_employee   /*Method http: PUT*/
 ```
 ### Delete employee
 
+This endpoint will delete an existing employee. You need to send the employee id in the url.
+
 ```
-URL/employees/Id_employee   /*Method http: DELETE*/
+URL/employees/c   /*HTTP method: DELETE*/
 ```
-- _This endpoint is to delete a employee, you just have to put in the params the id of the employee instead of id-employee_
-- _if the request is successful the response would be:_
+
+* Put the value of employee id instead of "id_employee"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -468,47 +629,62 @@ URL/employees/Id_employee   /*Method http: DELETE*/
 
 ### Get All students
 
+This endpoint will return a list of all the students.
+
 ```
-URL/students /*Method http: GET*/
+URL/students     /*HTTP method: GET*/
 ```
 
-_This endpoint returns all the students_
-
-_An example_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
     "students": [
         {
-            "matricula": "DEDG202103003",
-            "id_user": 9,
-            "name": "1na1me",
-            "surname_f": "surname_1",
-            "surname_m": "surname_2",
+            "id_student": "ale105083",
+            "id_user": 105,
+            "name": "Angel",
+            "surname_f": "Retana",
+            "surname_m": "Retana",
             "group_chief": 0,
-            "curp": "cu1d1rp",
+            "curp": "cursps",
             "status": 1,
             "mobile_number": "6611825",
             "mobile_back_number": "4164020",
-            "address": "address",
-            "start_date": "1000-01-01",
-            "end_date": "2000-01-01",
-            "complete_documents": 0,
-            "campus_name": "Alejandria 2"
+            "start_date": null,
+            "end_date": null,
+            "street": "address",
+            "zip": "30160",
+            "colony": "Huizache",
+            "matricula": "DEDG202103003",
+            "birthdate": "2020-06-03",
+            "id_campus": 11,
+            "campus_name": "El mejor campus de todos 2.0",
+            "id_group": 5,
+            "group_name": "3 derecho"
         },...
         ]
 }
 ```
+
+**If there're no students, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "students": []
+    }
+```
+
 ### Get stundent by matricula
 
+This endpoint will return the stundent who match with the matricula specified.
+
 ```
-URL/students/matricula  /*Method http: GET*/
+URL/students/matricula     /*HTTP method: GET*/
 ```
 * Put the value of matricula instead of "matricula"
 
-This endpoint will return the stundent who has the matricula specified.
-
-The result looks like this:
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -521,15 +697,17 @@ The result looks like this:
         "campus_name": "El mejor campus de todos 2.0",
         "major_name": "Licenciatura en Derecho",
         "ins_date": "2021-04-16",
-        "course": "Español avanzado",
+        "course_name": "Español avanzado",
     }
 }
 ```
 
 ### Create a student
 
+This endpoint will create a new student if he does not already exist. If he already exists, the value of status will change to 1
+
 ```
-/api-wp/v1/students    /*Method http: POST*/
+/api-wp/v1/students    /*HTTP method: POST*/
 ```
 
 
@@ -538,78 +716,85 @@ The result looks like this:
 ```
   {
 
-    "email": "email1111@gmail.com",
-    "matricula": "amatricula",
-    "name": "1na1me",
-    "surname_f": "surname_1",
-    "surname_m": "surname_2",
-    "id_group": 1,
-    "id_campus":1,
-    "group_chief": 0,
-    "curp": "cu1d1rp",
-    "mobile_number": "6611825",
-    "mobile_back_number": "4164020",
-    "birthdate":"2021-09-22",
-    "street":"huizache 1",
-    "zip":"34160",
-    "colony":"circuito peten"
+    "email": STRING,
+    "matricula": STRING,
+    "name": STRING,
+    "surname_f": STRING,
+    "surname_m": STRING,
+    "id_group": NUMBER,
+    "id_campus":NUMBER,
+    "group_chief": NUMBER,
+    "curp": STRING,
+    "mobile_number": STRING,
+    "mobile_back_number": STRING,
+    "birthdate":STRING,
+    "street":STRING,
+    "zip":STRING,
+    "colony":STRING
 
-
-    
-    
 }
 ```
 
-
-- _if the request is successful the response would be:_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
-    "msg": "estudiante creado correctamente"
+    "msg": "Estudiante creado correctamente",
+    "id_student": "ale111659"
 }
 ```
 ### Modify a student
 
+This endpoint will update an existing student. You need to pass the student id in the url.
+
 ```
-URL/students/Id_students   /*Method http: PUT*/
+URL/students/id_student   /*HTTP method: PUT*/
 ```
 
-- _This endpoint you must send an object so as to modify a student if you send something wrong it won't create anything_
-- _In the part of the parameter put the id of the student instead of id-student_
-- _The next object is an example to know how to send it_
+* Put the value of student id instead of "id_student"
+
+
+**You need to send an object like this in the request's body:**
 
 ```
 {
-    "matricula": "DEDG202103002",
-    "name": "Angel",
-    "surname_f": "Gonzalez",
-    "surname_m": "Gonzalez",
-    "group_chief": 0,
-    "birthdate": "2020-06-03",
-    "curp": "curp",
-    "mobile_number": "6611825",
-    "mobile_back_number": "4164020",
-    "street": "address",
-    "colony": "Huizache",
-    "zip": "30160"
-    }
+    "matricula": STRING,
+    "name": STRING,
+    "surname_f": STRING,
+    "surname_m": STRING,
+    "group_chief": BOOLEAN,
+    "birthdate": STRING,
+    "curp": STRING,
+    "mobile_number": STRING,
+    "mobile_back_number": STRING,
+    "street": STRING,
+    "colony": STRING,
+    "zip": STRING
+}
 ```
 
-
-- _if the request is successful the response would be:_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
     "msg": "El estudiante se actualizo correctamente"
 }
 ```
+
 ### Delete student
 
+This endpoint will delete an existing student. You need to send the student id in the url.
+
 ```
-URL/students/Id_student   /*Method http: DELETE*/
+URL/students/id_student   /*HTTP method: DELETE*/
 ```
-- _This endpoint is to delete a student, you just have to put in the params the id of the student instead of matricula_
-- _if the request is successful the response would be:_
+
+* Put the value of student id instead of "id_student"
+
+**It's not neccesary to send a body in the request**
+
+
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -621,84 +806,95 @@ URL/students/Id_student   /*Method http: DELETE*/
 
 ### Get All Teachers
 
+This endpoint will return a list of all the teachers.
+
 ```
-URL/teachers /*Method http: GET*/
+URL/teachers     /*HTTP method: GET*/
 ```
 
-_This endpoint returns all the students_
-
-_An example_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
     "teachers": [
         {
-            "id_teacher": "ale15.Johan.Vargas",
-            "id_user": 15,
+            "id_teacher": "ale108421",
+            "id_user": 108,
             "name": "Johan",
-            "surname_f": "Gonzalez",
-            "surname_m": "Vargas",
-            "rfc": "rfc11121",
-            "mobile_number": "6181266320",
+            "rfc": "rfc123123sss",
+            "mobile_number": "6611125",
             "id_ext_cou": null,
             "courses": 0,
             "active": 1,
-            "campus_name": "Alejandria 222"
-        },...
+            "surname_f": "Gonzalez",
+            "surname_m": "Vargas",
+            "campus_name": "rtyuio"
+        }
     ]
-```
-### Create a teacher
-
-```
-/api-wp/v1/teachers    /*Method http: POST*/
-```
-
-
-- _This endpoint you must send an object so as to create a teacher if you send something wrong it won't create anything_
-- _The next object is an example to know how to send it_
-```
-  {
-    "email": "emmail1234@gmail.com",
-    "name": "1na11me",
-    "surname_f": "surname_1",
-    "surname_m": "surname_2",
-    "id_campus":1,
-    "rfc": "rf1c121",
-    "mobile_number": "6611125"
 }
 ```
 
+**If there're no teachers, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "teachers": []
+    }
+```
 
-- _if the request is successful the response would be:_
+### Create a teacher
+
+This endpoint will create a new teacher.
+
+```
+URL/teachers    /*HTTP method: POST*/
+```
+
+**You need to send an object like this in the request's body:**
+```
+  {
+    "email": STRING,
+    "name": STRING,
+    "surname_f": STRING,
+    "surname_m":STRING,
+    "id_campus": NUMBER,
+    "rfc": STRING,
+    "mobile_number": STRING
+}
+```
+
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
-    "msg": "Maestro creado correctamente"
+    "msg": "Maestro creado correctamente",
+    "id_teacher": "ale112041"
 }
 ```
+
 ### Modify a teacher
 
+This endpoint will update an existing teacher. You need to pass the teacher id in the url.
+
 ```
-URL/teachers/Id_teacher   /*Method http: PUT*/
+URL/teachers/Id_teacher   /*HTTP method: PUT*/
 ```
 
-- _This endpoint you must send an object so as to modify a teacher if you send something wrong it won't create anything_
-- _In the part of the parameter put the id of the teacher instead of id-teacher_
-- _The next object is an example to know how to send it_
+* Put the value of teacher id instead of "id_teacher"
 
+
+**You need to send an object like this in the request's body:**
 ```
 {
-    "name": "1na11me",
-    "surname_f": "surname_1",
-    "surname_m": "surname_2",
-    "rfc": "rf1c121",
-    "mobile_number": "6611125",
+    "name": STRING,
+    "surname_f": STRING,
+    "surname_m": STRING,
+    "rfc": STRING,
+    "mobile_number": STRING,
 }
 ```
 
-
-
-- _if the request is successful the response would be:_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -707,11 +903,17 @@ URL/teachers/Id_teacher   /*Method http: PUT*/
 ```
 ### Delete teacher
 
+This endpoint will delete an existing teacher. You need to send the teacher id in the url.
+
 ```
-URL/teachers/Id_teacher   /*Method http: DELETE*/
+URL/teachers/id_teacher   /*HTTP method: DELETE*/
 ```
-- _This endpoint is to delete a teacher, you just have to put in the params the id of the teacher instead of id-teacher_
-- _if the request is successful the response would be:_
+
+* Put the value of teacher id instead of "id_teacher"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -719,6 +921,78 @@ URL/teachers/Id_teacher   /*Method http: DELETE*/
 }
 ```
 
+### Get the courses given by teacher
+
+This endpoint will return a list of all the courses that a teacher has given. You need to send the teacher id in the url.
+
+```
+URL/teachers/id_teacher/courses   /*HTTP method: GET*/
+```
+
+* Put the value of teacher id instead of "id_teacher"
+
+**If the request is successful, the response would be:**
+{
+    "ok": true,
+    "courses": {
+        "regular": [
+            {
+                "id": 5,
+                "status": true,
+                "start_date": "2021-07-01",
+                "end_date": "2021-07-30",
+                "course": "Español avanzado",
+                "id_group": 5,
+                "id_major": 15,
+                "name_group": "3 derecho",
+                "entry_year": "1000-12-01",
+                "end_year": "2000-01-01",
+                "major_name": "Licenciatura en Angel",
+                "type": "regular"
+            },
+            {
+                "id": 6,
+                "status": true,
+                "start_date": "2021-07-01",
+                "end_date": "2021-07-30",
+                "course": "Español avanzado 2.0",
+                "id_group": 5,
+                "id_major": 15,
+                "name_group": "3 derecho",
+                "entry_year": "1000-12-01",
+                "end_year": "2000-01-01",
+                "major_name": "Licenciatura en Angel",
+                "type": "regular"
+            }
+        ],
+        "extra": [
+            {
+                "id": 2,
+                "major_name": "Maestria en Johan",
+                "id_major": 13,
+                "ext_cou_name": "Curso extra chingon",
+                "start_date": "2021-07-01",
+                "finish_date": "2021-07-31",
+                "limit_participants": 20,
+                "cost": 120.5,
+                "type": "extra"
+            }
+        ],
+        "graduation_section": [
+            {
+                "id": 1,
+                "course_grad_name": "graduacion prueba",
+                "id_graduation_course": 1,
+                "graduation_section_name": "seccion del curso de prueba",
+                "start_date": "2021-08-01",
+                "end_date": "2021-08-07",
+                "in_progress": 1,
+                "type": "graduation_section"
+            }
+        ]
+    }
+}
+--------------------------------------------------------------------
 ## Courses
 
 ### **Get all courses**
@@ -755,7 +1029,7 @@ This endopint will create a new course, some parameters will be needed for doing
 Endpoint:  URL/courses    HTTP method: POST
 ```
 
-You need send an object like this in the request's body:
+You need to send an object like this in the request's body:
 ```
 {
     "id_major" : INT,
@@ -772,7 +1046,7 @@ Endpoint:  URL/courses/id_course    HTTP method: PUT
 
 * Put the value of id course instead of "id_course"
 
-You need send an object like this in the request's body:
+You need to send an object like this in the request's body:
 ```
 {
     "id_major" : INT,
@@ -827,7 +1101,7 @@ This endopint will create a new campus, some parameters will be needed for doing
 Endpoint:  URL/campus    HTTP method: POST
 ```
 
-You need send an object like this in the request's body:
+You need to send an object like this in the request's body:
 ```
 {
     "campus_name": STRING,
@@ -848,7 +1122,7 @@ Endpoint:  URL/campus/id_campus   HTTP method: PUT
 
 * Put the value of id campus instead of "id_campus"
 
-You need send an object like this in the request's body:
+You need to send an object like this in the request's body:
 ```
 {
     "campus_name": STRING,
@@ -909,7 +1183,7 @@ Endpoint:  URL/scholarships    HTTP method: POST
 ```
 
 
-You need send an object like this in the request's body:
+You need to send an object like this in the request's body:
 ```
 {
     "matricula": STRING,
@@ -932,7 +1206,7 @@ Endpoint:  URL/scholarships/id_scholarship   HTTP method: PUT
 * Put the value of id scholarship instead of "id_scholarship"
 
 
-You need send an object like this in the request's body:
+You need to send an object like this in the request's body:
 ```
 {
     "matricula": STRING,
@@ -1046,7 +1320,7 @@ Endpoint:  URL/grades/id_course    HTTP method: POST
 ```
 * Put the value of id course instead of "id_course"
 
-You need send an object like this in the request's body:
+You need to send an object like this in the request's body:
 ```
 {
     "id_group": INT,
@@ -1074,7 +1348,7 @@ Endpoint:  URL/grades/id_course   HTTP method: PUT
 
 * Put the value of id course instead of "id_course"
 
-You need send an object like this in the request's body:
+You need to send an object like this in the request's body:
 ```
 {
     "id_group": INT,
@@ -1103,7 +1377,7 @@ Endpoint:  URL/grades/id_course   HTTP method: PUT
 
 * Put the value of id course instead of "id_course"
 
-You need send an object like this in the request's body:
+You need to send an object like this in the request's body:
 ```
 {
     "id_student" : STRING
@@ -1268,7 +1542,7 @@ Endpoint  URL/payments         HTTP METHOD : POST
 ```
 
 
-You need send an object like this in the request's body
+You need to send an object like this in the request's body
 ```
 {
    matricula        : STRING,
@@ -1303,7 +1577,7 @@ Endpoint  URL/payments/id_payment/payFor         HTTP METHOD : POST
 ```
 
 
-You need send an object like this in the request's body
+You need to send an object like this in the request's body
 ```
 {
    pay_amount       : FLOAT,
@@ -1335,7 +1609,7 @@ Endpoint  URL/payments/students/matricula/check         HTTP METHOD : POST
 ```
 
 
-You need send an object like this in the request's body
+You need to send an object like this in the request's body
 ```
 {
     payment_type     : 'Documento' || 'Inscripción' || 'Materia',
@@ -1373,7 +1647,7 @@ This endpoint will update the cutoff date of payment in case it be needed
 Endpoint  URL/payments/id_payment         HTTP METHOD : PATCH
 ``` 
 
-You need send an object like this in the request's body
+You need to send an object like this in the request's body
 ```
 {
     cutoff_date     :   ONLY DATE (Format : YYYY-MM-DD) 
@@ -1429,7 +1703,7 @@ _This endopint will create a new card, you need to add some parameters to create
 ```
 Endpoint:  URL/cards    HTTP method: POST
 ```
-_You need send an object like this in the request's body:_
+_You need to send an object like this in the request's body:_
 ```
 {
     "card_number": "1234567891012347",
@@ -1457,7 +1731,7 @@ _This endopint will update a specific card, you need to add some parameters to u
 ```
 Endpoint:  URL/cards/id_card    HTTP method: PUT
 ```
-_You need send an object like this in the request's body:_
+_You need to send an object like this in the request's body:_
 ```
 {
     "card_number": "1234567891012347",
@@ -1492,7 +1766,7 @@ _It's not neccesary to send a body in the request._
 ### Get request by date and status
 
 ```
-URL/requests /*Method http: GET*/
+URL/requests /*HTTP method: GET*/
 ```
 - Possible parameters: fecha, status
 _An example could be_
@@ -1543,7 +1817,7 @@ _An example_
 ### Create a request
 
 ```
-URL/requests /*Method http: POST*/
+URL/requests /*HTTP method: POST*/
 ```
 
 
@@ -1568,7 +1842,7 @@ URL/requests /*Method http: POST*/
 ### Complete a request
 
 ```
-URL/requests/id_request  /*Method http: PUT*/
+URL/requests/id_request  /*HTTP method: PUT*/
 ```
 
 
@@ -1586,7 +1860,7 @@ URL/requests/id_request  /*Method http: PUT*/
 ### Delete a request
 
 ```
-URL/requests/id_request  /*Method http: DELETE*/
+URL/requests/id_request  /*HTTP method: DELETE*/
 ```
 
 - _This endpoint is to delete a REQUEST, you just have to put in the params the id of the request instead of id-request_
@@ -1602,7 +1876,7 @@ URL/requests/id_request  /*Method http: DELETE*/
 ### Get expense by date
 
 ```
-URL/expenses /*Method http: GET*/
+URL/expenses /*HTTP method: GET*/
 ```
 - Possible parameters: fecha
 _An example could be_
@@ -1632,7 +1906,7 @@ _An example_
 ### Create a expense
 
 ```
-URL/expenses /*Method http: POST*/
+URL/expenses /*HTTP method: POST*/
 ```
 
 
@@ -1659,7 +1933,7 @@ URL/expenses /*Method http: POST*/
 ### Update an expense
 
 ```
-URL/expenses/id_expense  /*Method http: PUT*/
+URL/expenses/id_expense  /*HTTP method: PUT*/
 ```
 - _the options that you can send in order to update an expense are:_
 ```
@@ -1685,7 +1959,7 @@ URL/expenses/id_expense  /*Method http: PUT*/
 ### Delete an expense
 
 ```
-URL/expenses/id_expense  /*Method http: DELETE*/
+URL/expenses/id_expense  /*HTTP method: DELETE*/
 ```
 
 - _This endpoint is to delete AN EXPENSE, you just have to put in the params the id of the expense instead of id-expense_
@@ -1701,7 +1975,7 @@ URL/expenses/id_expense  /*Method http: DELETE*/
 ### GET INFO SO AS TO CREATE DOCUMENT
 
 ```
-URL/documents/id_request  /*Method http: GET*/
+URL/documents/id_request  /*HTTP method: GET*/
 ```
 
 - _This endpoint is to get a info so as to create the document, you just have to put in the params the id of the request instead of id-request_
@@ -1767,7 +2041,7 @@ URL/documents/id_request  /*Method http: GET*/
 
 _It will return all registered attendance, from regular courses, extracurricular courses and graduation courses by section. If you want to use it like this, use the endpoint like this:_
 ```
-URL/assits/*Method http: GET*/
+URL/assits/*HTTP method: GET*/
 ```
 - _If the response is successfull you will get something like this..._
 ```
@@ -1885,7 +2159,7 @@ URL/assits/*Method http: GET*/
 ```
 _If you want to get assistance for specific courses (regular courses, extracurricular courses or graduation courses by section) you can filter by course name and the endpoint will return all the matches. This filter has a maximum of 10 records displayed per page. Use the endpoint like this:_
 ```
-URL/assits?q=mat/*Method http: GET*/
+URL/assits?q=mat/*HTTP method: GET*/
 ```
 - _This is an example of a search filtered by the name of courses:_
 ```
