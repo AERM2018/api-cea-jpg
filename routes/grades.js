@@ -31,26 +31,27 @@ gradesRouter.get('/students/:matricula',[
     validateJWT
 ],getAllGradesByMatricula)
 
-gradesRouter.get( '/:id_course', [
+gradesRouter.post('/regular/check', [
     check('id_course','El id del curso es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    check('id_student',"El id del estudiante es un número entero y es obligatorio").isNumeric().exists({checkNull:true}),
-    check('grade',"El campo grade es de tipo float de 4 y es obligatorio").isFloat(4).exists({checkNull:true}),
+    check('id_group','El id del grupo es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
+    // check('id_student',"El id del estudiante es un número entero y es obligatorio").isNumeric().exists({checkNull:true}),
+    // check('grade',"El campo grade es de tipo float de 4 y es obligatorio").isFloat(4).exists({checkNull:true}),
     validateFields,
     validateJWT
 ] ,getAllGradesByCourse);
 
 
-gradesRouter.post('/:id_course', [
+gradesRouter.post('/regular/:id_course', [
     check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
     check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
-    check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
+    check('students',"Las calificaciones de los estudiantes son obligatorias").isArray({ min:1 }),
     validateFields,
     checkGrades,
     validateJWT
 ], uploadCourseGrades);
 
 gradesRouter.put( 'regular/:id_grade', [
-    param('id_grade','Llave ').not().isEmpty().isInt(),
+    param('id_grade','El id de la calificación es un numero y es obligatorio').not().isEmpty().isInt(),
     // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
     // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
     // check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
@@ -61,7 +62,7 @@ gradesRouter.put( 'regular/:id_grade', [
 ], updateGrades);
 
 gradesRouter.put( 'extra/:id_stu_extracou', [
-    param('id_stu_extracou','Llave ').not().isEmpty().isInt(),
+    param('id_stu_extracou','El id de estudiante_extracurricular es un numero y es obligatorio ').not().isEmpty().isInt(),
     // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
     // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
     // check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),

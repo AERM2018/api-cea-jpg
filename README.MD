@@ -998,38 +998,52 @@ URL/teachers/id_teacher/courses   /*HTTP method: GET*/
 ### **Get all courses**
 
 This endopint will find al the courses that exists, the result of this will be a list of the courses and the major that is related with it.
+
 ```
-Endpoint:  URL/courses   HTTP method: GET
+URL/courses   /*HTTP method: GET*/
 ```
 
-The result look like:
+**If the request is successful, the response would be:**
+
 ```
 {
     "ok": true,
     "courses": [
         {
-            "id_course": 1,
-            "major_name": "Licenciatura en derecho",
-            "course_name": "Materia 1"
+            "id_course": 5,
+            "id_major": 13,
+            "course_name": "Español avanzado",
+            "major_name": "Johan"
         },
         {
-            "id_course": 2,
-            "major_name": "Licenciatura en derecho",
-            "course_name": "Materia 2"
+            "id_course": 6,
+            "id_major": 13,
+            "course_name": "Español avanzado 2.0",
+            "major_name": "Johan"
         }
         ...
     ]
 }
 ```
 
+**If there're no courses, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "courses": []
+    }
+```
+
+
 ### **Create a course**
 
-This endopint will create a new course, some parameters will be needed for doing it.
+This endopint will create a new course.
+
 ```
-Endpoint:  URL/courses    HTTP method: POST
+URL/courses    HTTP method: POST
 ```
 
-You need to send an object like this in the request's body:
+**You need to send an object like this in the request's body:**
 ```
 {
     "id_major" : INT,
@@ -1037,113 +1051,178 @@ You need to send an object like this in the request's body:
 }
 ```
 
-### **Update a course by its id**
+**If the request is successful, the response would be:**
 
-This endopint will update a existing course, you need sent in the url the id of the course that you want to update.
 ```
-Endpoint:  URL/courses/id_course    HTTP method: PUT
+{
+    "ok": true,
+    "msg": "Curso creado correctamente"
+}
+```
+### **Update a course**
+
+This endopint will update an existing course, you need to send the course id in the url.
+
+```
+URL/courses/id_course    /*HTTP method: PUT*/
 ```
 
-* Put the value of id course instead of "id_course"
+* Put the value of course id instead of "id_course"
 
-You need to send an object like this in the request's body:
+**You need to send an object like this in the request's body:**
 ```
 {
     "id_major" : INT,
     "course_name" : STRING
 }
 ```
+**If the request is successful, the response would be:**
 
-### **Delete a course by its id**
-
-This endopint will delete course, you need sent in the url the id of the course that you want to delete.
 ```
-Endpoint:  URL/courses/id_course    HTTP method: DELETE
+{
+    "ok": true,
+    "msg": "Curso actualizado correctamente"
+}
+```
+### **Delete a course**
+
+This endopint will delete course. You need to send the course id in the url.
+
+```
+URL/courses/id_course    HTTP method: DELETE
 ```
 
-* Put the value of id course instead of "id_course"
+* Put the value of course id instead of "id_course"
 
-It's not neccesary to send a body in the request.
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+
+```
+{
+    "ok": true,
+    "msg": "Curso eliminado correctamente"
+}
+```
 
 ------------------------------------------------------------------------------
 ## Campus
 
 ### **Get all campus**
 
-This endopint will find all the campus that exists, the result of this will be a list of the campus with information about them.
+This endopint will return a list of all the campus.
+
 ```
-Endpoint:  URL/campus   HTTP method: GET
+URL/campus   /*HTTP method: GET*/
 ```
 
-The result look like:
+**If the request is successful, the response would be:**
+
 ```
 {
     "ok": true,
     "campus": [
         {
-            "id_campus" : 9
-            "campus_name": "Alejandria",
-            "street":"STRING",
-            "zip":"STRING",
-            "colony":"STRING"
-            "state" : "Durango",            
+            "id_campus": 10,
+            "campus_name": "rtyuio",
+            "street": "Pról. Cuauhtémoc #515",
+            "state": "Durango",
             "municipality": "Durango",
+            "colony": "fghjklñ",
+            "zip": "34160"
         }
         ...
     ]
 }
 ```
+**If there're no campus, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "campus": []
+    }
+```
 
 ### **Create a campus**
 
-This endopint will create a new campus, some parameters will be needed for doing it.
+This endopint will create a new campus.
+
 ```
-Endpoint:  URL/campus    HTTP method: POST
+URL/campus    /*HTTP method: POST*/
 ```
 
-You need to send an object like this in the request's body:
+**You need to send an object like this in the request's body:**
 ```
 {
     "campus_name": STRING,
     "street":"STRING",
-    "zip":"STRING",
-    "colony":"STRNG"
     "state" : STRING,            
     "municipality": STRING,
+    "colony":"STRNG"
+    "zip":"STRING",
+}
+```
+
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "msg": "Campus creado correctamente"
 }
 ```
 
 ### **Update a campus by its id**
 
-This endopint will update a existing campus, you need sent in the url the id of the campus that you want to update.
+This endopint will update an existing campus, you need to send the campus id in the url.
+
 ```
-Endpoint:  URL/campus/id_campus   HTTP method: PUT
+URL/campus/id_campus   HTTP method: PUT
 ```
 
-* Put the value of id campus instead of "id_campus"
+* Put the value of campus id instead of "id_campus"
 
-You need to send an object like this in the request's body:
+
+**You need to send an object like this in the request's body:**
 ```
 {
     "campus_name": STRING,
     "street":"STRING",
-    "zip":"STRING",
-    "colony":"STRING"
     "state" : STRING,            
     "municipality": STRING,
+    "colony":"STRING"
+    "zip":"STRING",
+}
+```
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "msg": "Campus actualizado correctamente"
 }
 ```
 
+
 ### **Delete a campus by its id**
 
-This endopint will delete a campus, you need sent in the url the id of the campus that you want to delete.
+This endopint will delete an existing campus. You need to send the campus id in the url.
+
 ```
-Endpoint:  URL/campus/id_campus   HTTP method: DELETE
+URL/campus/id_campus   /*HTTP method: DELETE*/
 ```
 
-* Put the value of id campus instead of "id_campus"
+* Put the value of campus id instead of "id_campus"
 
-It's not neccesary to send a body in the request.
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+
+```
+{
+    "ok": true,
+    "msg": "Campus eliminado correctamente"
+}
+```
 
 ------------------------------------------------------------------------------
 
@@ -1151,151 +1230,233 @@ It's not neccesary to send a body in the request.
 
 ### **Get all scholarships**
 
-This endopint will find all the scholarships that exists, the result of this will be a list of the scholarships with information about them.
+This endopint will return a list of all the scholarships.
+
 ```
-Endpoint:  URL/scholarships   HTTP method: GET
+URL/scholarships     /*HTTP method: GET*/
 ```
 
-The result look like:
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
     "scholarships": [
         {
-            "id_scholarship": 1,
-            "scholarship_name": "Base",
+            "id_scholarship": 2,
+            "scholarship_name": "Exelencia",
             "percentage": 100,
-            "reason": "Buen alumno",
+            "reason": "Buenisimo alumno",
             "observations": "",
-            "matricula": "An student's matricula",
-            "Student": "An student's name"
-        },
-        ...
-    ]
-}
-```
-
-### **Create a scholarship**
-
-This endopint will create a new scholarship, some parameters will be needed for doing it.
-```
-Endpoint:  URL/scholarships    HTTP method: POST
-```
-
-
-You need to send an object like this in the request's body:
-```
-{
-    "matricula": STRING,
-    "scholarship_name": STRING,
-    "percentage": FLOAT,
-    "reason": STRING,
-    "observations": STRING,
-}
-```
-
-If there's no observations send an empty string
-
-### **Update a scholarship by its id**
-
-This endopint will update a existing scholarship, you need sent in the url the id of the scholarship that you want to update.
-```
-Endpoint:  URL/scholarships/id_scholarship   HTTP method: PUT
-```
-
-* Put the value of id scholarship instead of "id_scholarship"
-
-
-You need to send an object like this in the request's body:
-```
-{
-    "matricula": STRING,
-    "scholarship_name": STRING,
-    "percentage": FLOAT,
-    "reason": STRING,
-    "observations": STRING,
-}
-```
-If there's no observations send an empty string
-
-
-### **Delete a scholarship by its id**
-
-This endopint will delete a scholarship, you need sent in the url the id of the scholarship that you want to delete
-```
-Endpoint:  URL/scholarships/id_scholarship   HTTP method: DELETE
-```
-
-* Put the value of id scholarship instead of "id_scholarship"
-
-It's not neccesary to send a body in the request
-
-------------------------------------------------------------------------------
-
-## Grades
-
-### **Get grades from all groups**
-
-This endopint will find the grades of all the groups and it will give the general average of each group
-
-
-```
-Endpoint:  URL/grades/   HTTP method: GET
-```
-
-The result look like:
-```
-{
-    "ok": true,
-    "groups": [
-        {
-            "id_group": 5,
-            "name_group": "2 derecho",
-            "avg": 8.025
-        },...
-    ]
-}
-```
-
-
-### **Get grades from a group**
-
-This endopint will find the grades of a group and it will give the general average of each student who belong to the group
-
-
-```
-Endpoint:  URL/grades/id_group   HTTP method: GET
-```
-* Put the value of id group instead of "id_group"
-The result look like:
-```
-{
-    "ok": true,
-    "students": [
-        {
             "id_student": "ale105083",
-            "fullname": "Angel Retana Retana",
-            "avg": 8.5
-        },
-        {
-            "id_student": "ale106009",
-            "fullname": "Angel Gonzalez Vergas",
-            "avg": 7.55
+            "matricula": "DEDG202103003",
+            "student": "Angel Gonzalez Gonzalez"
         }
     ]
 }
 ```
+**If there're no scholarships, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "scholarships": []
+    }
+```
 
-### **Get grades from a student**
 
-This endopint will find the grades of a student and it will give information such as teacher who gave the class, when the student took the class and the grade the student got
+### **Create a scholarship**
+
+This endopint will create a new scholarship.
+
+```
+URL/scholarships    /*HTTP method: POST*/
+```
+
+
+**You need to send an object like this in the request's body:**
+```
+{
+    "matricula": STRING,
+    "scholarship_name": STRING,
+    "percentage": FLOAT,
+    "reason": STRING,
+    "observations": STRING,
+}
+```
+**Important**
+- If there's no observations send an empty string
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "msg": "La beca se creo correctamente."
+}
+```
+
+### **Update a scholarship by its id**
+
+This endopint will update an existing scholarship. You need to send the scholarship id in the url.
+
+```
+URL/scholarships/id_scholarship   /*HTTP method: PUT*/
+```
+
+* Put the value of scholarship id instead of "id_scholarship"
+
+
+**You need to send an object like this in the request's body:**
+
+```
+{
+    "matricula": STRING,
+    "scholarship_name": STRING,
+    "percentage": FLOAT,
+    "reason": STRING,
+    "observations": STRING,
+}
+```
+**Important**
+- If there's no observations send an empty string
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "msg": "La beca se actualizo correctamente."
+}
+```
+
+
+### **Delete a scholarship by its id**
+
+This endopint will delete an existing scholarship. You need to send the scholarship id in the url.
+
+```
+URL/scholarships/id_scholarship   /*HTTP method: DELETE*/
+```
+
+* Put the value of scholarship id instead of "id_scholarship"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "msg": "La beca se elimino correctamente"
+}
+```
+------------------------------------------------------------------------------
+
+## Grades
+
+### **Get averages**
+
+This endopint will return a list of the students' averages as well as the groups' averages.
+
+Query params you can use:
+- q : Specify one of the following attributes:
+    + Student's matricula
+    + Student's name
+    + Group name
+
+```
+URL/grades/all    /*HTTP method: GET*/
+```
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "grades": [
+                {
+                    "id_student": "ale105083",
+                    "matricula": "DEDG202103003",
+                    "studenet_name": "Angel Gonzalez Gonzalez",
+                    "avg": 8.5,
+                    "q": "student_name"
+                },
+                {
+                    "id_student": "ale106009",
+                    "matricula": "DEDG202103001",
+                    "studenet_name": "Angel Gonzalez Vergas",
+                    "avg": 7.55,
+                    "q": "student_name"
+                }...
+    ]
+}
+```
+
+**If there're no grades, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "grades": []
+    }
+```
+
+**Important**
+- The attribute "q" in each object of the array grades is the parameter the grade was found by. It could take one of the following values:
+    + student_name
+    + matricula
+    + group_name
+
+
+### **Get students' average from a group**
+
+This endopint will return the general average of each of the students who belongs to a group. You need to pass the group id in the url.
 
 
 ```
-Endpoint:  URL/grades/students/matricula   HTTP method: GET
+Endpoint:  URL/grades/groups/id_group     /*HTTP method: GET*/
 ```
+
+* Put the value of group id instead of "id_group"
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "id_group": 5,
+    "group_name": "3 derecho",
+    "students": [
+        {
+            "id_student": "ale105083",
+            "matricula": "DEDG202103003",
+            "fullname": "Angel Gonzalez Gonzalez",
+            "avg": 8.5
+        },
+        {
+            "id_student": "ale106009",
+            "matricula": "DEDG202103001",
+            "fullname": "Angel Gonzalez Vergas",
+            "avg": 7.55
+        }...
+    ]
+}
+```
+
+**If there're no students who belong to the group, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "students": []
+    }
+```
+
+
+### **Get grades from a student by matricula**
+
+This endopint will return the grades of a student and it will give information such as teacher who gave the class, when the student took the class and the grade the student got
+
+
+```
+URL/grades/students/matricula   HTTP method: GET
+```
+
 * Put the value of matricula instead of "matricula"
-The result look like:
+
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -1310,45 +1471,61 @@ The result look like:
     ]
 }
 ```
+### ***Get grades from a course and a group***
+
+This endpoint will return the grades of a course of the students who belong to a group.
+
+```
+URL/grades/regular/check       /*HTTP method: POST*/
+```
+
+**You need to send an object like this in the request's body:**
+
+```
+{
+    id_course : INT,
+    id_group: INT
+}
+```
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "grades": [
+        {
+            "id_grade": 14,
+            "id_course": 6,
+            "id_student": "ale105083",
+            "grade": 7,
+            "matricula": "DEDG202103003",
+            "student_name": "Angel Gonzalez Gonzalez",
+            "course_name": "Español avanzado 2.0"
+        },
+        {
+            "id_grade": 15,
+            "id_course": 6,
+            "id_student": "ale106009",
+            "grade": 7,
+            "matricula": "DEDG202103001",
+            "student_name": "Angel Gonzalez Vergas",
+            "course_name": "Español avanzado 2.0"
+        }
+    ]
+}
+```
+
 ### **Upload grades of a group**
 
-This endopint will upload the grades of a couse by the group's id, some parameters will be needed for doing it.
+This endopint will upload the grades of a couse by the group's id. You need to send the course id in the url.
 
-The course's id needs  to be sent in the url as parameter
 ```
-Endpoint:  URL/grades/id_course    HTTP method: POST
+URL/grades/regular/id_course    HTTP method: POST
 ```
-* Put the value of id course instead of "id_course"
+* Put the value of course id instead of "id_course"
 
-You need to send an object like this in the request's body:
-```
-{
-    "id_group": INT,
-    "students" : [{
-        "id_student" : STRING,
-        "grade" : FLOAT
-    },
-    {
-        "id_student" : STRING,
-        "grade" : FLOAT
-    },
-    ...
-    ]
-}
-```
+**You need to send an object like this in the request's body:**
 
-### **Update a grades**
-
-This endopint will update the grades of a couse by the group's id, some parameters will be needed for doing it.
-
-The course's id needs no to be sent in the url as parameter
-```
-Endpoint:  URL/grades/id_course   HTTP method: PUT
-```
-
-* Put the value of id course instead of "id_course"
-
-You need to send an object like this in the request's body:
 ```
 {
     "id_group": INT,
@@ -1365,8 +1542,54 @@ You need to send an object like this in the request's body:
 }
 ```
 
+### **Update regualar courses' grade**
 
+This endopint will update a regular course's grade of a student. You need to send the grade id in the url.
 
+```
+URL/grades/regular/id_grade   HTTP method: PUT
+```
+
+* Put the value of grade id instead of "id_grade"
+
+**You need to send an object like this in the request's body:**
+```
+{
+    "grade" : FLOAT
+}
+```
+
+**If the request is successful, the response would be:**
+```
+{
+    ok:true,
+    msg: 'Calificación de materia actualizada correctamente.'
+}
+```
+### **Update extracurricular courses' grade**
+
+This endopint will update a extracurricular course's grade of a student. You need to send the student_extracurricular id in the url.
+
+```
+URL/grades/extra/id_stu_extcou   HTTP method: PUT
+```
+
+* Put the value of student_extracurricularid instead of "id_stu_extcou"
+
+**You need to send an object like this in the request's body:**
+```
+{
+    "grade" : FLOAT
+}
+```
+
+**If the request is successful, the response would be:**
+```
+{
+    ok:true,
+    msg: 'Calificación de curso extra curricular actualizada correctamente.'
+}
+```
 
 ### **Delete grade of a student**
 
@@ -1665,6 +1888,7 @@ Endpoint  URL/payments/id_payment         HTTP METHOD : DELETE
 ``` 
 
 It's not neccesary to send a body in the request.
+----------------------------------------------------------
 
 ## Cards
 

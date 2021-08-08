@@ -78,8 +78,7 @@ const getAllGrades = async( req, res = response) => {
 }
 
 const getAllGradesByCourse = async (req, res = response) => {
-    const { id_course } = req.params
-    const { id_group } = req.query
+    const { id_course, id_group} = req.body
 
     try {
 
@@ -101,14 +100,41 @@ const getAllGradesByCourse = async (req, res = response) => {
                 msg: `El grupo con id ${id_group} no existe, verifiquelo por favor.`
             })
         }
-        const grades = await db.query(getGrades, { replacements: { 'id_course': id_course, 'id_group': id_group }, type: QueryTypes.SELECT });
+        Grades.belongsTo(Course,{ foreignKey: 'id_course'})
+        Course.hasMany(Grades,{ foreignKey: 'id_course'})
 
+        Grades.belongsTo(Student, { foreignKey : 'id_student'})
+        Student.hasMany(Grades, { foreignKey : 'id_student'})
+
+        let grades = await Grades.findAll({
+            include : [{
+                model : Course,
+                attributes : ['course_name','id_course']
+            },
+            {
+                model : Student,
+                attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
+            }],
+            where : { 
+                id_course , 
+                id_student : { [Op.in] : literal(`(SELECT id_student FROM stu_gro WHERE id_group = ${id_group})`)}
+            }
+        })
+
+        grades = grades.map( grade => {
+            const {course, student, ...restoGrade} = grade.toJSON();
+            return {
+                ...restoGrade,
+                ...student,
+                ...course
+            }
+        })
         res.status(200).json({
             ok: true,
             grades
         })
     } catch (err) {
-        printAndSendError(err);
+        printAndSendError(res,err);
     }
 }
 // It's not working

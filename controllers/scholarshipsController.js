@@ -93,7 +93,7 @@ const updateScholarship = async (req, res = response) => {
         await Scholarship.update({...rest}, { where: { 'id_scholarship': id_scholarship } })
         res.status(200).json({
             ok: true,
-            msg: `La beca con id ${id_scholarship} se actualizo correctamente.`
+            msg: `La beca se actualizo correctamente.`
         })
     } catch (err) {
         console.log(err)
@@ -116,11 +116,17 @@ const deleteScholarship = async (req, res = response) => {
             });
         }
 
+        const studentScholarship = await Sch_stu.findOne({
+            where : { id_scholarship : scholarship.toJSON().id_scholarship}
+        })
+
+        
+        await studentScholarship.destroy()
         await scholarship.destroy();
 
         res.status(200).json({
             ok: true,
-            msg: `La beca con id ${id_scholarship} se elimino correctamente`
+            msg: `La beca se elimino correctamente.`
         })
     } catch (err) {
         console.log(err)
