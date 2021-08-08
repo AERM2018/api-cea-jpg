@@ -84,7 +84,7 @@ const revalidateJWT = async (req, res = response) => {
     try {
         const { id_user, user_type, id_role, email } = req
         const token = await createJWT(id_user, email, user_type, id_role)
-        const userEntityInfo = await getLogInInfo(id,user_type)
+        const userEntityInfo = await getLogInInfo(id_user,user_type)
         return res.status(200).json({
             ok: true,
             token,
