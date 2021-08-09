@@ -2069,6 +2069,7 @@ URL/requests/id_request  /*HTTP method: PUT*/
 
 * Put the value of request id instead of "id_request"
 
+**It's not neccesary to send a body in the request**
 
 **If the request is successful, the response would be:**
 ```
