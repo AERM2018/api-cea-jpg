@@ -40,7 +40,7 @@ const createCard = async (req, res)=>{
         else{
             return res.status(400).json({
                 ok: false,
-                msg:"Ya existe un resgistro con el numero de tarjeta "+ card_number,
+                msg:"Ya existe un registro con el numero de tarjeta "+ card_number,
             });
         }
         res.status(201).json({
@@ -117,7 +117,7 @@ const deleteCard = async (req, res)=>{
         await card.destroy();
         res.status(200).json({
             ok: true,
-            msg: "La tarjeta se eliminó conrrectamente"
+            msg: "La tarjeta se eliminó conrrectamente."
         })
     }catch(error){
         console.log(error)

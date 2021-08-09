@@ -1591,22 +1591,6 @@ URL/grades/extra/id_stu_extcou   HTTP method: PUT
 }
 ```
 
-### **Delete grade of a student**
-
-This endopint will delete a grade of a student, you need sent in the url the id of the course in which the student's grade is going to be deleted
-```
-Endpoint:  URL/grades/id_course   HTTP method: PUT
-```
-
-* Put the value of id course instead of "id_course"
-
-You need to send an object like this in the request's body:
-```
-{
-    "id_student" : STRING
-}
-```
-
 ---------------------------------------------------------
 ### **Get all payments**
 
@@ -1645,9 +1629,9 @@ This endpoint will give you a list of the students which belong to the group spe
 * Put the value of id group instead of "id_group"
 
 ```
-Endpoint  URL/payments/groups/id_group           HTTP METHOD : GET
+URL/payments/groups/id_group           /*HTTP METHOD : GET*/
 ```
-The result look like this:
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -1671,29 +1655,28 @@ The result look like this:
     ]
 }
 ```
-#### **Info you might want to know:**
+#### **Important**
 
 - money_exp : total money to pay.
 - money     : how much money have paid.
 - missing   : how much money is missing.
 
---------------------------------------------------------------
 ### **Get payments by student**
 
 This endpoint will give you a list of the payments that a student has made, in addition, it shows the student's basic info for payments and how much money he dues and how much he has paid, each one of the payments contain the total money the student has to pay, how much he has paid and how much he is missing, moreover the payment's concept, the payment's status, which employee made it, and the date when the payment was paid.
 
-* Put the value of student's matricula instead of "matricula"
+```
+URL/payments/students/matricula           /*HTTP METHOD : GET*/
+```
 
-```
-Endpoint  URL/payments/students/matricula           HTTP METHOD : GET
-```
+* Put the value of student's matricula instead of "matricula"
 
 Query params you can use:
 - status : 0 (payments don't fully paid) OR 1 (payments fully paid) OR 2(the payment is close)
 
-If the query params are not send, the endpoint will return payment with status 0 and 1.
+If the query params are not send, the endpoint will return all payments.
 
-The result look like this:
+**If the request is successful, the response would be:**
 ```
 {
    "ok": true,
@@ -1738,13 +1721,13 @@ The result look like this:
 }
 ```
 
-#### **Info you might want to know:**
-#### _Student_
+#### **Important**
+#### _Student info_
 - money_exp : total money to pay.
 - money     : how much money have paid.
 - missing   : how much money is missing.
 
-#### _Payments_
+#### _Payments info_
 - expected : total money to pay,
 - current  : how much money have paid.
 - missing  : how much money is missing.
@@ -1753,19 +1736,17 @@ The result look like this:
 - last_payment_date : Last date a payment was paid.
 - payment_type : The type of payment it was asked for.
 
---------------------------------------------------------------
-### **Create payment**
+
+### **Create a payment**
 
 This endpoint will create a new payment which will containt info such student that made it, employee that attend the student, the concept and other important info.
 
-* Put the value of student's matricula instead of "matricula"
-
 ```
-Endpoint  URL/payments         HTTP METHOD : POST
+Endpoint  URL/payments         /*HTTP METHOD : POST*/
 ```
 
 
-You need to send an object like this in the request's body
+**You need to send an object like this in the request's body:**
 ```
 {
    matricula        : STRING,
@@ -1778,12 +1759,12 @@ You need to send an object like this in the request's body
    start_date       : INT
 }
 ```
-#### **Info you might want to know:**
+#### **Important**
 
 - document_type : type of document you're are paying for,
 - start_date  : number of the month that you're paying
 
-_**Important**_
+_**Info you might want to know:**_
 - If the payment_type is different to document, send null as document_type value
 - If the payment_method is different to tarjeta or depósito, send null as id_card value
 - If start_date is null, the system will take it as the current month when the payment is being generated.
@@ -1793,14 +1774,14 @@ _**Important**_
 
 This endpoint will pay for a payment by its id, if the payment is fully paid, the payment's status will change from 0 to 1.
 
-* Put the value of payment's id instead of "id_payment"
-
 ```
-Endpoint  URL/payments/id_payment/payFor         HTTP METHOD : POST
+Endpoint  URL/payments/id_payment/payFor         /*HTTP METHOD : POST*/
 ```
 
+* Put the value of payment id instead of "id_payment"
 
-You need to send an object like this in the request's body
+
+**You need to send an object like this in the request's body:**
 ```
 {
    pay_amount       : FLOAT,
@@ -1810,11 +1791,11 @@ You need to send an object like this in the request's body
 
 }
 ```
-#### **Info you might want to know:**
+#### **Important**
 
 - pay_amount : amount that you're paying
 
-_**Important**_
+_**Info you might want to know:**_
 - If the payment_method is different to tarjeta or depósito, send null as id_card value.
 
 
@@ -1828,11 +1809,11 @@ This endpoint will return the amount you have to pay for when you generated a pa
 * Put the value of matricula instead of "matricula"
 
 ```
-Endpoint  URL/payments/students/matricula/check         HTTP METHOD : POST
+URL/payments/students/matricula/check         /*HTTP METHOD : POST*/
 ```
 
 
-You need to send an object like this in the request's body
+**You need to send an object like this in the request's body:**
 ```
 {
     payment_type     : 'Documento' || 'Inscripción' || 'Materia',
@@ -1842,19 +1823,19 @@ You need to send an object like this in the request's body
 }
 ```
 
-The result looks like this:
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
     "total_to_pay": 800
 }
 ```
-#### **Info you might want to know:**
+#### **Important**
 
 - document_type : type of document you're are paying for,
 - start_date  : number of the month that you're paying
 
-_**Important**_
+_**Info you might want to know:**_
 - If the payment_type is different to document, send null as document_type value
 - If start_date is null, the system will take it as the current month when the payment is being generated.
 
@@ -1862,45 +1843,55 @@ _**Important**_
 --------------------------------------------------------------------
 ### Update a payment
 
-This endpoint will update the cutoff date of payment in case it be needed
-
-* Put the value of payment's id instead of "id_payment"
+This endpoint will update the cutoff date of payment in case it be needed.
 
 ```
-Endpoint  URL/payments/id_payment         HTTP METHOD : PATCH
+Endpoint  URL/payments/id_payment         /*HTTP METHOD : PATCH*/
 ``` 
 
-You need to send an object like this in the request's body
+* Put the value of payment id instead of "id_payment"
+
+**You need to send an object like this in the request's body:**
 ```
 {
     cutoff_date     :   ONLY DATE (Format : YYYY-MM-DD) 
 }
 ```
---------------------------------------------------------------------
+
 ### Delete a payment
 
 This endpoint will delete a payment by its id, the info of the student who ask for it and the employee who attend the student will be deleted as well as the card info in case the payment would have paid with card or deposit. In case the payment was for a document, the request will be deleted as well.
 
-* Put the value of payment's id instead of "id_payment"
-
 ```
-Endpoint  URL/payments/id_payment         HTTP METHOD : DELETE
+Endpoint  URL/payments/id_payment         /*HTTP METHOD : DELETE*/
 ``` 
 
-It's not neccesary to send a body in the request.
+* Put the value of payment id instead of "id_payment"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+```
+{
+    ok : true,
+    msg : 'Pago eliminado correctamente'
+}
+```
+
 ----------------------------------------------------------
 
 ## Cards
 
 ### Get Cards
 
-_Here you can get the cards_
+This endpoint will return a list of all the cards.
+
 ```
-Endpoint:  URL/cards    HTTP method: GET
+URL/cards    /*HTTP method: GET*/
 ```
 
 
-_An example:_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -1922,12 +1913,18 @@ _An example:_
     ]
 }
 ```
+
+
 ### Create Card
-_This endopint will create a new card, you need to add some parameters to create the card._
+
+This endpoint will create a new card.
+
 ```
-Endpoint:  URL/cards    HTTP method: POST
+URL/cards    /*HTTP method: POST*/
 ```
-_You need to send an object like this in the request's body:_
+
+
+**You need to send an object like this in the request's body:**
 ```
 {
     "card_number": "1234567891012347",
@@ -1936,26 +1933,26 @@ _You need to send an object like this in the request's body:_
     "due_date": "2021-04-09"
 }
 ```
-- If the request is successful you will be able to see:
+
+**If the request is successful, the response would be:**
 ```
     {
         ok:true,
         msg: "Tarjeta creada correctamente"
     }
 ```
-- If the request is unsuccessful you will be able to see:
-```
-    {
-        ok: false,
-        msg: "Hable con el administrador",
-    }
-```
+
+
 ### Modify the card
-_This endopint will update a specific card, you need to add some parameters to update the card._
+This endpoint will update an existing card. You need to send the card id in the url.
+
 ```
-Endpoint:  URL/cards/id_card    HTTP method: PUT
+URL/cards/id_card    /*HTTP method: PUT*/
 ```
-_You need to send an object like this in the request's body:_
+
+* Put the value of card id instead of "id_card"
+
+**You need to send an object like this in the request's body:**
 ```
 {
     "card_number": "1234567891012347",
@@ -1964,9 +1961,8 @@ _You need to send an object like this in the request's body:_
     "due_date": "2021-04-09"
 }
 ```
-- Remeber add the id of the card
 
-_If we have the card correctly updated you receive:_
+**If the request is successful, the response would be:**
 ```
     {
         ok:true,
@@ -1975,64 +1971,59 @@ _If we have the card correctly updated you receive:_
 ```
 ## Delete a card
 
-_This endpoint allows you to delete a specific card with the Id_
+This endpoint will delete an existing card. You need to send the card id.
 
 ```
-Endpoint:  URL/cards/id_card    HTTP method: DELETE
+URL/cards/id_card    /*HTTP method: DELETE*/
 ```
-- Do not forget specify the id of card
 
-_It's not neccesary to send a body in the request._
+* Put the value of card id instead of "id_card"
 
+**It's not neccesary to send a body in the request**
+
+
+**If the request is successful, the response would be:**
+```
+{
+    ok : true,
+    msg : 'La tarjeta se eliminó conrrectamente.'
+}
+```
+---------------------------------------------------------
 
 ## Requests
 
-### Get request by date and status
+### Get requests  
+
+
+This endpoint will return a list of all the requests.
 
 ```
-URL/requests /*HTTP method: GET*/
+URL/requests        /*HTTP method: GET*/
 ```
-- Possible parameters: fecha, status
-_An example could be_
-```
-URL/requests?fecha=2021-04-22&status=1
-```
-- If you put "all" in fecha you will get all the requests
-_This endpoint returns the requests of the date that were created and if they are completed or not, if you don't send the date it would take the actual date by default and status in 0_
 
-_An example_
+Query params you can use:
+- date : Specify the creation date's of the request. 
+    + If you put 'all', all the requests will be returned.
+    + If you do not send it, its default value is today's date
+- status : Specify the requests' status. 
+    + It could take one of the following values : 0(not fulfilled) or 1(fulfilled)
+    + If you do not send it, its default value is 0
+
+
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
-    "data": [
+    "requests": [
         {
-            "request": {
-                "id_request": 77,
-                "id_department": 5,
-                "id_document": 99,
-                "id_payment": 319,
-                "status_request": 1,
-                "creation_date": "2021-04-22"
-            },
-            "student": {
-                "id_student": "ale107060",
-                "matricula": "DE3001",
-                "student_fullname": "cruzecito hernandez Vergas",
-                "name_group": "2 derecho",
-                "id_group": 5,
-                "campus_name": "El mejor campus de todos 2.0",
-                "major_name": "Licenciatura en Derecho",
-                "ins_date": null
-            },
-            "id_department": 5,
-            "req_pay": {
-                "id_request": 77,
-                "id_payment": 319,
-                "status_payment": 0,
-                "name": 3,
-                "cost": 500
-            },
-            "id_document": 99
+            "id_request": 75,
+            "status_request": 0,
+            "creation_date": "9,Agosto,2021",
+            "student_name": "Angel Gonzalez Gonzalez",
+            "matricula": "DEDG202103003",
+            "id_student": "ale105083",
+            "document_name": "Certificado"
         }
     ]
 }
@@ -2040,13 +2031,14 @@ _An example_
 
 ### Create a request
 
-```
-URL/requests /*HTTP method: POST*/
-```
+This endpoint will create a new request.
 
 
-- _This endpoint you must send an object so as to create a request if you send something wrong it won't create anything_
-- _The next object is an example to know how to send it_
+```
+URL/requests         /*HTTP method: POST*/
+```
+
+**You need to send an object like this in the request's body:**
 ```
 {
     "matricula" : "DE3001",
@@ -2056,24 +2048,26 @@ URL/requests /*HTTP method: POST*/
 ```
 
 
-- _if the request is successful the response would be:_
+**If the request is successful, the response would be:**
+
 ```
 {
     "ok": true,
     "msg": "Solcitud creada correctamente"
 }
 ```
+
+
 ### Complete a request
 
 ```
 URL/requests/id_request  /*HTTP method: PUT*/
 ```
 
+* Put the value of request id instead of "id_request"
 
-- _In the part of the parameter put the id of the request instead of id-request_
 
-
-- _if the request is successful the response would be:_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -2083,12 +2077,16 @@ URL/requests/id_request  /*HTTP method: PUT*/
 
 ### Delete a request
 
+This endpoint will delete an existing request. It will delete the document and the payment which are related to the request. You need to send the request id in the url.
+
+
 ```
 URL/requests/id_request  /*HTTP method: DELETE*/
 ```
 
-- _This endpoint is to delete a REQUEST, you just have to put in the params the id of the request instead of id-request_
-- _if the request is successful the response would be:_
+* Put the value of request id instead of "id_request"
+
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
