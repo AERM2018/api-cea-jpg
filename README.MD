@@ -1762,8 +1762,12 @@ URL/documents/id_request  /*Method http: GET*/
 - 8: Titulo
 - 9: Constancia de título en proceso
 
-## Assists
-### Get All Course Assistance
+### Assists
+
+_Before continuing, the "attended" field is of type tinyint, where:_
+
+_0=absence; 1=attended: 2=excused absence_
+#### Get All Courses Assistance
 
 _It will return all registered attendance, from regular courses, extracurricular courses and graduation courses by section. If you want to use it like this, use the endpoint like this:_
 ```
@@ -1916,7 +1920,81 @@ URL/assits?q=mat/*Method http: GET*/
 }
 ```
 _So, you are receiving assistance of courses where the name contain "mat"._
+#### Post Regular Course Assistance
+_In order to take attendance of regular courses ..._
+```
+URL/assits/courses/8/*Method http: POST*/
+```
+- _Do not forget to send the id from the course to take attendance, in our example id of course is number 8_
+- _Please send an object like this:_
+```
+{
+    "id_group":7,
+    "studentsList":[
+        {
+            "id_student": "ale100415",
+            "attended": 2
+        }
+    ]
+}
+```
+#### Post Extracurricular Course Assistance
+_In order to take attendance of extracurricular courses ..._
+```
+URL/assits/extra/2/*Method http: POST*/
+```
+- _Do not forget to send the id from the extracurricular course to take attendance, in our example id of extracurricular course is number 2_
+- _Please send an object like this:_
+```
+{
+    "studentsList":[
+        {
+            "id_student": "ale108828",
+            "attended": 1
+        }
+    ]
+}
+```
+#### Post Graduation Section from Graduation Course Assistance
+_In order to take attendance of graduation sections ..._
+```
+URL/assits/grasec/2/*Method http: POST*/
+```
+- _Do not forget to send the id from the graduation section to take attendance, in our example id of graduation section is number 2_
+- _Please send an object like this:_
+```
+{
 
-## History of regular courses
-## Extracurricular course history
-## History of graduation courses by sections
+    "studentsList":[
+        {
+            "id_student": "ale108828",
+            "attended": 2
+        }
+    ]
+}
+```
+#### Update Assistance
+_For updating an assits..._
+```
+URL/assits/1  /*Method http: PUT*/
+```
+- _Please, remember especify the id from the attendance that you want to update_
+- _Please, send an object like this...._
+```
+{
+    "date_assistance":"2021-07-22",
+    "attended": 2
+}
+```
+#### Delete Assistance
+_If you want to delete an assist, use..._
+```
+URL/assits/11 /*Method http: DELETE*/
+```
+- _Do not forget to provide the id from the attendance that you want to remove_
+
+
+
+### History of regular courses
+### Extracurricular course history
+### History of graduation courses by sections
