@@ -2047,6 +2047,9 @@ URL/requests         /*HTTP method: POST*/
 }
 ```
 
+**Important**
+- To get the document type, go to the list of the documents that is in this documentation.
+
 
 **If the request is successful, the response would be:**
 

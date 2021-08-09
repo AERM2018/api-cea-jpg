@@ -229,6 +229,9 @@ const deleteRequest = async  (req, res) => {
         });
         await stu_pay.destroy();
         const payment = await Payment.findByPk(id_payment);
+        await Partial_pay.destroy({
+            where : {id_payment}
+        })
         await payment.destroy();
 
         res.status(200).json({
