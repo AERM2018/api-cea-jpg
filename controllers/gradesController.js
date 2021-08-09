@@ -365,23 +365,23 @@ const uploadExtraCurCourGrades = async (req, res) =>{
 
 }
 
-const uploadTesineGrade = async (req, res) =>{
+// const uploadTesineGrade = async (req, res) =>{
 
-    const {id_ext_cou}=req.params;
-    let  {students}  = req.body;
+//     const {id_tesine}=req.params;
+//     let  {students}  = req.body;
 
-    try {
-        students=students.map( async({id_student, grade})=>{
+//     try {
+//         students=students.map( async({id_student, grade})=>{
           
-            await Stu_extracou.update({grade}, {where: {[Op.and]:[{id_student},{id_ext_cou}]}})
-        })
+//             await Stu_gracou.update({grade}, {where: {[Op.and]:[{id_student},{id_tesine}]}})
+//         })
         
-    } catch (err) {
-        printAndSendError(res, err)
-    }
+//     } catch (err) {
+//         printAndSendError(res, err)
+//     }
 
 
-}
+// }
 
 const updateGrades = async (req, res = response) => {
     const { id_grade  } = req.params;
@@ -490,5 +490,6 @@ module.exports = {
     getAllGradesByMatricula,
     updateExtraCurCourGrades,
     updateTesineGrades,
-    uploadExtraCurCourGrades
+    uploadExtraCurCourGrades,
+    // uploadTesineGrade
 }
