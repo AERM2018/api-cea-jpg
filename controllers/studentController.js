@@ -25,7 +25,58 @@ const Teacher = require('../models/teacher');
 
 const getAllStudents = async (req, res) => {
     try {
-        const students = await db.query(getStudents, { type: QueryTypes.SELECT })
+        // const students = await db.query(getStudents, { type: QueryTypes.SELECT })
+        Cam_use.belongsTo(Campus,{ foreignKey: 'id_campus'});
+        Campus.hasMany(Cam_use, { foreignKey: 'id_campus'});
+
+        Cam_use.belongsTo(User,{ foreignKey: 'id_user'});
+        User.hasOne(Cam_use, { foreignKey: 'id_user'});
+
+        Student.belongsTo(User,{ foreignKey: 'id_user'});
+        User.hasOne(Student,{ foreignKey: 'id_user'});
+
+        Stu_gro.belongsTo(Student,{ foreignKey : 'id_student'})
+        Student.hasMany(Stu_gro,{ foreignKey : 'id_student'})
+
+        Stu_gro.belongsTo(Group,{ foreignKey : 'id_group'})
+        Group.hasMany(Stu_gro,{ foreignKey : 'id_group'})
+
+        let students = await Student.findAll({
+            include : [{
+             model : User,
+             attributes : { 
+                 exclude : ['user_type','email','password']
+             },
+             include : {
+                 model : Cam_use,
+                 attributes : {
+                     exclude : ['id_user','id_cam_use']
+                 },
+                 include : {
+                     model : Campus,
+                     attributes : ['campus_name']
+                 }
+             }   
+            },
+            {
+                model : Stu_gro,
+                include : {
+                    model : Group,
+                    attributes : ['name_group']
+                }
+            }]
+        })
+
+        students = students.map( student => {
+            const {user,stu_gros,...restoStudent} = student.toJSON()
+            return {
+                ...restoStudent,
+                id_campus : user.cam_use.id_campus,
+                campus_name : user.cam_use.campus.campus_name,
+                id_group : stu_gros[stu_gros.length - 1].id_group,
+                group_name : stu_gros[stu_gros.length - 1].groupss.name_group
+            }
+        })
 
         return res.status(200).json({
             ok: true,

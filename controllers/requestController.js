@@ -5,70 +5,105 @@ const Request = require("../models/request")
 const Stu_pay = require("../models/stu_pay")
 const Req_pay = require('../models/req_pay')
 const Student = require('../models/student')
-const { QueryTypes, where } = require('sequelize');
+const { QueryTypes, where,fn,col } = require('sequelize');
 const { getStuInfo } = require('../queries/queries');
 const { db } = require('../database/connection');
 const { document_types } = require("../types/dictionaries")
-
+const Partial_pay = require('../models/partial_pay')
+moment().locale('es')
 const getAllTheRequests = async (req, res) => {
     try {
-        let { fecha = moment().local().format("YYYY-MM-DD") } = req.query;
-        //const { fecha = Date.now() } = req.query;
+        let { date = moment().local().format("YYYY-MM-DD"), status = 0} = req.query;
         let requests;
-        const { status = 0 } = req.query;
         const estado = status ? 'finalizado' : 'no finalizada'
-        if (fecha === 'all'){
-             requests = await Request.findAll({
-                where: {
-                    status_request: status
-                }
-            });
-            
-        }
-        else{
-            requests = await Request.findAll({
-               where: {
-                   creation_date: fecha,
-                   status_request: status
-               }
-           });
+        let condition;
+        condition = (date === 'all') 
+            ? {
+                status_request: status
+            }
+            :{
+                creation_date: date,
+                status_request: status
+            }
 
-        }
+            Request.belongsTo(Payment,{ foreignKey : 'id_payment'})
+            Payment.hasOne(Request,{ foreignKey : 'id_payment'})
+
+            Request.belongsTo(Document,{ foreignKey : 'id_document'})
+            Document.hasOne(Request,{ foreignKey : 'id_document'})
+
+            Stu_pay.belongsTo(Payment,{ foreignKey : 'id_payment'})
+            Payment.hasOne(Stu_pay,{ foreignKey : 'id_payment'})
+
+            Stu_pay.belongsTo(Student,{ foreignKey : 'id_student'})
+            Student.hasMany(Stu_pay,{ foreignKey : 'id_student'})
+
+            requests = await Request.findAll({
+                include : [{
+                   model : Payment,
+                   include : {
+                       model : Stu_pay,
+                       include : {
+                           model : Student,
+                           attributes : [[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'student_name'],'matricula','id_student']
+                       }
+                   }
+                },{
+                    model : Document,
+                    attributes : ['document_type']
+                }],
+                where : condition,
+                attributes : {
+                    exclude : ['id_document','id_payment','id_department']
+                }
+            })
+
+
         if (!requests) {
             return res.status(400).json({
                 ok: false,
-                msg: "No existen peticiones de la fecha " + fecha + 'con el estado ' + estado
+                msg: "No existen peticiones de la fecha " + date + 'con el estado ' + estado
             })
         }
+
+        requests = requests.map( request => {
+            const {payment,document,...restoRequest} = request.toJSON();
+            return {
+                ...restoRequest,
+                creation_date : moment(restoRequest.creation_date).format('D,MMMM,YYYY'),
+                ...payment.stu_pay.student,
+                document_name : document_types[document.document_type].name
+            }
+        })
       
-        const responseRequest = await Promise.all(requests.map(async (request) => {
+        // const responseRequest = await Promise.all(requests.map(async (request) => {
             
-            const { id_payment, id_document, id_department, id_request, creation_date } = request
+        //     const { id_payment, id_document, id_department, id_request, creation_date } = request
            
 
-           //const {id_student} = await Stu_pay.findOne({
-           //    where: { id_payment }
-           //})
+        //    //const {id_student} = await Stu_pay.findOne({
+        //    //    where: { id_payment }
+        //    //})
 
-            //const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-            const {status_payment,name,cost} = await Req_pay.findOne({
-                where: { id_request }
-            })
+        //     //const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
+        //     const {status_payment,name,cost} = await Req_pay.findOne({
+        //         where: { id_request }
+        //     })
 
-            return {
-                    request,
-                    //student,
-                    //id_department,
-                    status_payment,
-                    name:document_types[name]['name'],
-                    cost
-                    //id_document
-            }
-        }))
+        //     return {
+        //             request,
+        //             //student,
+        //             //id_department,
+        //             status_payment,
+        //             name:document_types[name]['name'],
+        //             cost
+        //             //id_document
+        //     }
+        // }))
 
-        return res.status(201).json({
+        return res.status(200).json({
             ok: true,
-            data: responseRequest
+            requests
         })
 
     } catch (error) {
@@ -90,12 +125,11 @@ const createRequest = async (req, res) => {
         const { id_document, cost } = doc.toJSON()
 
         const payment_info = new Payment({
-            payment_method: 'Efectivo', // Valor por defecto
-            amount: cost,
             payment_type: 'Documento',
             status_payment: 0,
             cutoff_date: moment().endOf('month').local().format("YYYY-MM-DD").toString(),
             payment_date: null,
+            amount: cost,
             start_date: moment().startOf('month').local().format("YYYY-MM-DD").toString(),
 
         })
@@ -105,6 +139,16 @@ const createRequest = async (req, res) => {
         const stu_pay = new Stu_pay({ id_payment, id_student });
         await stu_pay.save();
 
+        const partial_pay = new Partial_pay({
+            id_payment,
+            id_card:null,
+            amount_p: 0,
+            payment_method : 'Efectivo',
+            date_p: moment().local().format().substr(0, 10),
+          });
+
+        await partial_pay.save();
+        
         const request = new Request({
             id_department,
             id_document,
@@ -133,9 +177,9 @@ const completeARequest = async (req, res)=>{
             where: {id_request: id}
         })
         if (request.status_request){
-            return res.status(500).json({
+            return res.status(400).json({
                 ok: false,
-                msg: "Ya esta completada esta tarea"
+                msg: "La petición ya esta completada."
             })
         }
         await request.update({
@@ -185,6 +229,9 @@ const deleteRequest = async  (req, res) => {
         });
         await stu_pay.destroy();
         const payment = await Payment.findByPk(id_payment);
+        await Partial_pay.destroy({
+            where : {id_payment}
+        })
         await payment.destroy();
 
         res.status(200).json({

@@ -4,36 +4,37 @@ const { db } = require("../database/connection")
 const { QueryTypes, Op} = require("sequelize")
 const { getCourses } = require("../queries/queries")
 const Major = require("../models/major")
+const { printAndSendError } = require("../helpers/responsesOfReq")
 
 const getAllCourses = async (req, res = response) => {
 
-    let {courseName}= req.query;
+    let {courseName = ''}= req.query;
 
     Course.belongsTo(Major, {foreignKey: 'id_major'})
     Major.hasMany(Course,{foreignKey:'id_major'})
 
     try{
 
-        if(courseName==undefined){
-            courseName='';
-        }
-        const courses = await Course.findAll({
+        let courses = await Course.findAll({
             include:{ model: Major, attributes: ['major_name']},
             where: {[Op.or]:[{
                 course_name: {[Op.like]: `%${courseName}%`}
             }]}
         });
+
+        courses = courses.map(course => {
+            const {major,...restoCourse} = course.toJSON();
+            return {
+                ...restoCourse,
+                major_name : major.major_name
+            }
+        })
         return res.status(200).json({//200 means success
             ok: true,
             courses
         })
     } catch(err){
-        console.log(err);
-        return res.status(500).json({//500 error en el servidor
-            ok: false,
-            msg: 'Hable con el administrador'
-        })
-       
+        printAndSendError(res, err)        
     }
 }
 
@@ -46,12 +47,12 @@ const createCourse = async (req, res = response) => {
 
         // Check if the major exist
         const major = await Major.findOne({
-            where : { 'id_major' : body.id_major }
+            where : { id_major }
         })
         if (!major) {
             return res.status(404).json({
                 ok: false,
-                msg: 'La carrera seleccionada no existe'
+                msg: `La carrera con id ${id_major} no existe.`
             })
         }
 
@@ -66,7 +67,7 @@ const createCourse = async (req, res = response) => {
         if(courseMajor){
             return res.status(400).json({
                 ok: false,
-                msg: 'En la carrera ya esta registrado un curso con ese nombre'
+                msg: `En la carrera ya esta registrado un curso con el nombre '${course_name}'.`
             })
         }
         //  Create and save course

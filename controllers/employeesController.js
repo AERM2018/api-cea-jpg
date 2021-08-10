@@ -240,15 +240,15 @@ const deleteEmployee = async (req, res) => {
         if (employee.active===2 || employee.active===3) {
             return res.status(404).json({
                 ok: false,
-                msg: "No existe un alumno con el id " + id,
+                msg: "No existe un empleado con el id " + id,
             });
         }
 
-        await teacher.update({ active })
+        await employee.update({ active })
     
         res.status(200).json({
             ok: true,
-            msg: "El trabajador se elimino correctamente",
+            msg: "El empleado se elimino correctamente",
     
         })
     } catch ( error ) {
