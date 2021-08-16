@@ -296,15 +296,29 @@ const getStudentsFromGroup = async( req, res = response) => {
     try{
         Stu_gro.belongsTo( Student, { foreignKey : 'id_student'})
         Student.hasOne( Stu_gro, { foreignKey : 'id_student'})
+        
+        Stu_gro.belongsTo( Group, { foreignKey : 'id_group'})
+        Group.hasMany( Stu_gro, { foreignKey : 'id_group'})
+        
         let studentsGroup = await Stu_gro.findAll({
-            include : {
+            include : [{
                 model : Student,
-                attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name']]
-            },
+                attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'student_name']]
+            },{
+                model : Group,
+                attributes : ['id_group','name_group']
+            }],
             where : { id_group }
         })
 
-        studentsGroup = studentsGroup.map( student => ({...student.toJSON(),...student.toJSON().student,student : undefined}))
+        studentsGroup = studentsGroup.map( studentGro => {
+            const {student,groupss,...restoStudentGro} = studentGro.toJSON()
+            return {
+                ...restoStudentGro,
+                ...student,
+                ...groupss
+            }
+        })
 
         res.json({
             ok : true,

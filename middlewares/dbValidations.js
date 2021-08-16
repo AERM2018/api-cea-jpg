@@ -1,4 +1,5 @@
 const { response } = require('express');
+const Assit = require('../models/assit');
 const Campus = require('../models/campus');
 const Card = require('../models/card');
 const Course = require('../models/courses');
@@ -9,6 +10,7 @@ const Grades = require('../models/grades');
 const Graduation_courses = require('../models/graduation_courses');
 const Graduation_section = require('../models/graduation_section');
 const Group = require('../models/group');
+const Gro_cou = require('../models/gro_cou');
 const Major = require('../models/major');
 const Payment = require('../models/payment');
 const Pay_info = require('../models/pay_info');
@@ -290,7 +292,7 @@ const checkGraSecExistence = async (req, res, next) =>{
     if(!graSec){
         return res.status(404).json({
             ok:false,
-            msg:`La sección del curso extracurricular id ${id_graduation_section} no existe.`
+            msg:`La sección del curso de graduación con id ${id_graduation_section} no existe.`
         })
     }
     next();
@@ -302,6 +304,30 @@ const checkCourseExistence = async (req, res, next) =>{
         return res.status(404).json({
             ok:false,
             msg:`El curso con id ${id_course} no existe.`
+        })
+    }
+    next();
+}
+
+const checkGroupCourseExistence = async (req, res, next) =>{
+    const id_gro_cou = req.body.id_gro_cou || req.params.id_gro_cou
+    const gro_cou = await Gro_cou.findByPk(id_gro_cou)
+    if(!gro_cou){
+        return res.status(404).json({
+            ok:false,
+            msg:`El curso con id ${id_gro_cou} no existe.`
+        })
+    }
+    next();
+}
+
+const checkAssitExistence = async(req, res, next) => {
+    const id_assistance = req.body.id_assistance || req.params.id_assistance
+    const assit = await Assit.findByPk(id_assistance)
+    if(!assit){
+        return res.status(404).json({
+            ok:false,
+            msg:`La asistencia con id ${id_assistance} no existe.`
         })
     }
     next();
@@ -331,5 +357,7 @@ module.exports = {
     checkGradeTesineExistence,
     checkExtraCurCourExistence,
     checkGraSecExistence,
-    checkCourseExistence
+    checkCourseExistence,
+    checkGroupCourseExistence,
+    checkAssitExistence
 }

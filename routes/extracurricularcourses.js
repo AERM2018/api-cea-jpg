@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { getAllExtraCurricularCourses, createExtraCurricularCourse, updateExtraCurricularCourse, deleteExtraCurricularCourse} = require('../controllers/extracurricularcoursesController');
-const { checkMajorExistence, checkTeacherExistence } = require('../middlewares/dbValidations');
+const { checkMajorExistence, checkTeacherExistence, checkExtraCurCourExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -43,5 +43,11 @@ extraCurricularCoursesRouter.delete('/:id_ext_cou',[
     validateJWT
 ], deleteExtraCurricularCourse);
 
+extraCurricularCoursesRouter.get('/:id_ext_cou/students',[
+    param('id_ext_cou','El id del curso extracurricular es numero y es obligatorio.').isInt().notEmpty(),
+    validateFields,
+    checkExtraCurCourExistence,
+    validateJWT
+],getStudentFromExtraCour)
 
 module.exports= extraCurricularCoursesRouter;

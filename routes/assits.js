@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { takeCourseAssistance, deleteCourseAssistence, deleteExtracurCourAssistance, deleteGraSecAssistance, updateGraSecAssistance, updateExtracurCourAssistance, updateCourseAssitence, getAllCourseAssistance, getAllExtracurCourAssistance, getAllGraSecAssistance, takeExtracurCourAssistance, takeGraSecAssistance } = require('../controllers/assitsController');
-const { checkExtraCurCourExistence, checkGraSecExistence, checkCourseExistence } = require('../middlewares/dbValidations');
+const { takeCourseAssistance, deleteAssistence, updateAssitence, getAllAssistance,takeExtracurCourAssistance, takeGraSecAssistance,getAllAssistanceByStudent, getExtrCourAssistance, getGraSecAssistance, getCourseAssistance } = require('../controllers/assitsController');
+const { checkExtraCurCourExistence, checkGraSecExistence, checkCourseExistence, checkAssitExistence, checkGroupCourseExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -9,15 +9,36 @@ const assitsRouter = Router()
 
 // READ
 
-// assitsRouter.get('/all',[
-//     validateJWT
-// ],getAll)
+assitsRouter.get('/students/:id_student',[
+    validateJWT
+],getAllAssistanceByStudent)
 
 
 assitsRouter.get( '/', [
     validateFields,
     validateJWT
-] ,getAllCourseAssistance);
+] ,getAllAssistance);
+
+assitsRouter.get('/regular/:id_gro_cou',[
+    check('id_gro_cou','El id del curso grupo es numero y es obligatorio.').isNumeric().notEmpty(),
+    validateFields,
+    checkGroupCourseExistence,
+    validateJWT
+],getCourseAssistance)
+
+assitsRouter.get('/extra/:id_ext_cou',[
+    check('id_ext_cou','El id del curso extracurricular es numero y es obligatorio.').isNumeric().notEmpty(),
+    validateFields,
+    checkExtraCurCourExistence,
+    validateJWT
+],getExtrCourAssistance)
+
+assitsRouter.get('/grasec/:id_graduation_section',[
+    check('id_graduation_section','El id de la sección de graduación es numero y es obligatorio.').isNumeric().notEmpty(),
+    validateFields,
+    checkGraSecExistence,
+    validateJWT
+],getGraSecAssistance)
 
 // assitsRouter.get( '/: id_extracurricularcourses_ass', [
 //     check('id_extracurricularcourses_ass','El id  es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
@@ -61,53 +82,18 @@ assitsRouter.post('/grasec/:id_graduation_section',[
 
 assitsRouter.put( '/:id_assistance', [
     param('id_assistance','Campo de tipo integer, obligatorio').not().isEmpty().isInt(),
-    check('date_assistance','El id del curso es un numero entero y es obligatorio').isDate().notEmpty(),
     check('attended','Campo de tipo tinyint, obligatorio. 0=Falta, 1=Asistencia, 2=Falta justificada').isNumeric().notEmpty(),
     validateFields,
     validateJWT
-], updateCourseAssitence);
+], updateAssitence);
 
-// assitsRouter.put( 'regular/:id', [
-//     param('','Llave ').not().isEmpty().isInt(),
-//     // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-//     // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
-//     // check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
-//     check('grade', 'Calificación es de tipo float obligatoria').isFloat().notEmpty(),
-//     validateFields,
-//     validateJWT
-// ], updateExtracurCourAssistance);
-
-// assitsRouter.put( 'regular/:id', [
-//     param('','Llave ').not().isEmpty().isInt(),
-//     // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-//     validateFields,
-//     validateJWT
-// ], updateGraSecAssistance);
-
-// // DELETES
-// // TODO:Pendientes...
+// DELETES
 
 assitsRouter.delete( '/:id_assistance', [
     check('id_assistance','El id es un número entero y es obligatorio').isNumeric(),
     validateFields,
+    checkAssitExistence,
     validateJWT
-], deleteCourseAssistence);
-
-// assitsRouter.delete( '/:id_course', [
-//     check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-//     check('matricula',"El id del estudiante es obligatorio y debe tener como máximo 15 caracteres").isString().notEmpty().isLength( { max : 15} ),
-//     validateFields,
-//     validateJWT
-// ], deleteExtracurCourAssistance);
-
-// assitsRouter.delete( '/:id_course', [
-//     check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-//     check('matricula',"El id del estudiante es obligatorio y debe tener como máximo 15 caracteres").isString().notEmpty().isLength( { max : 15} ),
-//     validateFields,
-//     validateJWT
-// ], deleteGraSecAssistance);
-
-
-
+], deleteAssistence);
 
 module.exports = assitsRouter;

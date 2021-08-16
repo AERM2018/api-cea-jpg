@@ -2097,84 +2097,96 @@ URL/requests/id_request  /*HTTP method: DELETE*/
     "msg": "La peticion se elimino correctamente"
 }
 ```
+
+----------------------------------------------------
 ## Expenses
 
 ### Get expense by date
 
-```
-URL/expenses /*HTTP method: GET*/
-```
-- Possible parameters: fecha
-_An example could be_
-```
-URL/expenses?fecha=2021-04-22
-```
-- If you put "all" in fecha you will get all the requests
-_This endpoint returns the expenses of the date that were created , if you don't send the date it would take the actual date by default_
+This endpoint will return a list of expenses made in the institute.
 
-_An example_
+```
+URL/expenses       /*HTTP method: GET*/
+```
+
+Query params you can use:
+- date : Specify the creation date's of the request. 
+    + If you put 'all', all the requests will be returned.
+    + If you do not send it, its default value is today's date
+
+
+**If the request is successful, the response would be:**
+
 ```
 {
     "ok": true,
-    "data": [
+    "expenses": [
         {
-            "id_expense": 6,
-            "amount": 600,
-            "expense_type": "Artículos de limpieza",
-            "observation": "una obersavacion gg",
-            "id_employee": "ale104691"
+            "id_expense": 1,
+            "amount": 5000,
+            "date": "11 de Agosto de 2021",
+            "expenses_type": "Servicios básicos",
+            "observation": "Una observación",
+            "id_employee": "ale107102"
         }
     ]
 }
 
 ```
 
-### Create a expense
+### Create an expense
+
+This endpoint will create a new expense.
 
 ```
-URL/expenses /*HTTP method: POST*/
+URL/expenses           /*HTTP method: POST*/
 ```
+**You need to send an object like this in the request's body:**
 
 
-- _This endpoint you must send an object so as to create an expense if you send something wrong it won't create anything_
-- _The next object is an example to know how to send it_
 ```
 {
-    "observation": "una obersavacion",
-    "amount":500.25,
-    "expense_type":1,
-    "id_user": 104
+    "observation": STRING,
+    "amount":FLOAT,
+    "expense_type":INT,
+    "id_user": INT
 
 }
 ```
 
+**If the request is successful, the response would be:**
 
-- _if the request is successful the response would be:_
+
 ```
 {
     "ok": true,
     "msg": "Gasto creado correctamente"
 }
 ```
+
+
 ### Update an expense
 
+This endpoint will update an existing expense. You need to send the expense id in the url.
+
 ```
-URL/expenses/id_expense  /*HTTP method: PUT*/
+URL/expenses/id_expense     /*HTTP method: PUT*/
 ```
-- _the options that you can send in order to update an expense are:_
+
+* Put the value of expense id instead of "id_expense"
+
+
+**You need to send an object like this in the request's body:**
 ```
 {
-    "observation": "una obersavacion ggg",
-    "amount":600,
-    "expense_type":2
+    "observation": STRING,
+    "amount":FLOAT,
+    "expense_type":INT
 
 }
 ```
 
-- _In the part of the parameter put the id of the expense instead of id-expense_
-
-
-- _if the request is successful the response would be:_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -2184,19 +2196,23 @@ URL/expenses/id_expense  /*HTTP method: PUT*/
 
 ### Delete an expense
 
-```
-URL/expenses/id_expense  /*HTTP method: DELETE*/
-```
+This endpoint will delete an existing expense. You need to send the expense id in the url.
 
-- _This endpoint is to delete AN EXPENSE, you just have to put in the params the id of the expense instead of id-expense_
-- _if the request is successful the response would be:_
+```
+URL/expenses/id_expense        /*HTTP method: DELETE*/
+```
+**It's not neccesary to send a body in the request**
+
+
+**If the request is successful, the response would be:**
+
 ```
 {
     "ok": true,
     "msg": "El gasto se elimino correctamente"
 }
 ```
-
+----------------------------------------------------------
 ## Documents
 ### GET INFO SO AS TO CREATE DOCUMENT
 
@@ -2264,14 +2280,16 @@ URL/documents/id_request  /*HTTP method: GET*/
 
 ### Assists
 
-_Before continuing, the "attended" field is of type tinyint, where:_
+_Before continuing, the "attended" field that can take one of the following values:_
 
 _0=absence; 1=attended: 2=excused absence_
+
 #### Get All Courses Assistance
 
-_It will return all registered attendance, from regular courses, extracurricular courses and graduation courses by section. If you want to use it like this, use the endpoint like this:_
+This endpoint will return all registered attendance, from regular courses, extracurricular courses and graduation courses by section.
+
 ```
-URL/assits/*HTTP method: GET*/
+URL/assits               /*HTTP method: GET*/
 ```
 - _If the response is successfull you will get something like this..._
 ```
@@ -2420,10 +2438,11 @@ URL/assits?q=mat/*HTTP method: GET*/
 }
 ```
 _So, you are receiving assistance of courses where the name contain "mat"._
+
 #### Post Regular Course Assistance
 _In order to take attendance of regular courses ..._
 ```
-URL/assits/courses/8/*Method http: POST*/
+URL/assits/courses/8              /*Method http: POST*/
 ```
 - _Do not forget to send the id from the course to take attendance, in our example id of course is number 8_
 - _Please send an object like this:_
@@ -2482,7 +2501,6 @@ URL/assits/1  /*Method http: PUT*/
 - _Please, send an object like this...._
 ```
 {
-    "date_assistance":"2021-07-22",
     "attended": 2
 }
 ```

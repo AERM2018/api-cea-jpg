@@ -176,6 +176,12 @@ const completeARequest = async (req, res)=>{
         const request = await Request.findOne({
             where: {id_request: id}
         })
+        if (!request){
+            return res.status(400).json({
+                ok: false,
+                msg: "No existe la peticion con el id "+ id
+            })
+        }
         if (request.status_request){
             return res.status(400).json({
                 ok: false,
