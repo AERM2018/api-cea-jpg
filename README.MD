@@ -1891,11 +1891,6 @@ URL/grades/extra/id_stu_extcou   HTTP method: PUT
 }
 ```
 
-### **Upload grades from extracurricular courses**
-
-### **Update grades from extracurricular courses**
-### **Update grades from tesines of graduatiion courses**
-
 ---------------------------------------------------------
 ### **Get all payments**
 
@@ -2567,239 +2562,205 @@ URL/documents/id_request  /*HTTP method: GET*/
 - 8: Titulo
 - 9: Constancia de título en proceso
 
-<<<<<<< HEAD
-=======
-### Assists
+# Extracurricular courses
 
-_Before continuing, the "attended" field is of type tinyint, where:_
-
-_0=absence; 1=attended: 2=excused absence_
-#### Get All Courses Assistance
-
-_It will return all registered attendance, from regular courses, extracurricular courses and graduation courses by section. If you want to use it like this, use the endpoint like this:_
+## Create extracurricular course
+_If you want to create an extracurricular course:_
 ```
-URL/assits/*HTTP method: GET*/
+URL/extracurricular_courses /*HTTP method: POST*/
 ```
-- _If the response is successfull you will get something like this..._
+- _You have to send an object like this:_
+```
+{
+    "id_major":"23",
+    "ext_cou_name":"Pextcou",
+    "start_date": "2021-04-27",
+    "finish_date":"2021-06-25",
+    "limit_participants":"27",
+    "cost":"15",
+    "id_teacher": "ale110047"
+}
+```
+_If the response is successful you will get:_
 ```
 {
     "ok": true,
-    "assistence": [
-        [
-            {
-                "id_gro_cou_ass": 1,
-                "id_gro_cou": 4,
-                "id_assistance": 1,
-                "id_student": "ale100415",
-                "gro_cou": {
-                    "id_course": 8,
-                    "course": {
-                        "course_name": "Materia chingona 3"
-                    }
-                },
-                "assit": {
-                    "id_assistance": 1,
-                    "date_assistance": "2021-07-22",
-                    "attended": 2
-                },
-                "assType": "Regular Course"
-            },
-            {
-                "id_gro_cou_ass": 2,
-                "id_gro_cou": 4,
-                "id_assistance": 2,
-                "id_student": "ale100415",
-                "gro_cou": {
-                    "id_course": 8,
-                    "course": {
-                        "course_name": "Materia chingona 3"
-                    }
-                },
-                "assit": {
-                    "id_assistance": 2,
-                    "date_assistance": "2021-07-29",
-                    "attended": 0
-                },
-                "assType": "Regular Course"
-            }
-        ],
-        [
-            {
-                "id_extracurricularcourses_ass": 3,
-                "id_ext_cou": 2,
-                "id_assistance": 10,
-                "id_student": "ale108828",
-                "extracurricular_course": {
-                    "ext_cou_name": "Pextcouname"
-                },
-                "assit": {
-                    "id_assistance": 10,
-                    "date_assistance": "2021-07-30",
-                    "attended": 1
-                },
-                "assType": "Extracurricular Course"
-            },
-            {
-                "id_gra_sec_ass": 2,
-                "id_graduation_section": 2,
-                "id_assistance": 7,
-                "id_student": "ale108828",
-                "graduation_section": {
-                    "graduation_section_name": "Sección prueba"
-                },
-                "assit": {
-                    "id_assistance": 7,
-                    "date_assistance": "2021-07-30",
-                    "attended": 1
-                },
-                "assType": "Graduation Section Course"
-            }
-        ],
+    "msg": "Curso extra curricular creado correctamente"
+}
+```
+## Get extracurricular courses
+_We have created teo different ways to get extracurricular courses..._
+- _If you want to get all extracurricular courses, please use:_
+```
+/extracurricular_courses /*HTTP method: GET*/
+```
+_You will obtain something like this..._
+```
+{
+    "ok": true,
+    "extraCurricularCourses": [
         {
-            "id_gro_cou": 4,
-            "id_group": 7,
-            "id_course": 8,
-            "status": true,
-            "start_date": "2021-07-01",
-            "end_date": "2021-07-31",
-            "groupss": {
-                "id_group": 7,
-                "id_major": 23,
-                "name_group": "1 derecho",
-                "entry_year": "1000-01-01",
-                "end_year": "2000-01-01"
-            },
-            "course": {
-                "id_course": 8,
-                "id_major": 24,
-                "course_name": "Materia chingona 3"
+            "id_ext_cou": 2,
+            "id_major": 23,
+            "ext_cou_name": "Pextcouname",
+            "start_date": "2021-04-17",
+            "finish_date": "2021-06-25",
+            "limit_participants": 27,
+            "cost": 150,
+            "id_teacher": "ale109188",
+            "teacher": {
+                "id_teacher": "ale109188",
+                "id_user": 109,
+                "name": "Rafael",
+                "surname_f": "Beltran",
+                "surname_m": "Retana",
+                "rfc": "greg435",
+                "mobile_number": "4499060981",
+                "courses": 0,
+                "active": 1
             }
         },
         {
-            "id_extracurricularcourses_ass": 3,
-            "id_ext_cou": 2,
-            "id_assistance": 10,
-            "id_student": "ale108828",
-            "extracurricular_course": {
-                "id_ext_cou": 2,
-                "id_major": 23,
-                "ext_cou_name": "Pextcouname",
-                "start_date": "2021-04-17",
-                "finish_date": "2021-06-25",
-                "limit_participants": 27,
-                "cost": 150,
-                "id_teacher": "ale109188"
+            "id_ext_cou": 3,
+            "id_major": 23,
+            "ext_cou_name": "Pextcou",
+            "start_date": "2021-04-27",
+            "finish_date": "2021-06-25",
+            "limit_participants": 27,
+            "cost": 15,
+            "id_teacher": "ale110047",
+            "teacher": {
+                "id_teacher": "ale110047",
+                "id_user": 110,
+                "name": "Johan",
+                "surname_f": "Gonzalez",
+                "surname_m": "Vargas",
+                "rfc": "rfc123123sss",
+                "mobile_number": "6611125",
+                "courses": 0,
+                "active": 1
+            }
+        },
+        {
+            "id_ext_cou": 4,
+            "id_major": 23,
+            "ext_cou_name": "Otro test",
+            "start_date": "2021-06-27",
+            "finish_date": "2021-06-29",
+            "limit_participants": 23,
+            "cost": 158,
+            "id_teacher": "ale110047",
+            "teacher": {
+                "id_teacher": "ale110047",
+                "id_user": 110,
+                "name": "Johan",
+                "surname_f": "Gonzalez",
+                "surname_m": "Vargas",
+                "rfc": "rfc123123sss",
+                "mobile_number": "6611125",
+                "courses": 0,
+                "active": 1
             }
         }
     ]
 }
 ```
-_If you want to get assistance for specific courses (regular courses, extracurricular courses or graduation courses by section) you can filter by course name and the endpoint will return all the matches. This filter has a maximum of 10 records displayed per page. Use the endpoint like this:_
+- _If you want to get all extracurricular courses that has been imparted by an specific teacher, use:_
 ```
-URL/assits?q=mat/*HTTP method: GET*/
+/extracurricular_courses?teacherName=VARG
 ```
-- _This is an example of a search filtered by the name of courses:_
+_You need to type the name or last name of the teacher and the endpoint will return you all the coincidences, for example..._
 ```
 {
     "ok": true,
-    "assistence": [
+    "extraCurricularCourses": [
         {
-            "id_gro_cou": 4,
-            "id_group": 7,
-            "id_course": 8,
-            "status": true,
-            "start_date": "2021-07-01",
-            "end_date": "2021-07-31",
-            "groupss": {
-                "id_group": 7,
-                "id_major": 23,
-                "name_group": "1 derecho",
-                "entry_year": "1000-01-01",
-                "end_year": "2000-01-01"
-            },
-            "course": {
-                "id_course": 8,
-                "id_major": 24,
-                "course_name": "Materia chingona 3"
+            "id_ext_cou": 3,
+            "id_major": 23,
+            "ext_cou_name": "Pextcou",
+            "start_date": "2021-04-27",
+            "finish_date": "2021-06-25",
+            "limit_participants": 27,
+            "cost": 15,
+            "id_teacher": "ale110047",
+            "teacher": {
+                "id_teacher": "ale110047",
+                "id_user": 110,
+                "name": "Johan",
+                "surname_f": "Gonzalez",
+                "surname_m": "Vargas",
+                "rfc": "rfc123123sss",
+                "mobile_number": "6611125",
+                "courses": 0,
+                "active": 1
+            }
+        },
+        {
+            "id_ext_cou": 4,
+            "id_major": 23,
+            "ext_cou_name": "Otro test",
+            "start_date": "2021-06-27",
+            "finish_date": "2021-06-29",
+            "limit_participants": 23,
+            "cost": 158,
+            "id_teacher": "ale110047",
+            "teacher": {
+                "id_teacher": "ale110047",
+                "id_user": 110,
+                "name": "Johan",
+                "surname_f": "Gonzalez",
+                "surname_m": "Vargas",
+                "rfc": "rfc123123sss",
+                "mobile_number": "6611125",
+                "courses": 0,
+                "active": 1
             }
         }
     ]
 }
 ```
-_So, you are receiving assistance of courses where the name contain "mat"._
-#### Post Regular Course Assistance
-_In order to take attendance of regular courses ..._
+## Update extracurricular course
+_Do you want to update an specific extracurricular course?_
 ```
-URL/assits/courses/8/*Method http: POST*/
+/extracurricular_courses/1
 ```
-- _Do not forget to send the id from the course to take attendance, in our example id of course is number 8_
-- _Please send an object like this:_
-```
-{
-    "id_group":7,
-    "studentsList":[
-        {
-            "id_student": "ale100415",
-            "attended": 2
-        }
-    ]
-}
-```
-#### Post Extracurricular Course Assistance
-_In order to take attendance of extracurricular courses ..._
-```
-URL/assits/extra/2/*Method http: POST*/
-```
-- _Do not forget to send the id from the extracurricular course to take attendance, in our example id of extracurricular course is number 2_
-- _Please send an object like this:_
+_In order to update the extracurricular course, do not forget put the id from that extracurricular course. In our example, we are modifying the extracurricular course number _
+- _You must send an object like this:_
 ```
 {
-    "studentsList":[
-        {
-            "id_student": "ale108828",
-            "attended": 1
-        }
-    ]
+    "id_major":"23",
+    "ext_cou_name":"Pextcouname",
+    "start_date": "2021-04-17",
+    "finish_date":"2021-06-25",
+    "limit_participants":"25",
+    "cost":"159",
+    "id_teacher": "ale109188"
 }
 ```
-#### Post Graduation Section from Graduation Course Assistance
-_In order to take attendance of graduation sections ..._
-```
-URL/assits/grasec/2/*Method http: POST*/
-```
-- _Do not forget to send the id from the graduation section to take attendance, in our example id of graduation section is number 2_
-- _Please send an object like this:_
+_If the extracurricular course does not exist, the response is:_
 ```
 {
-
-    "studentsList":[
-        {
-            "id_student": "ale108828",
-            "attended": 2
-        }
-    ]
+    "ok": false,
+    "msg": "El curso extra curricular con id 1 no existe, verifíquelo por favor."
 }
 ```
-#### Update Assistance
-_For updating an assits..._
-```
-URL/assits/1  /*Method http: PUT*/
-```
-- _Please, remember especify the id from the attendance that you want to update_
-- _Please, send an object like this...._
+_If the response is successful:_
 ```
 {
-    "date_assistance":"2021-07-22",
-    "attended": 2
+    "ok": true,
+    "msg": "Curso extra curricular actualizado correctamente"
 }
 ```
-#### Delete Assistance
-_If you want to delete an assist, use..._
-```
-URL/assits/11 /*Method http: DELETE*/
-```
-- _Do not forget to provide the id from the attendance that you want to remove_
->>>>>>> 1cff49c2b96ecc7d55c8fcfb39085b4b31b1e235
-
+## Delete extracurricular course
+# Graduation Courses
+## Create graduation course
+## Get graduation courses
+## Update graduation course
+## Delete graduation course
+# Graduation Sections
+## Create graduation section
+## Get graduation sections
+## Update graduation section
+## Delete graduation section
 
 

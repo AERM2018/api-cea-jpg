@@ -11,10 +11,6 @@ const Tesine = db.define('tesine',{
         type : DataTypes.FLOAT(4),
         allowNull : false
     },
-    id_teacher:{
-        type: DataTypes.STRING(30),
-        allowNull : false
-    },
     delivery_date:{
         type: DataTypes.DATE,
         allowNull : false
@@ -25,7 +21,7 @@ const Tesine = db.define('tesine',{
     },
     accepted_date:{
         type: DataTypes.DATE,
-        allowNull : false
+        allowNull : true
     }
 },{
     timestamps : false,
