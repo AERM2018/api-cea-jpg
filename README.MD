@@ -448,6 +448,11 @@ URL/groups/id_group   /*HTTP method: PUT*/
 }
 ```
 
+
+
+
+
+
 ### Delete group
 
 This endpoint will delete an existing group. You need to pass the group id in the url.
@@ -468,6 +473,59 @@ URL/groups/id_group   /*HTTP method: DELETE*/
 }
 ```
 
+### Get students from a group
+
+This endpoint will return the list of students who belong to a group. You need to send the group id in the url.
+
+```
+URL/groups/:id_group/students
+```
+
+* Put the value of group id instead of "id_group"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "students": [
+        {
+            "id_stu_gro": 6,
+            "id_student": "ale105083",
+            "id_group": 5,
+            "matricula": "DEDG202103003",
+            "student_name": "Angel Gonzalez Gonzalez",
+            "name_group": "3 derecho"
+        },
+        {
+            "id_stu_gro": 7,
+            "id_student": "ale106009",
+            "id_group": 5,
+            "matricula": "DEDG202103001",
+            "student_name": "Angel Gonzalez Vergas",
+            "name_group": "3 derecho"
+        },
+        {
+            "id_stu_gro": 8,
+            "id_student": "ale109946",
+            "id_group": 5,
+            "matricula": "DEDG202103009",
+            "student_name": "Daniel Gonzalez Perez",
+            "name_group": "3 derecho"
+        }
+    ]
+}
+```
+
+
+**If there're no students who belong to the group, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "students": []
+    }
+```
 ------------------------------------------------------------
 ## Employees
 
@@ -707,12 +765,13 @@ URL/students/matricula     /*HTTP method: GET*/
 This endpoint will create a new student if he does not already exist. If he already exists, the value of status will change to 1
 
 ```
-/api-wp/v1/students    /*HTTP method: POST*/
+URL/students    /*HTTP method: POST*/
 ```
 
 
-- _This endpoint you must send an object so as to create a student if you send something wrong it won't create anything_
-- _The next object is an example to know how to send it_
+**You need to send an object like this in the request's body:**
+
+
 ```
   {
 
@@ -2277,239 +2336,217 @@ URL/documents/id_request  /*HTTP method: GET*/
 - 7: Oficio de servicio social y practicas
 - 8: Titulo
 - 9: Constancia de título en proceso
+---------------------------------------------
+## Assists
 
-### Assists
+**Important**
+Before continuing, the "attended" field that can take one of the following values:
 
-_Before continuing, the "attended" field that can take one of the following values:_
+- 0 : absence  
+- 1 : attended  
+- 2 : excused absence  
 
-_0=absence; 1=attended: 2=excused absence_
 
-#### Get All Courses Assistance
+### Get courses which have assistance
 
-This endpoint will return all registered attendance, from regular courses, extracurricular courses and graduation courses by section.
+This endpoint will return all the courses which have registered assistance in order to check the assistance after.
 
 ```
 URL/assits               /*HTTP method: GET*/
 ```
-- _If the response is successfull you will get something like this..._
+
+Query params you can use:
+- q : Filte the data retrieved by the search. This parameter could take one the following values:
+    - a group name  
+
+    - a course name  
+
+    - matricula or name of a student
+
+
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
-    "assistence": [
-        [
-            {
-                "id_gro_cou_ass": 1,
-                "id_gro_cou": 4,
-                "id_assistance": 1,
-                "id_student": "ale100415",
-                "gro_cou": {
-                    "id_course": 8,
-                    "course": {
-                        "course_name": "Materia chingona 3"
-                    }
-                },
-                "assit": {
-                    "id_assistance": 1,
-                    "date_assistance": "2021-07-22",
-                    "attended": 2
-                },
-                "assType": "Regular Course"
-            },
-            {
-                "id_gro_cou_ass": 2,
-                "id_gro_cou": 4,
-                "id_assistance": 2,
-                "id_student": "ale100415",
-                "gro_cou": {
-                    "id_course": 8,
-                    "course": {
-                        "course_name": "Materia chingona 3"
-                    }
-                },
-                "assit": {
-                    "id_assistance": 2,
-                    "date_assistance": "2021-07-29",
-                    "attended": 0
-                },
-                "assType": "Regular Course"
-            }
-        ],
-        [
-            {
-                "id_extracurricularcourses_ass": 3,
-                "id_ext_cou": 2,
-                "id_assistance": 10,
-                "id_student": "ale108828",
-                "extracurricular_course": {
-                    "ext_cou_name": "Pextcouname"
-                },
-                "assit": {
-                    "id_assistance": 10,
-                    "date_assistance": "2021-07-30",
-                    "attended": 1
-                },
-                "assType": "Extracurricular Course"
-            },
-            {
-                "id_gra_sec_ass": 2,
-                "id_graduation_section": 2,
-                "id_assistance": 7,
-                "id_student": "ale108828",
-                "graduation_section": {
-                    "graduation_section_name": "Sección prueba"
-                },
-                "assit": {
-                    "id_assistance": 7,
-                    "date_assistance": "2021-07-30",
-                    "attended": 1
-                },
-                "assType": "Graduation Section Course"
-            }
-        ],
+    "results": [
         {
-            "id_gro_cou": 4,
-            "id_group": 7,
-            "id_course": 8,
-            "status": true,
-            "start_date": "2021-07-01",
-            "end_date": "2021-07-31",
-            "groupss": {
-                "id_group": 7,
-                "id_major": 23,
-                "name_group": "1 derecho",
-                "entry_year": "1000-01-01",
-                "end_year": "2000-01-01"
-            },
-            "course": {
-                "id_course": 8,
-                "id_major": 24,
-                "course_name": "Materia chingona 3"
-            }
+            "id_student": "ale105083",
+            "matricula": "DEDG202103003",
+            "name": "Angel Gonzalez Gonzalez",
+            "q": "student_name"
         },
         {
-            "id_extracurricularcourses_ass": 3,
-            "id_ext_cou": 2,
-            "id_assistance": 10,
-            "id_student": "ale108828",
-            "extracurricular_course": {
-                "id_ext_cou": 2,
-                "id_major": 23,
-                "ext_cou_name": "Pextcouname",
-                "start_date": "2021-04-17",
-                "finish_date": "2021-06-25",
-                "limit_participants": 27,
-                "cost": 150,
-                "id_teacher": "ale109188"
-            }
-        }
-    ]
-}
+            "id_student": "ale106009",
+            "matricula": "DEDG202103001",
+            "name": "Angel Gonzalez Vergas",
+            "q": "student_name"
 ```
-_If you want to get assistance for specific courses (regular courses, extracurricular courses or graduation courses by section) you can filter by course name and the endpoint will return all the matches. This filter has a maximum of 10 records displayed per page. Use the endpoint like this:_
+
+**Important**  
+
+The attribute "q" in the each instance in the array results specifies the parameter the instance was found by.
+
+
+
+### Get all assistances of a student
+
+This return all the assistance that a student has in all couses that he has taken. You need to send the id student in the url.
+
 ```
-URL/assits?q=mat/*HTTP method: GET*/
+URL/assits/students/:id_student   /*HTTP method: GET*/
 ```
-- _This is an example of a search filtered by the name of courses:_
+* Put the value of student id instead of "id_student"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
     "assistence": [
         {
-            "id_gro_cou": 4,
-            "id_group": 7,
-            "id_course": 8,
-            "status": true,
-            "start_date": "2021-07-01",
-            "end_date": "2021-07-31",
-            "groupss": {
-                "id_group": 7,
-                "id_major": 23,
-                "name_group": "1 derecho",
-                "entry_year": "1000-01-01",
-                "end_year": "2000-01-01"
-            },
-            "course": {
-                "id_course": 8,
-                "id_major": 24,
-                "course_name": "Materia chingona 3"
-            }
-        }
+            "id_assistance": 4,
+            "id_student": "ale105083",
+            "id_course": 5,
+            "course_name": "Español avanzado",
+            "date_assistance": "2021-07-26",
+            "attended": 1,
+            "assType": "Regular Course"
+        },...
     ]
 }
 ```
-_So, you are receiving assistance of courses where the name contain "mat"._
 
-#### Post Regular Course Assistance
-_In order to take attendance of regular courses ..._
-```
-URL/assits/courses/8              /*Method http: POST*/
-```
-- _Do not forget to send the id from the course to take attendance, in our example id of course is number 8_
-- _Please send an object like this:_
-```
-{
-    "id_group":7,
-    "studentsList":[
-        {
-            "id_student": "ale100415",
-            "attended": 2
-        }
-    ]
-}
-```
-#### Post Extracurricular Course Assistance
-_In order to take attendance of extracurricular courses ..._
-```
-URL/assits/extra/2/*Method http: POST*/
-```
-- _Do not forget to send the id from the extracurricular course to take attendance, in our example id of extracurricular course is number 2_
-- _Please send an object like this:_
-```
-{
-    "studentsList":[
-        {
-            "id_student": "ale108828",
-            "attended": 1
-        }
-    ]
-}
-```
-#### Post Graduation Section from Graduation Course Assistance
-_In order to take attendance of graduation sections ..._
-```
-URL/assits/grasec/2/*Method http: POST*/
-```
-- _Do not forget to send the id from the graduation section to take attendance, in our example id of graduation section is number 2_
-- _Please send an object like this:_
-```
-{
+### Take regular course assistance
 
+This endpoint will register assistance of the students who belong to a group and they are taking a regular course.
+
+```
+URL/assits/courses             /*HTTP method: POST*/
+```
+
+**You need to send an object like this in the request's body:**
+```
+{
+    "id_gro_cou":INT,
     "studentsList":[
         {
-            "id_student": "ale108828",
-            "attended": 2
-        }
+            "id_student": STRING,
+            "attended": INT
+        },...
     ]
 }
 ```
-#### Update Assistance
-_For updating an assits..._
+
+**If the request is successful, the response would be:**
 ```
-URL/assits/1  /*Method http: PUT*/
+{
+    ok : true,
+    msg : "Assitencia de curso tomada correctamente"
+}
 ```
-- _Please, remember especify the id from the attendance that you want to update_
-- _Please, send an object like this...._
+
+### Take extracurricular course assistance
+
+This endpoint will register assistance of the students who are taking a extracurricular course.
+
+```
+URL/assits/extra               /*HTTP method: POST*/
+```
+
+**You need to send an object like this in the request's body:**
+```
+{
+    id_ext_cou : INT
+    "studentsList":[
+        {
+            "id_student": STRING,
+            "attended": INT
+        },...
+    ]
+}
+```
+
+**If the request is successful, the response would be:**
+```
+{
+    ok : true,
+    msg : "Assitencia de curso extra curricular tomada correctamente"
+}
+```
+
+### Take graduation section assistance
+This endpoint will register assistance of the students who are taking a section of a graduation course.
+
+```
+URL/assits/grasec               /*HTTP method: POST*/
+```
+
+**You need to send an object like this in the request's body:**
+```
+{
+    id_graduation_section : INT
+    "studentsList":[
+        {
+            "id_student": STRING,
+            "attended": INT
+        },...
+    ]
+}
+```
+
+**If the request is successful, the response would be:**
+```
+{
+    ok : true,
+    msg : "Assitencia de la sección de curso de graduación tomada correctamente"
+}
+```
+
+### Update Assistance  
+
+This endpoint will update an existing assistance. You need to send the assitance id in the url.
+
+```
+URL/assits/:id_assistance       /*HTTP method: PUT*/
+```
+
+* Put the value of assistance id instead of "id_assistance"
+
+**You need to send an object like this in the request's body:**
 ```
 {
     "attended": 2
 }
 ```
-#### Delete Assistance
-_If you want to delete an assist, use..._
+
+**If the request is successful, the response would be:**
 ```
-URL/assits/11 /*Method http: DELETE*/
+{
+    ok : true,
+    msg : 'Asistencia actualizada correctamente'
+}
 ```
-- _Do not forget to provide the id from the attendance that you want to remove_
+
+### Delete Assistance
+This endpoint will delete an existing assistance. You need to send the assitance id in the url.
+
+```
+URL/assits/:id_assistance    /*HTTP method: DELETE*/
+```
+
+* Put the value of assistance id instead of "id_assistance"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+```
+{
+    ok : true,
+    msg : 'Asistencia eliminada correctamente'
+}
+```
+
 
 
 

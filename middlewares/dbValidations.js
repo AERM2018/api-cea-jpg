@@ -174,6 +174,11 @@ const isValidDocument = (document_type = null, req) => {
     return true
 }
 
+const isValidDocumentType = ( document_type = null, req) => {
+    if (document_type < 0 || document_type >= document_types.length) throw Error(`Tipo de documento invalido`)
+    return true
+}
+
 const isValidPaymentMethod = ( payment_method= ' ' ) => {
     if(!['tarjeta','depósito','efectivo'].includes(payment_method.toLowerCase())){
         throw Error('Métdodo de pago invalido.')
@@ -359,5 +364,6 @@ module.exports = {
     checkGraSecExistence,
     checkCourseExistence,
     checkGroupCourseExistence,
-    checkAssitExistence
+    checkAssitExistence,
+    isValidDocumentType
 }

@@ -9,7 +9,7 @@ const { getGrades } = require("../queries/queries");
 const Stu_gro = require("../models/stu_gro");
 const Student = require("../models/student");
 const { printAndSendError } = require("../helpers/responsesOfReq");
-const { getGradesStudent, getExtraCoursesGradesStudent, getTesineGradeStudent } = require("../helpers/getGradeStudent");
+const { getGradesStudent, getExtraCoursesGradesStudent, getTesineGradeStudent } = require("../helpers/students");
 const { getGroupDaysAndOverdue } = require("../helpers/dates");
 const Payment = require("../models/payment");
 const Stu_pay = require("../models/stu_pay");
@@ -17,60 +17,90 @@ const Stu_extracou = require('../models/stu_extracou');
 const Gro_cou = require('../models/gro_cou');
 const Tesine = require('../models/tesine');
 const Teacher = require('../models/teacher');
-const { filterGradesStudent } = require('../helpers/filters');
+const { filterGradesStudent } = require('../helpers/students');
 const Stu_gracou = require('../models/stu_gracou');
+const Major = require('../models/major');
+const Educational_level = require('../models/educational_level');
 
 const getAllGrades = async( req, res = response) => {
     let grades;
     let {q = '', page = 1}=req.query
-    q=q.split(' ').join('');
+    q = q.toLowerCase().split(' ').join('');
 
-    // Obtener grades de cursos regulares 
-    Grades.belongsTo(Student, {foreignKey: 'id_student'})
-    Student.hasMany(Grades,{foreignKey : 'id_student'})
+    Stu_gro.belongsTo(Student,{ foreignKey : 'id_student'})
+    Student.hasMany(Stu_gro,{ foreignKey : 'id_student'})
 
-    let avgByStudents = await Grades.findAll({
-        include: {model: Student,
-        }, group : ['id_student'],
-        limit : [10*(page-1),10]    
+    Stu_gro.belongsTo(Group,{ foreignKey : 'id_group'})
+    Group.hasOne(Stu_gro,{ foreignKey : 'id_group'})
+
+    Group.belongsTo(Major,{ foreignKey : 'id_major'})
+    Major.hasOne(Group,{ foreignKey : 'id_major'})
+
+    Major.belongsTo(Educational_level,{ foreignKey : 'id_edu_lev'})
+    Educational_level.hasMany(Major,{ foreignKey : 'id_edu_lev'})
+    let students = await Student.findAll({
+           include : [{
+               model : Stu_gro,
+                include : {
+                    model : Group,
+                    include : {
+                        model : Major,
+                        include : {
+                            model : Educational_level
+                        }
+                    }
+                }
+           }],
+           where : {id_student : {[Op.in] : literal('(SELECT id_student FROM grades)')}}
     })
-
-    avgByStudents = filterGradesStudent(avgByStudents,q)
-    avgByStudents = avgByStudents.map( async(courseGrade) => {
-        const { student,q } = courseGrade
+    
+    // console.log(students[0].toJSON())
+    
+    students = students.map( async(student) => {
+        const { stu_gros, ...restoStudent } = student.toJSON()
+        
+        const {groupss, groupss:{major}, groupss:{major:{educational_level}}} = stu_gros[stu_gros.length - 1]
         return {
-            id_student  : student.id_student,
-            matricula : student.matricula,
-            studenet_name : `${student.name} ${student.surname_f} ${student.surname_m}`,
-            avg : await getGradesStudent( student.id_student, true),
+            id_student  : restoStudent.id_student,
+            matricula : restoStudent.matricula,
+            student_name : `${restoStudent.name} ${restoStudent.surname_f} ${restoStudent.surname_m}`,
+            group_name : groupss.name_group,
+            major_name : `${educational_level.educational_level} en ${major.major_name}`,
             q
         }
     })
-    avgByStudents = await Promise.all(avgByStudents)
+    students = await Promise.all(students)
+    
+    students = filterGradesStudent(students,q)
 
-    let groups = await Group.findAll({ limit:[10*(page-1),10]})
-    groups = groups.filter( ({name_group}) => name_group.split(' ').join('').includes(q))
-    let avgByGroups = groups.map( async(group) => {
-        const studentsBelongToGroup = await Stu_gro.findAll({
-            where : {id_group : group.id_group}
-        })
+    students = students.filter((student,i) => i >= (9*page)-9 && i <= 9*page)
 
-        let avgStudents = studentsBelongToGroup.map( async(student) => await(getGradesStudent(student.id_student,true)))
-        avgStudents = await Promise.all(avgStudents)
 
-        let avgGroup = avgStudents.reduce( (pre,cur) => (pre+cur))
-        avgGroup /= avgStudents.length
 
-        return {
-            id_group : group.id_group,
-            group_name : group.name_group,
-            avg : avgGroup,
-            q : 'group_name'
-        }
-    })
-    avgByGroups = await Promise.all(avgByGroups)
+    // //
+    // let groups = await Group.findAll({ limit:[10*(page-1),10]})
+    // groups = groups.filter( ({name_group}) => name_group.split(' ').join('').includes(q))
+    // let avgByGroups = groups.map( async(group) => {
+    //     const studentsBelongToGroup = await Stu_gro.findAll({
+    //         where : {id_group : group.id_group}
+    //     })
 
-    grades = [...avgByStudents,...avgByGroups]
+    //     let avgStudents = studentsBelongToGroup.map( async(student) => await(getGradesStudent(student.id_student,true)))
+    //     avgStudents = await Promise.all(avgStudents)
+
+    //     let avgGroup = avgStudents.reduce( (pre,cur) => (pre+cur))
+    //     avgGroup /= avgStudents.length
+
+    //     return {
+    //         id_group : group.id_group,
+    //         group_name : group.name_group,
+    //         avg : avgGroup,
+    //         q : 'group_name'
+    //     }
+    // })
+    // avgByGroups = await Promise.all(avgByGroups)
+
+    grades = [...students]
     res.json({
         ok : true,
         grades
@@ -256,6 +286,7 @@ const searchAverageByStudent = async ( req, res = response ) => {
 
 const getAllGradesByMatricula = async( req, res = response) => {
     const { id_student } = req;
+    const { page = 1 } = req.query
     try {
         let grades   
         const coursesGrades = await getGradesStudent( id_student, false )
@@ -268,6 +299,7 @@ const getAllGradesByMatricula = async( req, res = response) => {
         //     where : {id_student}
         // })
         grades = [...coursesGrades,...extraCoursesGrades,tesineGrade]
+        grades = grades.filter((grade,i) => i >= (9*page)-9 && i <= 9*page)
         res.json({
             ok : true,
             grades

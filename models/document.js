@@ -15,6 +15,15 @@ const Document = db.define('document',{
     cost : {
         type : DataTypes.FLOAT,
         allowNull : false
+    },
+    id_student : {
+        type : DataTypes.STRING,
+        allowNull : false
+    },
+    creation_date : {
+        type : DataTypes.DATEONLY,
+        allowNull : true,
+        defaultValue : null
     }
 },
 {

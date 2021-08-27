@@ -18,7 +18,7 @@ const {
   getFeeCourseByMajor,
   getFeeSchoolByMajor,
 } = require("../types/dictionaries");
-const { getPaymentStudent } = require("../helpers/getPaymentStudent");
+const { getPaymentStudent } = require("../helpers/students");
 const { db } = require("../database/connection");
 const { getReqPay, getStuInfo } = require("../queries/queries");
 const Emp_dep = require("../models/emp_dep");

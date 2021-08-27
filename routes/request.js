@@ -19,7 +19,6 @@ requestRouter.post('/',[
     validateFields,
     checkStudentExistence,
     checkDepartmentExistence,
-    getIdStudent
 ], createRequest)
 
 requestRouter.put('/:id',[

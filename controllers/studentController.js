@@ -21,6 +21,7 @@ const Gro_tim = require('../models/gro_tim');
 const Time_tables = require('../models/time_tables');
 const Cou_tea = require('../models/cou_tea');
 const Teacher = require('../models/teacher');
+const { getCourseStudentIsTaking } = require('../helpers/students');
 
 
 const getAllStudents = async (req, res) => {
@@ -92,39 +93,8 @@ const getStudentByMatricula = async (req, res = response) => {
     let course;
     try {
         const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-        Course.hasOne(Gro_cou, { foreignKey: 'id_course' })
-        Gro_cou.belongsTo(Course, { foreignKey: 'id_course' })
-        const { id_group } = student
-
-        const {first_day,last_day} = await getGroupDaysAndOverdue( id_group )
-        const gro_cou = await Gro_cou.findOne({
-            include: {
-                model: Course,
-                attributes: ['course_name'],
-            },
-            where: {
-                id_group,
-                start_date :{ [Op.gte] : moment(first_day).startOf('month').format().substr(0,10)},
-                end_date: { [Op.lte]: moment(last_day).endOf('month').format().substr(0,10) },
-            }
-
-        })
-
-        if(gro_cou){
-            course = {course_name: gro_cou.toJSON().course.course_name}
-            const {id_course} = gro_cou
-            Cou_tea.belongsTo(Teacher, {foreignKey: 'id_teacher'})
-            Teacher.hasMany(Cou_tea, {foreignKey : 'id_teacher'})
-            let courseTeacher = await Cou_tea.findOne({
-                where : {id_course},
-                include : {model : Teacher, attributes: [
-                    [fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name'],
-                ]}
-            })
-            course = {...course, teacher : courseTeacher.toJSON().teacher.name}
-        }else{
-            course = {course_name:'Materia no asignada'}
-        }
+       
+        const course = await getCourseStudentIsTaking(student.id_group)
 
         return res.status(200).json({
             ok: true,

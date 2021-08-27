@@ -144,5 +144,5 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
 }
 
 module.exports = {
-    getPaymentStudent
+    // getPaymentStudent
 }

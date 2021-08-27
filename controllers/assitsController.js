@@ -310,13 +310,9 @@ const getCourseAssistance =  async(req, res) => {
 }
 
 const takeCourseAssistance = async (req, res = response) => {
-  const { id_course } = req.params; //id_ext_cou
-  const { studentsList, id_group } = req.body;
+  const { studentsList, id_gro_cou } = req.body;
   try {
-    const { id_gro_cou } = await Gro_cou.findOne({
-      where: { id_course, id_group },
-      attributes: ["id_gro_cou"],
-    });
+    
     studentsList.map(async (student) => {
       const { id_student, attended } = student;
       const assit = new Assit({ attended });
@@ -334,7 +330,7 @@ const takeCourseAssistance = async (req, res = response) => {
     });
       res.json({
           ok : true,
-          msg : "Assitencia tomada correctamente"
+          msg : "Assitencia de curso tomada correctamente"
       })
   } catch (err) {
       printAndSendError( res, err )
@@ -474,8 +470,7 @@ const getExtrCourAssistance= async (req, res = response)=>{
 }
 
 const takeExtracurCourAssistance= async (req, res = response)=>{
-  const {id_ext_cou} = req.params; //id_ext_cou
-  const { studentsList} = req.body;
+  const {id_ext_cou, studentsList} = req.body;
   try {
     studentsList.map(async (student) => {
       const { id_student, attended } = student;
@@ -604,8 +599,7 @@ const getGraSecAssistance= async (req, res = response)=>{
 }
 
 const takeGraSecAssistance= async (req, res = response)=>{
-  const {id_graduation_section} = req.params;
-  const { studentsList} = req.body;
+  const {id_graduation_section, studentsList} = req.body;
   try {
     studentsList.map(async (student) => {
       const { id_student, attended } = student;
