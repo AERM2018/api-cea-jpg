@@ -140,13 +140,14 @@ const createPayment = async (req, res = response) => {
       case "documento":
         // Verify if the doc_type was sent
         total_to_pay = document_types[document_type]["price"];
-        const doc_info = new Document({ document_type, cost: total_to_pay });
+        const doc_info = new Document({ document_type, cost: total_to_pay, id_student });
         const doc = await doc_info.save();
         id_document = doc.toJSON()["id_document"];
         status_payment = amount >= total_to_pay ? 1 : 0;
 
         cutoff_date = moment().local().endOf("month").format().substr(0, 10);
         msg = "";
+        // The request is created after creating the payment
         break;
 
       case "inscripción":

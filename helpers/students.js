@@ -48,10 +48,9 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
                 let req_pay = await db.query(getReqPay, { replacements: { id: id_payment }, type: QueryTypes.SELECT })
                 if (details) {
                     // Find the name of the document that is related with the payment
-                    // const doc_type = req_pay[0].name 
-                    // req_pay[0].name = document_types[doc_type]['name']
-                    // const { name } = req_pay[0]
-                    const name = "documento"
+                    const doc_type = req_pay[0].name 
+                    req_pay[0].name = document_types[doc_type]['name']
+                    const { name } = req_pay[0]
                     extra = { name }
                 }
                 break;
