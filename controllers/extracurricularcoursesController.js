@@ -6,6 +6,8 @@ const Graduation_section = require("../models/graduation_section");
 const { Op, fn, col } = require("sequelize");
 const {printAndSendError} = require("../helpers/responsesOfReq");
 const ExtraCurricularCourses = require("../models/extracurricularcourses");
+const Stu_extracou = require("../models/stu_extracou");
+const Student = require("../models/student");
 
 const getAllExtraCurricularCourses = async (req=request, res = response) => {
     let {teacherName}= req.query;
@@ -126,6 +128,44 @@ const deleteExtraCurricularCourse = async (req, res = responde ) =>{
     }
 }
 
+getStudentFromExtraCour = async(req, res) => {
+    const {id_ext_cou} = req.params;
+
+    try {
+        Stu_extracou.belongsTo(ExtraCurricularCourses, { foreignKey : 'id_ext_cou'})
+        ExtraCurricularCourses.hasMany(Stu_extracou, { foreignKey : 'id_ext_cou'})
+
+        Stu_extracou.belongsTo(Student, { foreignKey : 'id_student'})
+        Student.hasOne(Stu_extracou, { foreignKey : 'id_student'})
+
+        let studentsExtraCou = await Stu_extracou.findAll({
+            include : [{
+                model : Student,
+                attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'student_name']]
+            },{
+                model : ExtraCurricularCourses,
+                attributes : ['id_ext_cou','ext_cou_name']
+            }],
+            where : { id_ext_cou }
+        })
+
+        studentsExtraCou = studentsExtraCou.map( studentExtraCou => {
+            const {student,extracurricular_course,grade,...restoStudentExtraCou} = studentExtraCou.toJSON()
+            return {
+                ...restoStudentExtraCou,
+                ...student,
+                ...extracurricular_course
+            }
+        })
+
+        return res.json({
+            ok : true,
+            students:studentsExtraCou
+        });
+    } catch ( err ) {
+        printAndSendError(res, err)
+    }
+}
 module.exports = {
     getAllExtraCurricularCourses,
     createExtraCurricularCourse,

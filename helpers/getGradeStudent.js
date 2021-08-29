@@ -179,7 +179,7 @@ const getTesineGradeStudent = async( id_student = '') => {
 }
 
 module.exports = {
-  getGradesStudent,
-  getExtraCoursesGradesStudent,
-  getTesineGradeStudent
+  // getGradesStudent,
+  // getExtraCoursesGradesStudent,
+  // getTesineGradeStudent
 };

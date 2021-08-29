@@ -5,6 +5,8 @@ const Graduation_courses = require("../models/graduation_courses");
 const Graduation_section = require("../models/graduation_section");
 const { Op, fn, col } = require("sequelize");
 const {printAndSendError} = require("../helpers/responsesOfReq");
+const Stu_gracou = require("../models/stu_gracou");
+const Student = require("../models/student");
 
 const getAllGraduationCourses = async (req=request, res = response) => {
     let {courseGradName} = req.query;
@@ -34,7 +36,7 @@ const getAllGraduationCourses = async (req=request, res = response) => {
 }
 
 
-const createGraduationCourses = async (req, res = responde ) =>{
+const createGraduationCourses = async (req, res = response ) =>{
     const { body } = req;
     try {
         
@@ -54,7 +56,7 @@ const createGraduationCourses = async (req, res = responde ) =>{
     }
 
 }
-const updateGraduationCourses = async (req, res = responde ) =>{
+const updateGraduationCourses = async (req, res = response ) =>{
     const { id } = req.params
     const { body } = req;
 
@@ -86,7 +88,7 @@ const updateGraduationCourses = async (req, res = responde ) =>{
     }
     
 }
-const deleteGraduationCourses = async (req, res = responde ) =>{
+const deleteGraduationCourses = async (req, res = response ) =>{
     //TODO: Revisar si es baja física o lógica
 
     const {id}= req.params;
@@ -116,9 +118,46 @@ const deleteGraduationCourses = async (req, res = responde ) =>{
     }
 }
 
+const getStudentsFromGradCourse = async(req, res) => {
+    const {id_graduation_course} = req.params
+    try {
+        Stu_gracou.belongsTo(Graduation_courses, { foreignKey : 'id_graduation_course' })
+        Graduation_courses.hasMany(Stu_gracou, { foreignKey : 'id_graduation_course' })
+
+        Stu_gracou.belongsTo(Student, { foreignKey : 'id_student' })
+        Student.hasOne(Stu_gracou, { foreignKey : 'id_student' })
+
+        let studentsGradCou = await Stu_gracou.findAll({
+            include : [{
+                model : Graduation_courses,
+                attributes : ['id_graduation_course','course_grad_name']
+            },{
+                model : Student,
+                attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'student_name']]
+            }],
+            where : {id_graduation_course}
+        })
+
+        studentsGradCou = studentsGradCou.map( studentGradCou => {
+            const {graduation_course,student,...restoStudentGradCou} = studentGradCou.toJSON();
+            return {
+                ...restoStudentGradCou,
+                ...graduation_course,
+                ...student
+            }
+        })
+        res.json({
+            ok : true,
+            students : studentsGradCou
+        });
+    } catch ( err ) {
+        printAndSendError(res, err)
+    }
+}
 module.exports = {
     getAllGraduationCourses,
     createGraduationCourses,
     updateGraduationCourses,
-    deleteGraduationCourses
+    deleteGraduationCourses,
+    getStudentsFromGradCourse
 }

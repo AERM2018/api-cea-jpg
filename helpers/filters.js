@@ -23,5 +23,5 @@ const filterGradesStudent = ( gradesStudent = [], q = '') => {
 }
 
 module.exports = {
-    filterGradesStudent
+    // filterGradesStudent
 };

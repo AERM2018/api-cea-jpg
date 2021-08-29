@@ -72,6 +72,7 @@ const getAllTheRequests = async (req, res) => {
                 ...restoRequest,
                 creation_date : moment(restoRequest.creation_date).format('D,MMMM,YYYY'),
                 ...payment.stu_pay.student,
+                document_type : document.document_type,
                 document_name : document_types[document.document_type].name
             }
         })
@@ -116,11 +117,12 @@ const getAllTheRequests = async (req, res) => {
 }
 
 const createRequest = async (req, res) => {
-    const { document_type, matricula, id_department, id_student } = req.body
+    const { document_type, id_department, } = req.body
+    const { id_student } = req
     try {
         
 
-        const doc_info = new Document({ document_type, cost: document_types[document_type]['price'] })
+        const doc_info = new Document({ document_type, cost: document_types[document_type]['price'], id_student})
         const doc = await doc_info.save()
         const { id_document, cost } = doc.toJSON()
 
@@ -176,6 +178,12 @@ const completeARequest = async (req, res)=>{
         const request = await Request.findOne({
             where: {id_request: id}
         })
+        if (!request){
+            return res.status(400).json({
+                ok: false,
+                msg: "No existe la peticion con el id "+ id
+            })
+        }
         if (request.status_request){
             return res.status(400).json({
                 ok: false,
@@ -185,6 +193,8 @@ const completeARequest = async (req, res)=>{
         await request.update({
             status_request: 1
         })
+
+        await Document.update({ creation_date : moment().format('YYYY-MM-DD').toString()},{where : {id_document : request.id_document}})
         
         const {id_payment} = request
         const payment  = await Payment.findByPk(id_payment)

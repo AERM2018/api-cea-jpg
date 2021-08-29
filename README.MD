@@ -448,6 +448,11 @@ URL/groups/id_group   /*HTTP method: PUT*/
 }
 ```
 
+
+
+
+
+
 ### Delete group
 
 This endpoint will delete an existing group. You need to pass the group id in the url.
@@ -468,6 +473,59 @@ URL/groups/id_group   /*HTTP method: DELETE*/
 }
 ```
 
+### Get students from a group
+
+This endpoint will return the list of students who belong to a group. You need to send the group id in the url.
+
+```
+URL/groups/:id_group/students
+```
+
+* Put the value of group id instead of "id_group"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "students": [
+        {
+            "id_stu_gro": 6,
+            "id_student": "ale105083",
+            "id_group": 5,
+            "matricula": "DEDG202103003",
+            "student_name": "Angel Gonzalez Gonzalez",
+            "name_group": "3 derecho"
+        },
+        {
+            "id_stu_gro": 7,
+            "id_student": "ale106009",
+            "id_group": 5,
+            "matricula": "DEDG202103001",
+            "student_name": "Angel Gonzalez Vergas",
+            "name_group": "3 derecho"
+        },
+        {
+            "id_stu_gro": 8,
+            "id_student": "ale109946",
+            "id_group": 5,
+            "matricula": "DEDG202103009",
+            "student_name": "Daniel Gonzalez Perez",
+            "name_group": "3 derecho"
+        }
+    ]
+}
+```
+
+
+**If there're no students who belong to the group, the request's answer will be an empty array []. It looks like this:**
+```
+    {
+        "ok": true,
+        "students": []
+    }
+```
 ------------------------------------------------------------
 ## Employees
 
@@ -707,12 +765,13 @@ URL/students/matricula     /*HTTP method: GET*/
 This endpoint will create a new student if he does not already exist. If he already exists, the value of status will change to 1
 
 ```
-/api-wp/v1/students    /*HTTP method: POST*/
+URL/students    /*HTTP method: POST*/
 ```
 
 
-- _This endpoint you must send an object so as to create a student if you send something wrong it won't create anything_
-- _The next object is an example to know how to send it_
+**You need to send an object like this in the request's body:**
+
+
 ```
   {
 
@@ -2397,84 +2456,96 @@ URL/requests/id_request  /*HTTP method: DELETE*/
     "msg": "La peticion se elimino correctamente"
 }
 ```
+
+----------------------------------------------------
 ## Expenses
 
 ### Get expense by date
 
-```
-URL/expenses /*HTTP method: GET*/
-```
-- Possible parameters: fecha
-_An example could be_
-```
-URL/expenses?fecha=2021-04-22
-```
-- If you put "all" in fecha you will get all the requests
-_This endpoint returns the expenses of the date that were created , if you don't send the date it would take the actual date by default_
+This endpoint will return a list of expenses made in the institute.
 
-_An example_
+```
+URL/expenses       /*HTTP method: GET*/
+```
+
+Query params you can use:
+- date : Specify the creation date's of the request. 
+    + If you put 'all', all the requests will be returned.
+    + If you do not send it, its default value is today's date
+
+
+**If the request is successful, the response would be:**
+
 ```
 {
     "ok": true,
-    "data": [
+    "expenses": [
         {
-            "id_expense": 6,
-            "amount": 600,
-            "expense_type": "Artículos de limpieza",
-            "observation": "una obersavacion gg",
-            "id_employee": "ale104691"
+            "id_expense": 1,
+            "amount": 5000,
+            "date": "11 de Agosto de 2021",
+            "expenses_type": "Servicios básicos",
+            "observation": "Una observación",
+            "id_employee": "ale107102"
         }
     ]
 }
 
 ```
 
-### Create a expense
+### Create an expense
+
+This endpoint will create a new expense.
 
 ```
-URL/expenses /*HTTP method: POST*/
+URL/expenses           /*HTTP method: POST*/
 ```
+**You need to send an object like this in the request's body:**
 
 
-- _This endpoint you must send an object so as to create an expense if you send something wrong it won't create anything_
-- _The next object is an example to know how to send it_
 ```
 {
-    "observation": "una obersavacion",
-    "amount":500.25,
-    "expense_type":1,
-    "id_user": 104
+    "observation": STRING,
+    "amount":FLOAT,
+    "expense_type":INT,
+    "id_user": INT
 
 }
 ```
 
+**If the request is successful, the response would be:**
 
-- _if the request is successful the response would be:_
+
 ```
 {
     "ok": true,
     "msg": "Gasto creado correctamente"
 }
 ```
+
+
 ### Update an expense
 
+This endpoint will update an existing expense. You need to send the expense id in the url.
+
 ```
-URL/expenses/id_expense  /*HTTP method: PUT*/
+URL/expenses/id_expense     /*HTTP method: PUT*/
 ```
-- _the options that you can send in order to update an expense are:_
+
+* Put the value of expense id instead of "id_expense"
+
+
+**You need to send an object like this in the request's body:**
 ```
 {
-    "observation": "una obersavacion ggg",
-    "amount":600,
-    "expense_type":2
+    "observation": STRING,
+    "amount":FLOAT,
+    "expense_type":INT
 
 }
 ```
 
-- _In the part of the parameter put the id of the expense instead of id-expense_
-
-
-- _if the request is successful the response would be:_
+**If the request is successful, the response would be:**
 ```
 {
     "ok": true,
@@ -2484,19 +2555,23 @@ URL/expenses/id_expense  /*HTTP method: PUT*/
 
 ### Delete an expense
 
-```
-URL/expenses/id_expense  /*HTTP method: DELETE*/
-```
+This endpoint will delete an existing expense. You need to send the expense id in the url.
 
-- _This endpoint is to delete AN EXPENSE, you just have to put in the params the id of the expense instead of id-expense_
-- _if the request is successful the response would be:_
+```
+URL/expenses/id_expense        /*HTTP method: DELETE*/
+```
+**It's not neccesary to send a body in the request**
+
+
+**If the request is successful, the response would be:**
+
 ```
 {
     "ok": true,
     "msg": "El gasto se elimino correctamente"
 }
 ```
-
+----------------------------------------------------------
 ## Documents
 ### GET INFO SO AS TO CREATE DOCUMENT
 
@@ -2561,6 +2636,217 @@ URL/documents/id_request  /*HTTP method: GET*/
 - 7: Oficio de servicio social y practicas
 - 8: Titulo
 - 9: Constancia de título en proceso
+---------------------------------------------
+## Assists
+
+**Important**
+Before continuing, the "attended" field that can take one of the following values:
+
+- 0 : absence  
+- 1 : attended  
+- 2 : excused absence  
+
+
+### Get courses which have assistance
+
+This endpoint will return all the courses which have registered assistance in order to check the assistance after.
+
+```
+URL/assits               /*HTTP method: GET*/
+```
+
+Query params you can use:
+- q : Filte the data retrieved by the search. This parameter could take one the following values:
+    - a group name  
+
+    - a course name  
+
+    - matricula or name of a student
+
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "results": [
+        {
+            "id_student": "ale105083",
+            "matricula": "DEDG202103003",
+            "name": "Angel Gonzalez Gonzalez",
+            "q": "student_name"
+        },
+        {
+            "id_student": "ale106009",
+            "matricula": "DEDG202103001",
+            "name": "Angel Gonzalez Vergas",
+            "q": "student_name"
+```
+
+**Important**  
+
+The attribute "q" in the each instance in the array results specifies the parameter the instance was found by.
+
+
+
+### Get all assistances of a student
+
+This return all the assistance that a student has in all couses that he has taken. You need to send the id student in the url.
+
+```
+URL/assits/students/:id_student   /*HTTP method: GET*/
+```
+* Put the value of student id instead of "id_student"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+```
+{
+    "ok": true,
+    "assistence": [
+        {
+            "id_assistance": 4,
+            "id_student": "ale105083",
+            "id_course": 5,
+            "course_name": "Español avanzado",
+            "date_assistance": "2021-07-26",
+            "attended": 1,
+            "assType": "Regular Course"
+        },...
+    ]
+}
+```
+
+### Take regular course assistance
+
+This endpoint will register assistance of the students who belong to a group and they are taking a regular course.
+
+```
+URL/assits/courses             /*HTTP method: POST*/
+```
+
+**You need to send an object like this in the request's body:**
+```
+{
+    "id_gro_cou":INT,
+    "studentsList":[
+        {
+            "id_student": STRING,
+            "attended": INT
+        },...
+    ]
+}
+```
+
+**If the request is successful, the response would be:**
+```
+{
+    ok : true,
+    msg : "Assitencia de curso tomada correctamente"
+}
+```
+
+### Take extracurricular course assistance
+
+This endpoint will register assistance of the students who are taking a extracurricular course.
+
+```
+URL/assits/extra               /*HTTP method: POST*/
+```
+
+**You need to send an object like this in the request's body:**
+```
+{
+    id_ext_cou : INT
+    "studentsList":[
+        {
+            "id_student": STRING,
+            "attended": INT
+        },...
+    ]
+}
+```
+
+**If the request is successful, the response would be:**
+```
+{
+    ok : true,
+    msg : "Assitencia de curso extra curricular tomada correctamente"
+}
+```
+
+### Take graduation section assistance
+This endpoint will register assistance of the students who are taking a section of a graduation course.
+
+```
+URL/assits/grasec               /*HTTP method: POST*/
+```
+
+**You need to send an object like this in the request's body:**
+```
+{
+    id_graduation_section : INT
+    "studentsList":[
+        {
+            "id_student": STRING,
+            "attended": INT
+        },...
+    ]
+}
+```
+
+**If the request is successful, the response would be:**
+```
+{
+    ok : true,
+    msg : "Assitencia de la sección de curso de graduación tomada correctamente"
+}
+```
+
+### Update Assistance  
+
+This endpoint will update an existing assistance. You need to send the assitance id in the url.
+
+```
+URL/assits/:id_assistance       /*HTTP method: PUT*/
+```
+
+* Put the value of assistance id instead of "id_assistance"
+
+**You need to send an object like this in the request's body:**
+```
+{
+    "attended": 2
+}
+```
+
+**If the request is successful, the response would be:**
+```
+{
+    ok : true,
+    msg : 'Asistencia actualizada correctamente'
+}
+```
+
+### Delete Assistance
+This endpoint will delete an existing assistance. You need to send the assitance id in the url.
+
+```
+URL/assits/:id_assistance    /*HTTP method: DELETE*/
+```
+
+* Put the value of assistance id instead of "id_assistance"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+```
+{
+    ok : true,
+    msg : 'Asistencia eliminada correctamente'
+}
+```
+
 
 # Extracurricular courses
 

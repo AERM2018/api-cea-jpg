@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { getAllGraduationCourses, createGraduationCourses, updateGraduationCourses, deleteGraduationCourses} = require('../controllers/graduation_coursesController');
+const { getAllGraduationCourses, createGraduationCourses, updateGraduationCourses, deleteGraduationCourses, getStudentsFromGradCourse} = require('../controllers/graduation_coursesController');
+const { checkGraduationCourseExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -32,5 +33,11 @@ Graduation_courses_Router.delete('/:id',[
     validateJWT
 ], deleteGraduationCourses);
 
+Graduation_courses_Router.get('/:id_graduation_course/students',[
+    param('id_graduation_course','El id del curso de graduación es numero y es obligatorio.').isInt().notEmpty(),
+    validateFields,
+    checkGraduationCourseExistence,
+    validateJWT
+],getStudentsFromGradCourse)
 
 module.exports= Graduation_courses_Router;
