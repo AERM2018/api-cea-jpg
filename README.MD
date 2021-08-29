@@ -2592,7 +2592,7 @@ _If the response is successful you will get:_
 _We have created teo different ways to get extracurricular courses..._
 - _If you want to get all extracurricular courses, please use:_
 ```
-/extracurricular_courses /*HTTP method: GET*/
+URL/extracurricular_courses /*HTTP method: GET*/
 ```
 _You will obtain something like this..._
 ```
@@ -2667,7 +2667,7 @@ _You will obtain something like this..._
 ```
 - _If you want to get all extracurricular courses that has been imparted by an specific teacher, use:_
 ```
-/extracurricular_courses?teacherName=VARG
+URL/extracurricular_courses?teacherName=VARG /*HTTP method: GET*/
 ```
 _You need to type the name or last name of the teacher and the endpoint will return you all the coincidences, for example..._
 ```
@@ -2722,7 +2722,7 @@ _You need to type the name or last name of the teacher and the endpoint will ret
 ## Update extracurricular course
 _Do you want to update an specific extracurricular course?_
 ```
-/extracurricular_courses/1
+URL/extracurricular_courses/1 /*HTTP method: PUT*/
 ```
 _In order to update the extracurricular course, do not forget put the id from that extracurricular course. In our example, we are modifying the extracurricular course number _
 - _You must send an object like this:_
@@ -2752,6 +2752,19 @@ _If the response is successful:_
 }
 ```
 ## Delete extracurricular course
+_If you want to delete an specific extracurricular course please provide the id from the specific course. In this example is the extracurricular course number 2:_
+```
+URL/extracurricular_courses/2 /*HTTP method: DELETE*/
+```
+_In case that the course does not exist you will receive:_
+````
+{
+    "ok": false,
+    "msg": "El curso extra curricular con id 1 no existe, verifíquelo por favor."
+}
+```
+
+
 # Graduation Courses
 ## Create graduation course
 ## Get graduation courses
