@@ -25,6 +25,8 @@ const graduation_sections_router = require('../routes/graduation_sections');
 const Graduation_courses_Router = require('../routes/graduation_courses');
 const extraCurricularCoursesRouter = require('../routes/extracurricularcourses');
 const assitsRouter = require('../routes/assits');
+const { loginRateLimit } = require('../middlewares/auth');
+const rateLimit = require('express-rate-limit');
 
 class Server{
 
@@ -70,6 +72,7 @@ class Server{
         this.app.use( cors() );
         this.app.use( express.json() );
         this.app.use( express.urlencoded({extended:true}));
+        // this.app.use(`/${this.base}/auth/login`,loginRateLimit)
     }
 
     routes(){
