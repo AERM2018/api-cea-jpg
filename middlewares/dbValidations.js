@@ -4,6 +4,7 @@ const Campus = require('../models/campus');
 const Card = require('../models/card');
 const Course = require('../models/courses');
 const Department = require('../models/department');
+const Document = require('../models/document');
 const Employees = require('../models/employee');
 const ExtraCurricularCourses = require('../models/extracurricularcourses');
 const Grades = require('../models/grades');
@@ -179,6 +180,18 @@ const isValidDocumentType = ( document_type = null, req) => {
     return true
 }
 
+const checkDocumentExistance = ( req, res, next ) => {
+    const { id_document } = req.params
+    const document = Document.findByPk(id_document)
+    if(!document){
+        res.status(404).json({
+            ok : false,
+            msg : `El documento con id ${id_document} no existe.`
+        })
+    }
+    next();
+}
+
 const isValidPaymentMethod = ( payment_method= ' ' ) => {
     if(!['tarjeta','depósito','efectivo'].includes(payment_method.toLowerCase())){
         throw Error('Métdodo de pago invalido.')
@@ -350,6 +363,7 @@ module.exports = {
     isValidCard,
     checkCardExistence,
     isValidDocument,
+    checkDocumentExistance,
     isValidPaymentMethod,
     isValidPaymentType,
     isValidStartDate,
