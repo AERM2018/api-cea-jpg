@@ -1,11 +1,15 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { getInfoDocument, createDocument, getDocuments} = require('../controllers/documentsController');
-const { checkStudentExistence, isValidDocumentType } = require('../middlewares/dbValidations');
+const { getInfoDocument, createDocument, getDocuments, deleteDocument} = require('../controllers/documentsController');
+const { checkStudentExistence, isValidDocumentType, checkDocumentExistance } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
 const documentsRouter = Router();
+
+documentsRouter.get('/',[
+    validateJWT
+], getDocuments)
 
 documentsRouter.post( '/info', [
     // check('id','El id de la peticion es obligatorio y debe de ser un numero entero').isNumeric(),
@@ -24,7 +28,10 @@ documentsRouter.post('/',[
     validateJWT
 ],createDocument)
 
-documentsRouter.get('/',[
+documentsRouter.delete('/:id_document',[
+    check('id_document','El id del documento es numero entero y es obligatorio.'),
+    validateFields,
+    checkDocumentExistance,
     validateJWT
-], getDocuments)
+],deleteDocument);
 module.exports = documentsRouter;

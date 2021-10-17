@@ -10,6 +10,7 @@ const { printAndSendError } = require('../helpers/responsesOfReq');
 const { getGradesStudent, getCourseStudentIsTaking } = require("../helpers/students");
 const Document = require("../models/document");
 const Student = require("../models/student");
+const moment = require('moment');
 const getInfoDocument = async (req, res) => {
     const { document_type } = req.body;
     const { id_student } = req
@@ -72,7 +73,7 @@ const createDocument = async(req, res) => {
     const { document_type } = req.body
     const { id_student } = req
 
-    const document = new Document({document_type,cost : document_types[document_type]['price'],id_student,date : moment().format('YYYY-MM-DD').toString()})
+    const document = new Document({document_type,cost : document_types[document_type]['price'],id_student,creation_date : moment().format('YYYY-MM-DD').toString()})
     await document.save();
 
     res.json({
@@ -86,28 +87,61 @@ const getDocuments = async( req, res) => {
     Document.belongsTo(Student,{ foreignKey : 'id_student'});
     Student.hasMany(Document, { foreignKey : 'id_student'});
 
+    Request.belongsTo(Document, { foreignKey : 'id_document'})
+    Document.hasOne(Request, { foreignKey : 'id_document'})
+
     let documents = await Document.findAll({
-        include : {
+        include : [{
             model : Student,
             attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'student_name']]
-        }
+        },{
+            model : Request
+        }]
     });
 
     documents = documents.map( doc => {
-        const {student, ...restoDoc} = doc.toJSON()
-        return {
+        const {student, request, ...restoDoc} = doc.toJSON()
+        let docToReturn = {
             ...restoDoc,
             document_name : document_types[restoDoc.document_type]['name'],
             ...student,
         }
+        docToReturn = (request) ? {...docToReturn,belongsToARequest:true} : {...docToReturn,belongsToARequest:false}
+        return docToReturn
     })
     res.json({
         ok : true,
         documents
     })
 }
+
+const deleteDocument = async(req, res) => {
+    const { id_document } = req.params
+
+    Request.belongsTo(Document, { foreignKey : 'id_document'})
+    Document.hasOne(Request, { foreignKey : 'id_document'})
+    const document = await Document.findByPk(id_document,{
+        include : {
+            model : Request
+        }
+    })
+
+    if(document.request){
+        return res.status(400).json({
+            ok : false,
+            msg : `El documento con id ${id_document} no pudo ser eliminado debido a que esta asociado con una petición.`
+        })
+    }
+    await document.destroy();
+
+    return res.json({
+        ok : true,
+        msg : "El documento fue eliminado correctamente."
+    })
+}
 module.exports = {
     getInfoDocument,
     createDocument,
-    getDocuments
+    getDocuments,
+    deleteDocument
 }
