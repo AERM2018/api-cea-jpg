@@ -14,7 +14,6 @@ requestRouter.get('/',[
 requestRouter.post('/',[
     validateJWT,
     check('matricula','La matricula del estudiante es obligatoria').isString().notEmpty(),
-    check('id_department','El id del departmento es obligatorio').isInt().exists({ checkNull : true}),
     check('document_type','Tipo de documento es obligatorio').exists({ checkNull : true}).isInt().if( (document_type) => document_type >= 0 && document_type <= 10),
     validateFields,
     checkStudentExistence,

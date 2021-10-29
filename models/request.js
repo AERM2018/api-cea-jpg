@@ -18,6 +18,7 @@ const Request = db.define('request',{
     id_payment : {
         type : DataTypes.INTEGER,
         allowNull : false,
+        defaultValue : 5
     },
     status_request: {
         type : DataTypes.TINYINT,
