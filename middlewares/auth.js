@@ -5,7 +5,7 @@ const { db } = require("../database/connection");
 const loginRateLimit = (req = request, res, next) => {
 
   const limiter = new RateLimiterMySQL(
-    { storeClient: db, tableCreated : true, points: 3, duration: 60*2 , blockDuration : 60 }
+    { storeClient: db, tableCreated : false, points: 3, duration: 60*2 , blockDuration : 60 }
   );
 
   limiter
