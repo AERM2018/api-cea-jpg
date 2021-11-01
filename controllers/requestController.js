@@ -117,7 +117,7 @@ const getAllTheRequests = async (req, res) => {
 }
 
 const createRequest = async (req, res) => {
-    const { document_type, id_department, } = req.body
+    const { document_type } = req.body
     const { id_student } = req
     try {
         
@@ -152,7 +152,6 @@ const createRequest = async (req, res) => {
         await partial_pay.save();
         
         const request = new Request({
-            id_department,
             id_document,
             id_payment,
         })
