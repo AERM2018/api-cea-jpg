@@ -70,36 +70,8 @@ const getAllGrades = async( req, res = response) => {
         }
     })
     students = await Promise.all(students)
-    
     students = filterGradesStudent(students,q)
-
     students = students.filter((student,i) => i >= (9*page)-9 && i <= 9*page)
-
-
-
-    // //
-    // let groups = await Group.findAll({ limit:[10*(page-1),10]})
-    // groups = groups.filter( ({name_group}) => name_group.split(' ').join('').includes(q))
-    // let avgByGroups = groups.map( async(group) => {
-    //     const studentsBelongToGroup = await Stu_gro.findAll({
-    //         where : {id_group : group.id_group}
-    //     })
-
-    //     let avgStudents = studentsBelongToGroup.map( async(student) => await(getGradesStudent(student.id_student,true)))
-    //     avgStudents = await Promise.all(avgStudents)
-
-    //     let avgGroup = avgStudents.reduce( (pre,cur) => (pre+cur))
-    //     avgGroup /= avgStudents.length
-
-    //     return {
-    //         id_group : group.id_group,
-    //         group_name : group.name_group,
-    //         avg : avgGroup,
-    //         q : 'group_name'
-    //     }
-    // })
-    // avgByGroups = await Promise.all(avgByGroups)
-
     grades = [...students]
     res.json({
         ok : true,
@@ -107,153 +79,153 @@ const getAllGrades = async( req, res = response) => {
     })
 }
 
-const getAllGradesByCourse = async (req, res = response) => {
-    const { id_course, id_group} = req.body
+// const getAllGradesByCourse = async (req, res = response) => {
+//     const { id_course, id_group} = req.body
 
-    try {
+//     try {
 
-        // Check if the course exists
-        const course = await Course.findByPk(id_course);
-        if (!course) {
-            return res.status(404).json({
-                ok: false,
-                msg: `El curso con id ${id_course} no existe, verifíquelo por favor.`
-            })
-        }
-        // Check if the group exists
-        const group = await Group.findOne({
-            where: { 'id_group': id_group }
-        })
-        if (!group) {
-            return res.status(404).json({
-                ok: false,
-                msg: `El grupo con id ${id_group} no existe, verifiquelo por favor.`
-            })
-        }
-        Grades.belongsTo(Course,{ foreignKey: 'id_course'})
-        Course.hasMany(Grades,{ foreignKey: 'id_course'})
+//         // Check if the course exists
+//         const course = await Course.findByPk(id_course);
+//         if (!course) {
+//             return res.status(404).json({
+//                 ok: false,
+//                 msg: `El curso con id ${id_course} no existe, verifíquelo por favor.`
+//             })
+//         }
+//         // Check if the group exists
+//         const group = await Group.findOne({
+//             where: { 'id_group': id_group }
+//         })
+//         if (!group) {
+//             return res.status(404).json({
+//                 ok: false,
+//                 msg: `El grupo con id ${id_group} no existe, verifiquelo por favor.`
+//             })
+//         }
+//         Grades.belongsTo(Course,{ foreignKey: 'id_course'})
+//         Course.hasMany(Grades,{ foreignKey: 'id_course'})
 
-        Grades.belongsTo(Student, { foreignKey : 'id_student'})
-        Student.hasMany(Grades, { foreignKey : 'id_student'})
+//         Grades.belongsTo(Student, { foreignKey : 'id_student'})
+//         Student.hasMany(Grades, { foreignKey : 'id_student'})
 
-        let grades = await Grades.findAll({
-            include : [{
-                model : Course,
-                attributes : ['course_name','id_course']
-            },
-            {
-                model : Student,
-                attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
-            }],
-            where : { 
-                id_course , 
-                id_student : { [Op.in] : literal(`(SELECT id_student FROM stu_gro WHERE id_group = ${id_group})`)}
-            }
-        })
+//         let grades = await Grades.findAll({
+//             include : [{
+//                 model : Course,
+//                 attributes : ['course_name','id_course']
+//             },
+//             {
+//                 model : Student,
+//                 attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
+//             }],
+//             where : { 
+//                 id_course , 
+//                 id_student : { [Op.in] : literal(`(SELECT id_student FROM stu_gro WHERE id_group = ${id_group})`)}
+//             }
+//         })
 
-        grades = grades.map( grade => {
-            const {course, student, ...restoGrade} = grade.toJSON();
-            return {
-                ...restoGrade,
-                ...student,
-                ...course
-            }
-        })
-        res.status(200).json({
-            ok: true,
-            grades
-        })
-    } catch (err) {
-        printAndSendError(res,err);
-    }
-}
-// It's not working
-const getAllGroupsGrades = async ( req, res =  response)=>{
-    const { edu_level, major, group_name = '',id_group = 0} = req.query
+//         grades = grades.map( grade => {
+//             const {course, student, ...restoGrade} = grade.toJSON();
+//             return {
+//                 ...restoGrade,
+//                 ...student,
+//                 ...course
+//             }
+//         })
+//         res.status(200).json({
+//             ok: true,
+//             grades
+//         })
+//     } catch (err) {
+//         printAndSendError(res,err);
+//     }
+// }
+// // It's not working
+// const getAllGroupsGrades = async ( req, res =  response)=>{
+//     const { edu_level, major, group_name = '',id_group = 0} = req.query
 
-    const groups = await Group.findAll({
-        where : {
-            // edu_level,
-            // major
-        }
-    })
+//     const groups = await Group.findAll({
+//         where : {
+//             // edu_level,
+//             // major
+//         }
+//     })
 
-    const groupsGrades = groups.map( async({id_group, name_group}) => {
-        let avgGroup = 0;
+//     const groupsGrades = groups.map( async({id_group, name_group}) => {
+//         let avgGroup = 0;
 
-        let studentsGroup = await Stu_gro.findAll({
-            where : { id_group },
-            attributes : ['id_student']
-        })
+//         let studentsGroup = await Stu_gro.findAll({
+//             where : { id_group },
+//             attributes : ['id_student']
+//         })
 
-        studentsGroup = studentsGroup.map( studentGroup => studentGroup.toJSON().id_student)
+//         studentsGroup = studentsGroup.map( studentGroup => studentGroup.toJSON().id_student)
 
-        studentsGroup = studentsGroup.map( async(id_student) => {
-            const avgStudent = await getGradesStudent( id_student, true)
-            return {id_student, avg: avgStudent}
-        })        
+//         studentsGroup = studentsGroup.map( async(id_student) => {
+//             const avgStudent = await getGradesStudent( id_student, true)
+//             return {id_student, avg: avgStudent}
+//         })        
         
-        const studentsAvgs = await Promise.all(studentsGroup)
+//         const studentsAvgs = await Promise.all(studentsGroup)
 
-        studentsAvgs.forEach( ({avg}) => {
-            avgGroup += avg
-        })
-        avgGroup /= studentsGroup.length
-        return {
-            id_group,
-            name_group,
-            avg : avgGroup
-        }      
-    })
+//         studentsAvgs.forEach( ({avg}) => {
+//             avgGroup += avg
+//         })
+//         avgGroup /= studentsGroup.length
+//         return {
+//             id_group,
+//             name_group,
+//             avg : avgGroup
+//         }      
+//     })
 
-    Promise.all(groupsGrades).then( grades => {
-        res.json({
-            ok: true,
-            groups : grades
-        })
-    })
+//     Promise.all(groupsGrades).then( grades => {
+//         res.json({
+//             ok: true,
+//             groups : grades
+//         })
+//     })
 
-}
+// }
 
-const getAllGradesByGroup = async( req, res = response) => {
-    let {id_group = 0 } = req.params
+// const getAllGradesByGroup = async( req, res = response) => {
+//     let {id_group = 0 } = req.params
 
-    const group = await Group.findOne({
-        where :  {id_group},
-        attributes : ['id_group','name_group']
-    })
+//     const group = await Group.findOne({
+//         where :  {id_group},
+//         attributes : ['id_group','name_group']
+//     })
 
-    id_group = (group) ? group.toJSON().id_group : '';
-    Student.hasOne(Stu_gro, {foreignKey : 'id_student'})
-    Stu_gro.belongsTo(Student, {foreignKey : 'id_student'})
-    let studentsGroup = await Stu_gro.findAll({
-        where : {
-            id_group
-        },
-        include: { model : Student, attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'fullname']]},
-        attributes : ['id_student']
-    })
+//     id_group = (group) ? group.toJSON().id_group : '';
+//     Student.hasOne(Stu_gro, {foreignKey : 'id_student'})
+//     Stu_gro.belongsTo(Student, {foreignKey : 'id_student'})
+//     let studentsGroup = await Stu_gro.findAll({
+//         where : {
+//             id_group
+//         },
+//         include: { model : Student, attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'fullname']]},
+//         attributes : ['id_student']
+//     })
 
-    studentsGroup = studentsGroup.map( studentGroup => {
-        const {student,...restoGroupInfo} = studentGroup.toJSON()
-        return {...student}
+//     studentsGroup = studentsGroup.map( studentGroup => {
+//         const {student,...restoGroupInfo} = studentGroup.toJSON()
+//         return {...student}
 
-    })
+//     })
 
-    studentsGroup = studentsGroup.map( async(student) => {
-        const avgStudent = await getGradesStudent(student.id_student, true)
-        return {...student,avg: avgStudent}
-    })
+//     studentsGroup = studentsGroup.map( async(student) => {
+//         const avgStudent = await getGradesStudent(student.id_student, true)
+//         return {...student,avg: avgStudent}
+//     })
 
-    Promise.all(studentsGroup).then( students => {
-        res.json({
-            ok: true,
-            id_group : group.toJSON().id_group,
-            group_name : group.toJSON().name_group,
-            students
-        })
-    })
-}
+//     Promise.all(studentsGroup).then( students => {
+//         res.json({
+//             ok: true,
+//             id_group : group.toJSON().id_group,
+//             group_name : group.toJSON().name_group,
+//             students
+//         })
+//     })
+// }
 const searchAverageByStudent = async ( req, res = response ) => { 
     const {  name = ''} = req.query
 
@@ -290,14 +262,8 @@ const getAllGradesByMatricula = async( req, res = response) => {
     try {
         let grades   
         const coursesGrades = await getGradesStudent( id_student, false )
-
         const extraCoursesGrades = await getExtraCoursesGradesStudent(id_student)
-
         const tesineGrade = await getTesineGradeStudent( id_student )
-
-        // const gradCoruseGrade = await Stu_gracou.findOne({
-        //     where : {id_student}
-        // })
         grades = [...coursesGrades,...extraCoursesGrades,tesineGrade]
         grades = grades.filter((grade,i) => i >= (9*page)-9 && i <= 9*page)
         res.json({
@@ -307,7 +273,6 @@ const getAllGradesByMatricula = async( req, res = response) => {
     } catch ( err ) {
         printAndSendError( res, err)
     }
-
 }
 const uploadCourseGrades = async (req, res = response) => {
 
@@ -317,7 +282,6 @@ const uploadCourseGrades = async (req, res = response) => {
     let except = [];
 
     try {
-
         // Check if the course exists
         const course = await Course.findByPk(id_course);
         if (!course) {
@@ -337,14 +301,12 @@ const uploadCourseGrades = async (req, res = response) => {
                 msg: `El grupo con id ${id_group} no existe, verifiquelo por favor.`
             })
         }
-
         // get ids' of the students which belong to the group
         const stu_gro = await Stu_gro.findAll({
             where: { 'id_group': id_group },
             
         })
         const idstudents_group = stu_gro.map(e => e['id_student'])
-
         let students_grades = students.map( async(student) => {
             const {id_student} = await Student.findOne( {where : { matricula : student.matricula }, attributes : ['id_student']} )
             if(!idstudents_group.includes(id_student)){
@@ -354,7 +316,6 @@ const uploadCourseGrades = async (req, res = response) => {
             return {...student, id_student}
             
         })
-
         // Check if there are grades for the course already to avoid duplicates
         const gradesCourse = await Grades.findAll({
             where: {
@@ -537,13 +498,13 @@ const deleteGradeByStudentId = async (req, res = response) => {
 }
 
 module.exports = {
-    getAllGradesByCourse,
+    // getAllGradesByCourse,
     uploadCourseGrades,
     updateGrades,
     deleteGradeByStudentId,
     searchAverageByStudent,
-    getAllGroupsGrades,
-    getAllGradesByGroup,
+    // getAllGroupsGrades,
+    // getAllGradesByGroup,
     getAllGrades,
     getAllGradesByMatricula,
     updateExtraCurCourGrades,

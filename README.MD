@@ -1409,9 +1409,9 @@ URL/scholarships/id_scholarship   /*HTTP method: DELETE*/
 
 ## Grades
 
-### **Get averages**
+### **Get grades**
 
-This endopint will return a list of the students' averages as well as the groups' averages.
+This endopint will return a list of the students in order to consult their grades.
 
 Query params you can use:
 - q : Specify one of the following attributes:
@@ -1429,19 +1429,21 @@ URL/grades/all    /*HTTP method: GET*/
     "ok": true,
     "grades": [
                 {
-                    "id_student": "ale105083",
-                    "matricula": "DEDG202103003",
-                    "studenet_name": "Angel Gonzalez Gonzalez",
-                    "avg": 8.5,
-                    "q": "student_name"
-                },
-                {
-                    "id_student": "ale106009",
-                    "matricula": "DEDG202103001",
-                    "studenet_name": "Angel Gonzalez Vergas",
-                    "avg": 7.55,
-                    "q": "student_name"
-                }...
+            "id_student": "ale105083",
+            "matricula": "DEDG202103003",
+            "student_name": "Angel Gonzalez Gonzalez",
+            "group_name": "3 derecho",
+            "major_name": "Licenciatura en Angel",
+            "q": "student_name"
+        },
+        {
+            "id_student": "ale106009",
+            "matricula": "DEDG202103001",
+            "student_name": "Angel Gonzalez Vergas",
+            "group_name": "3 derecho",
+            "major_name": "Licenciatura en Angel",
+            "q": "student_name"
+        },...
     ]
 }
 ```
@@ -1459,50 +1461,6 @@ URL/grades/all    /*HTTP method: GET*/
     + student_name
     + matricula
     + group_name
-
-
-### **Get students' average from a group**
-
-This endopint will return the general average of each of the students who belongs to a group. You need to pass the group id in the url.
-
-
-```
-Endpoint:  URL/grades/groups/id_group     /*HTTP method: GET*/
-```
-
-* Put the value of group id instead of "id_group"
-
-**If the request is successful, the response would be:**
-```
-{
-    "ok": true,
-    "id_group": 5,
-    "group_name": "3 derecho",
-    "students": [
-        {
-            "id_student": "ale105083",
-            "matricula": "DEDG202103003",
-            "fullname": "Angel Gonzalez Gonzalez",
-            "avg": 8.5
-        },
-        {
-            "id_student": "ale106009",
-            "matricula": "DEDG202103001",
-            "fullname": "Angel Gonzalez Vergas",
-            "avg": 7.55
-        }...
-    ]
-}
-```
-
-**If there're no students who belong to the group, the request's answer will be an empty array []. It looks like this:**
-```
-    {
-        "ok": true,
-        "students": []
-    }
-```
-
 
 ### **Get grades from a student by matricula**
 
@@ -1530,55 +1488,7 @@ URL/grades/students/matricula   HTTP method: GET
     ]
 }
 ```
-### ***Get grades from a course and a group***
-
-This endpoint will return the grades of a course of the students who belong to a group.
-
-```
-URL/grades/regular/check       /*HTTP method: POST*/
-```
-
-**You need to send an object like this in the request's body:**
-
-```
-{
-    id_course : INT,
-    id_group: INT
-}
-```
-
-**If the request is successful, the response would be:**
-```
-{
-    "ok": true,
-    "grades": [
-        {
-            "id_grade": 14,
-            "id_course": 6,
-            "id_student": "ale105083",
-            "grade": 7,
-            "matricula": "DEDG202103003",
-            "student_name": "Angel Gonzalez Gonzalez",
-            "course_name": "Español avanzado 2.0"
-        },
-        {
-            "id_grade": 15,
-            "id_course": 6,
-            "id_student": "ale106009",
-            "grade": 7,
-            "matricula": "DEDG202103001",
-            "student_name": "Angel Gonzalez Vergas",
-            "course_name": "Español avanzado 2.0"
-        }
-    ]
-}
-```
-
-<<<<<<< HEAD
-### **Update grade for a regular course**
-=======
 ### **Upload grades of a group**
->>>>>>> 1cff49c2b96ecc7d55c8fcfb39085b4b31b1e235
 
 This endopint will upload the grades of a couse by the group's id. You need to send the course id in the url.
 
