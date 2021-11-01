@@ -10,6 +10,7 @@ const Request = db.define('request',{
     id_department : {
         type : DataTypes.INTEGER,
         allowNull : false,
+        defaultValue : 5
     },
     id_document : {
         type : DataTypes.INTEGER,
@@ -18,7 +19,6 @@ const Request = db.define('request',{
     id_payment : {
         type : DataTypes.INTEGER,
         allowNull : false,
-        defaultValue : 5
     },
     status_request: {
         type : DataTypes.TINYINT,

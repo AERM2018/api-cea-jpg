@@ -17,7 +17,6 @@ requestRouter.post('/',[
     check('document_type','Tipo de documento es obligatorio').exists({ checkNull : true}).isInt().if( (document_type) => document_type >= 0 && document_type <= 10),
     validateFields,
     checkStudentExistence,
-    checkDepartmentExistence,
 ], createRequest)
 
 requestRouter.put('/:id',[
