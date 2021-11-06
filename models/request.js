@@ -1,4 +1,5 @@
 const { DataTypes } = require("sequelize");
+const moment = require('moment');
 const { db } = require("../database/connection");
 
 const Request = db.define('request',{
@@ -27,7 +28,7 @@ const Request = db.define('request',{
     },
     creation_date: {
         type : DataTypes.DATEONLY,
-        defaultValue : Date.now(),
+        defaultValue : moment(new Date()),
         allowNull : true,
     }
 
