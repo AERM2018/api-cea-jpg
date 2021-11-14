@@ -12,25 +12,24 @@ expenseRouter.get('/',[
 
 expenseRouter.post('/',[
     validateJWT,
-    check('observation','La matricula del estudiante es obligatoria').isString().notEmpty(),
-    check('expense_type','El id del departmento es obligatorio').isInt().exists({ checkNull : true}),
-    check('amount','Tipo de documento es obligatorio').isFloat().exists({checkNull: true}),
+    check('observation','La observación es obligatoria').isString().notEmpty(),
+    check('expense_type','El tipo de gasto es un número entero y es obligatorio').isInt().exists({ checkNull : true}),
+    check('amount','El cargo del gasto es un número flotante y es obligatorio').isFloat().exists({checkNull: true}),
     validateFields,
     checkEmployeeExistence
-    
 ], createExpense)
 
 expenseRouter.put('/:id',[
-    param('id','El id de la solicitud es obligatorio y debe de ser un numero entero').isNumeric(),
-    check('amount','Tipo de documento es obligatorio').isFloat().exists({checkNull: true}),
-    check('observation','La matricula del estudiante es obligatoria').isString().notEmpty(),
-    check('expense_type','El id del departmento es obligatorio').isInt().exists({ checkNull : true}),
+    param('id','El id del gasto es un número entero y obligatorio').isNumeric(),
+    check('amount','El cargo del gasto es un número flotante y es obligatorio').isFloat().exists({checkNull: true}),
+    check('observation','La observación es obligatoria').isString().notEmpty(),
+    check('expense_type','El tipo de gasto es un número entero y es obligatorio').isInt().exists({ checkNull : true}),
     validateJWT,
     validateFields
 ], updateExpense)
 
 expenseRouter.delete('/:id', [
-    param('id','El id de la solicitud es obligatorio y debe de ser un numero entero').isNumeric(),
+    param('id','El id del gasto es un número entero y obligatorio').isNumeric(),
     validateFields,
     validateJWT
 ], deleteExpense)
