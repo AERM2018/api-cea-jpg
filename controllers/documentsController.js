@@ -11,6 +11,8 @@ const { getGradesStudent, getCourseStudentIsTaking } = require("../helpers/stude
 const Document = require("../models/document");
 const Student = require("../models/student");
 const moment = require('moment');
+const { generateNewDoc } = require("../helpers/documentGeneration");
+const { response } = require("express");
 const getInfoDocument = async (req, res) => {
     const { document_type } = req.body;
     const { id_student } = req
@@ -69,17 +71,15 @@ const getInfoDocument = async (req, res) => {
     }
 }
 
-const createDocument = async(req, res) => {
-    const { document_type } = req.body
-    const { id_student } = req
-
-    const document = new Document({document_type,cost : document_types[document_type]['price'],id_student,creation_date : moment().format('YYYY-MM-DD').toString()})
-    await document.save();
-
-    res.json({
-        ok : true,
-        msg : "El documento fue creado correctamente."
-    })
+const createDocument = async(req, res = response) => {
+    const stream = res.writeHead(200,{
+        'Content-Type':'application/pdf',
+        'Content-Disposition':'inline'
+    });
+    generateNewDoc(
+        (chunk) => { stream.write(chunk)},
+        () => stream.end()
+    )
 }
 
 const getDocuments = async( req, res) => {
