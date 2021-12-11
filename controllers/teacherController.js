@@ -255,14 +255,16 @@ const getAllCoursesTeacherGiven = async( req, res = response) => {
                         }
                     }
                 },
-                where : { id_course }
+                where : { id_course },
+                raw:true,
+                nest:true
             })
 
-            const {major,...restGroupTookCourse} = groupTookCourse.toJSON().groupss
+            const {major,...restGroupTookCourse} = groupTookCourse.groupss
             const {educational_level} = major
-
             return {
                 ...{id:id_course,...restoCourse,course:courseInfo.course_name},
+                id_gro_cou:groupTookCourse.id_gro_cou,
                 ...restGroupTookCourse,
                 major_name : `${educational_level.educational_level} en ${major.major_name}`,
                 type : 'regular'

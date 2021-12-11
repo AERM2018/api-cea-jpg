@@ -1,5 +1,6 @@
 const { response } = require("express");
 const { fn, col, literal, Op } = require("sequelize");
+const { getRegularCourseInfo } = require("../helpers/courses");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Assit = require("../models/assit");
 const Course = require("../models/courses");
@@ -234,74 +235,34 @@ const getCourseAssistance =  async(req, res) => {
 
   try {
 
-    Gro_cou.belongsTo(Group, { foreignKey : 'id_group'})
-    Group.hasOne(Gro_cou, { foreignKey : 'id_group'})
-
-    Gro_cou.belongsTo(Course, { foreignKey : 'id_course'})
-    Course.hasMany(Gro_cou, { foreignKey : 'id_course'})
-
-    Cou_tea.belongsTo(Course, { foreignKey : 'id_course'})
-    Course.hasOne(Cou_tea, { foreignKey : 'id_course'})
-
-    Cou_tea.belongsTo(Teacher, { foreignKey : 'id_teacher'})
-    Teacher.hasOne(Cou_tea, { foreignKey : 'id_teacher'})
-    
     Gro_cou_ass.belongsTo(Student,{ foreignKey : 'id_student'});
     Student.hasMany(Gro_cou_ass,{ foreignKey : 'id_student'});
   
     Gro_cou_ass.belongsTo(Assit,{foreignKey:'id_assistance'})
     Assit.hasOne(Gro_cou_ass,{foreignKey:'id_assistance'})
   
-    // Buscar información acerca del curso
-    let course = await Gro_cou.findOne({
-      include : [{
-        model : Group,
-        attributes : ['id_group','name_group']
+    let courseInfo = await getRegularCourseInfo(id_gro_cou)
+    let students_group_ass = await Gro_cou_ass.findAll({
+      include:[{
+        model : Student,
+        attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']],
       },{
-        model : Course,
-        include : {
-          model : Cou_tea,
-          include : {
-              model : Teacher,
-              attributes : ['id_teacher',[fn('concat',col('course.cou_tea.teacher.name'),' ',col('course.cou_tea.teacher.surname_f'),' ',col('course.cou_tea.teacher.surname_m')),'teacher_name']]
-            }
-        }
+        model: Assit
       }],
-      where : {id_gro_cou}
-    })
-  
-    course = {
-      id_course : course.toJSON().course.id_course,
-      course_name : course.toJSON().course.course_name,
-      id_group : course.toJSON().groupss.id_group,
-      group_name : course.toJSON().groupss.name_group,
-      ...course.toJSON().course.cou_tea.teacher
-    }
-  
-    // Buscar la assistencia del curso
-    let assistence = await Gro_cou_ass.findAll({
-          include : [{
-            model : Student,
-            attributes : ['id_student','matricula',[fn('concat',col('student.name'),' ',col('student.surname_f'),' ',col('student.surname_m')),'student_name']]
-          },{
-            model : Assit
-          }]
-          ,where : {id_gro_cou}
+      where : {id_gro_cou},
+      raw : true,
+      nest: true
     });
-  
-    assistence = assistence.map( ass => {
-      const {student,assit} = ass.toJSON()
-        return {
-          ...student,
-          ...assit
-        }
-    })
+    let studentAssistance = [];
+    while(students_group_ass.length > 0){
+      studentAssistance.push(students_group_ass[0].student)
+      studentAssistance[studentAssistance.length - 1] = {...studentAssistance[studentAssistance.length - 1],assistences:students_group_ass.filter( (assistence) => assistence.id_student == studentAssistance[studentAssistance.length - 1].id_student).map( (assistence) => assistence.assit)}
+      students_group_ass = students_group_ass.filter((assistence)=>assistence.id_student != studentAssistance[studentAssistance.length - 1].id_student)
+    }
     return res.json({
       ok : true,
-      course: {
-        ...course,
-        assistence
-      }
+      ...courseInfo,
+      students : studentAssistance,
     })
   } catch ( err ) {
     printAndSendError(res, err)
@@ -429,7 +390,7 @@ const getExtrCourAssistance= async (req, res = response)=>{
     let extraCourse = await ExtraCurricularCourses.findOne({
       include : {
         model : Teacher,
-        attributes : ['id_teacher',[fn('concat',col('teacher.name'),' ',col('teacher.surname_f'),' ',col('teacher.surname_m')),'teacher_name']]
+        attributes : ['id_teacher',[fn('concat',col('teacher.name'),' ',col('teacher.surname_f'),' ',col('teacher.surname_m')),'teacher_name']],
       },
       where : {id_ext_cou}
     })
@@ -447,22 +408,28 @@ const getExtrCourAssistance= async (req, res = response)=>{
           },{
             model : Assit
           }]
-          ,where : {id_ext_cou}
+          ,where : {id_ext_cou},
+          raw :true,
+          nest: true
     });
-  
-    assistence = assistence.map( ass => {
-      const {student,assit} = ass.toJSON()
-        return {
-          ...student,
-          ...assit
-        }
-    })
+    let studentAssistance = [];
+    while (assistence.length > 0){
+        studentAssistance.push(assistence[0].student)
+        studentAssistance[studentAssistance.length - 1] = {...studentAssistance[studentAssistance.length - 1],assistences:assistence.filter( (assistence) => assistence.id_student == studentAssistance[studentAssistance.length - 1].id_student).map( (assistence) => assistence.assit)}
+        assistence = assistence.filter((assistence)=>assistence.id_student != studentAssistance[studentAssistance.length - 1].id_student)
+    }
+    // assistence = assistence.map( ass => {
+    //   const {student,assit} = ass.toJSON()
+    //     return {
+    //       ...student,
+    //       ...assit
+    //     }
+    // })
     return res.json({
       ok : true,
-      extracurricular_course: {
         ...extraCourse,
-        assistence
-      }
+        students:studentAssistance
+      
     })
   } catch ( err ) {
     printAndSendError(res, err)
@@ -575,22 +542,21 @@ const getGraSecAssistance= async (req, res = response)=>{
           },{
             model : Assit
           }],
-    where : {id_graduation_section}
+    where : {id_graduation_section},
+    raw: true,
+    nest : true
   });
-
-  assistence = assistence.map( ass => {
-    const {student,assit} = ass.toJSON()
-    return {
-      ...student,
-      ...assit
+  let studentAssistance = [];
+    while (assistence.length > 0){
+        studentAssistance.push(assistence[0].student)
+        studentAssistance[studentAssistance.length - 1] = {...studentAssistance[studentAssistance.length - 1],assistences:assistence.filter( (assistence) => assistence.id_student == studentAssistance[studentAssistance.length - 1].id_student).map( (assistence) => assistence.assit)}
+        assistence = assistence.filter((assistence)=>assistence.id_student != studentAssistance[studentAssistance.length - 1].id_student)
     }
-  })
   return res.json({
     ok : true,
-    extracurricular_course: {
       ...graduation_section_info,
-      assistence
-    }
+      students:studentAssistance
+    
   })
   } catch ( err ) {
     printAndSendError(res,err)

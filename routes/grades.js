@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByGroup, getAllGroupsGrades, getAllGrades, getAllGradesByMatricula, uploadCourseGrades, uploadTesineGrade, uploadExtraCurCourGrades, updateExtraCurCourGrades, updateTesineGrades } = require('../controllers/gradesController');
+const { uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByGroup, getAllGroupsGrades, getAllGrades, getAllGradesByMatricula, uploadCourseGrades, uploadTesineGrade, uploadExtraCurCourGrades, updateExtraCurCourGrades, updateTesineGrades, getAllGradesByCourse, getExtraCourseGrades, getGraduationSectionGrades, getGraduationCourseGrades } = require('../controllers/gradesController');
 const { checkStudentExistence, checkGradeCourseExistence, checkGradeTesineExistence, checkStuExtraCouExistence, checkExtraCurCourExistence } = require('../middlewares/dbValidations');
 const checkGrades = require('../middlewares/grades');
 const validateJWT = require('../middlewares/validar-jwt');
@@ -31,14 +31,24 @@ gradesRouter.get('/students/:matricula',[
     validateJWT
 ],getAllGradesByMatricula)
 
-// gradesRouter.post('/regular/check', [
-//     check('id_course','El id del curso es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
-//     check('id_group','El id del grupo es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
-//     // check('id_student',"El id del estudiante es un número entero y es obligatorio").isNumeric().exists({checkNull:true}),
-//     // check('grade',"El campo grade es de tipo float de 4 y es obligatorio").isFloat(4).exists({checkNull:true}),
-//     validateFields,
-//     validateJWT
-// ] ,getAllGradesByCourse);
+gradesRouter.get('/regular/:id_gro_cou', [
+    // check('id_course','El id del curso es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
+    // check('id_group','El id del grupo es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
+    // check('id_student',"El id del estudiante es un número entero y es obligatorio").isNumeric().exists({checkNull:true}),
+    // check('grade',"El campo grade es de tipo float de 4 y es obligatorio").isFloat(4).exists({checkNull:true}),
+    validateFields,
+    validateJWT
+] ,getAllGradesByCourse);
+
+gradesRouter.get('/extra/:id_ext_cou',[
+    validateFields,
+    validateJWT
+],getExtraCourseGrades)
+
+gradesRouter.get('/grasec/:id_graduation_course',[
+    validateFields,
+    validateJWT
+],getGraduationCourseGrades)
 
 
 gradesRouter.post('/regular/:id_course', [

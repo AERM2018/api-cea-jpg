@@ -25,12 +25,12 @@ const Graduation_courses =  db.define('graduation_courses',{
             notEmpty : true
         }
     },
-    id_teacher : {
-        type : DataTypes.STRING(30),
-        validate : {
-            notEmpty : true
-        }
-    }
+    // id_teacher : {
+    //     type : DataTypes.STRING(30),
+    //     validate : {
+    //         notEmpty : true
+    //     }
+    // }
 },
 {
     timestamps : false,

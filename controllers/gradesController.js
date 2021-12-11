@@ -21,6 +21,8 @@ const { filterGradesStudent } = require('../helpers/students');
 const Stu_gracou = require('../models/stu_gracou');
 const Major = require('../models/major');
 const Educational_level = require('../models/educational_level');
+const { getRegularCourseInfo, getExtraCourseInfo, getGraduationSectionInfo, getGraduationCourseInfo } = require('../helpers/courses');
+const ExtraCurricularCourses = require('../models/extracurricularcourses');
 
 const getAllGrades = async( req, res = response) => {
     let grades;
@@ -79,66 +81,114 @@ const getAllGrades = async( req, res = response) => {
     })
 }
 
-// const getAllGradesByCourse = async (req, res = response) => {
-//     const { id_course, id_group} = req.body
+const getAllGradesByCourse = async (req, res = response) => {
+    const { id_gro_cou } = req.params
 
-//     try {
+    try {
 
-//         // Check if the course exists
-//         const course = await Course.findByPk(id_course);
-//         if (!course) {
-//             return res.status(404).json({
-//                 ok: false,
-//                 msg: `El curso con id ${id_course} no existe, verifíquelo por favor.`
-//             })
-//         }
-//         // Check if the group exists
-//         const group = await Group.findOne({
-//             where: { 'id_group': id_group }
-//         })
-//         if (!group) {
-//             return res.status(404).json({
-//                 ok: false,
-//                 msg: `El grupo con id ${id_group} no existe, verifiquelo por favor.`
-//             })
-//         }
-//         Grades.belongsTo(Course,{ foreignKey: 'id_course'})
-//         Course.hasMany(Grades,{ foreignKey: 'id_course'})
+        // Check if the course exists
+        // const course = await Course.findByPk(id_course);
+        // if (!course) {
+        //     return res.status(404).json({
+        //         ok: false,
+        //         msg: `El curso con id ${id_course} no existe, verifíquelo por favor.`
+        //     })
+        // }
+        // // Check if the group exists
+        // const group = await Group.findOne({
+        //     where: { 'id_group': id_group }
+        // })
+        // if (!group) {
+        //     return res.status(404).json({
+        //         ok: false,
+        //         msg: `El grupo con id ${id_group} no existe, verifiquelo por favor.`
+        //     })
+        // }
+        Grades.belongsTo(Course,{ foreignKey: 'id_course'})
+        Course.hasMany(Grades,{ foreignKey: 'id_course'})
 
-//         Grades.belongsTo(Student, { foreignKey : 'id_student'})
-//         Student.hasMany(Grades, { foreignKey : 'id_student'})
+        Grades.belongsTo(Student, { foreignKey : 'id_student'})
+        Student.hasMany(Grades, { foreignKey : 'id_student'})
 
-//         let grades = await Grades.findAll({
-//             include : [{
-//                 model : Course,
-//                 attributes : ['course_name','id_course']
-//             },
-//             {
-//                 model : Student,
-//                 attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
-//             }],
-//             where : { 
-//                 id_course , 
-//                 id_student : { [Op.in] : literal(`(SELECT id_student FROM stu_gro WHERE id_group = ${id_group})`)}
-//             }
-//         })
+        let courseInfo = await getRegularCourseInfo(id_gro_cou)
+        let grades = await Grades.findAll({
+            include : [
+            {
+                model : Student,
+                attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
+            }],
+            attributes:{exclude:['id_course']},
+            where : { 
+                id_course : {[Op.eq] : literal(`(SELECT id_course FROM gro_cou WHERE gro_cou.id_gro_cou = ${id_gro_cou})`)}, 
+                id_student : { [Op.in] : literal(`(SELECT id_student FROM stu_gro WHERE id_group = (SELECT id_group FROM gro_cou WHERE gro_cou.id_gro_cou = ${id_gro_cou}))`)}
+            }
+        })
+        grades = grades.map( grade => {
+            const {student, ...restoGrade} = grade.toJSON();
+            return {
+                ...restoGrade,
+                ...student,
+            }
+        })
+        res.status(200).json({
+            ok: true,
+            ...courseInfo,
+            grades
+        })
+    } catch (err) {
+        printAndSendError(res,err);
+    }
+}
 
-//         grades = grades.map( grade => {
-//             const {course, student, ...restoGrade} = grade.toJSON();
-//             return {
-//                 ...restoGrade,
-//                 ...student,
-//                 ...course
-//             }
-//         })
-//         res.status(200).json({
-//             ok: true,
-//             grades
-//         })
-//     } catch (err) {
-//         printAndSendError(res,err);
-//     }
-// }
+const getExtraCourseGrades = async(req, res = response) => {
+    const { id_ext_cou } = req.params
+    Stu_extracou.belongsTo(Student,{foreignKey:'id_student'})
+    Student.hasOne(Stu_extracou,{foreignKey:'id_student'})
+
+    let courseInfo = await getExtraCourseInfo(id_ext_cou)
+    let grades = await Stu_extracou.findAll({
+        include : {
+            model : Student,
+            attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
+        },
+        where : {id_ext_cou},
+        raw : true,
+        nest : true
+    })
+    grades = grades.map( ({grade,student}) => ({grade,...student}))
+    res.status(200).json({
+        ok: true,
+        ...courseInfo,
+        grades
+    })
+}
+
+const getGraduationCourseGrades = async(req, res = response) => {
+    const {id_graduation_course} = req.params
+    let graduationCourse = await getGraduationCourseInfo(id_graduation_course)
+
+    Stu_gracou.belongsTo(Student,{foreignKey:'id_student'})
+    Student.hasOne(Stu_gracou,{foreignKey:'id_student'})
+    Stu_gracou.belongsTo(Tesine,{foreignKey:'id_tesine'})
+    Tesine.hasOne(Stu_gracou,{foreignKey:'id_tesine'})
+    let grades = await Stu_gracou.findAll({
+        include:[{
+            model:Student,
+            attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
+        },{
+            model : Tesine
+        }],
+        where : {id_graduation_course},
+        raw : true,
+        nest : true
+    })
+    grades = grades.map( ({student,tesine}) => ({...student,...tesine}))
+    return res.json({
+        ok : true,
+        ...graduationCourse,
+        grades
+    })
+}
 // // It's not working
 // const getAllGroupsGrades = async ( req, res =  response)=>{
 //     const { edu_level, major, group_name = '',id_group = 0} = req.query
@@ -274,6 +324,7 @@ const getAllGradesByMatricula = async( req, res = response) => {
         printAndSendError( res, err)
     }
 }
+
 const uploadCourseGrades = async (req, res = response) => {
 
     const { id_course } = req.params;
@@ -498,7 +549,9 @@ const deleteGradeByStudentId = async (req, res = response) => {
 }
 
 module.exports = {
-    // getAllGradesByCourse,
+    getAllGradesByCourse,
+    getExtraCourseGrades,
+    getGraduationCourseGrades,
     uploadCourseGrades,
     updateGrades,
     deleteGradeByStudentId,
