@@ -286,15 +286,19 @@ const getAllCoursesTeacherGiven = async( req, res = response) => {
                     model : Educational_level
                 }
             },
-            where : { id_teacher }, attributes : { exclude : ['id_teacher']}
+            where : { id_teacher }, attributes : { exclude : ['id_teacher']},
+            raw : true,
+            nest : true
         })
 
         extCoursesTeacherGiven = extCoursesTeacherGiven.map( extCou => {
-            const {id_ext_cou,major,...restoExtCou} = extCou.toJSON()
+            const {id_ext_cou,major,...restoExtCou} = extCou
             const {educational_level} = major
             return {id:id_ext_cou,major_name : `${educational_level.educational_level} en ${major.major_name}`,...restoExtCou,type:'extra'}
         })
 
+        // Graduation courses
+        let gradCoursesTeacherGiven = await Graduation_courses.findAll({where : { id_teacher }})
         //Graduation sections
         Graduation_section.belongsTo(Graduation_courses, {foreignKey : 'id_graduation_course'})
         Graduation_courses.belongsTo(Graduation_section, {foreignKey : 'id_graduation_course'})
@@ -304,16 +308,18 @@ const getAllCoursesTeacherGiven = async( req, res = response) => {
                 attributes : ['course_grad_name']
             },
             where : { id_teacher },
-            attributes : { exclude : ['id_teacher']}
+            attributes : { exclude : ['id_teacher']},
+            raw : true,
+            nest : true
         })
 
         gradSectionsTeacherGiven =  gradSectionsTeacherGiven.map( gradSection => {
-            const {id_graduation_section, graduation_course,...restoGradSection} = gradSection.toJSON()
+            const {id_graduation_section, graduation_course,...restoGradSection} = gradSection
             return {id:id_graduation_section,...graduation_course,...restoGradSection,type:'graduation_section'}
         })
         res.json({
             ok : true,
-            courses : {regular:[...coursesTeacherGiven], extra:[...extCoursesTeacherGiven], graduation_section : [...gradSectionsTeacherGiven]}
+            courses : {regular:[...coursesTeacherGiven], extra:[...extCoursesTeacherGiven], graduation_courses:[...gradCoursesTeacherGiven                                         ],graduation_section : [...gradSectionsTeacherGiven]}
         })
     }catch( err ){
         printAndSendError( res, err )

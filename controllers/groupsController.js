@@ -236,25 +236,25 @@ const deleteGroup = async (req, res) => {
 }
 
 const addCourseGroup = async (req, res) => {
-    const { id:id_group} = req.params
-    const { id_course, ...resto } = req.body;
+    const { id_group,id_course} = req.params
+    const { ...resto } = req.body;
 
 
     try {
-        const group = await Group.findByPk(id_group);
-        if (!group) {
-            return res.status(404).json({
-                ok: false,
-                msg: "No existe un grupo con el id " + id_group,
-            });
-        }
-        const course = await Courses.findByPk(id_course);
-        if (!course) {
-            return res.status(404).json({
-                ok: false,
-                msg: `No existe una materia con el id ${ id_course }`
-            })
-        }
+        // const group = await Group.findByPk(id_group);
+        // if (!group) {
+        //     return res.status(404).json({
+        //         ok: false,
+        //         msg: "No existe un grupo con el id " + id_group,
+        //     });
+        // }
+        // const course = await Courses.findByPk(id_course);
+        // if (!course) {
+        //     return res.status(404).json({
+        //         ok: false,
+        //         msg: `No existe una materia con el id ${ id_course }`
+        //     })
+        // }
         const groupCourse = await Gro_cou.findOne({
             where: {
                 id_course,

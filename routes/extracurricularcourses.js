@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { getAllExtraCurricularCourses, createExtraCurricularCourse, updateExtraCurricularCourse, deleteExtraCurricularCourse} = require('../controllers/extracurricularcoursesController');
+const { getAllExtraCurricularCourses, createExtraCurricularCourse, updateExtraCurricularCourse, deleteExtraCurricularCourse, getStudentsFromExtraCourse} = require('../controllers/extracurricularcoursesController');
 const { checkMajorExistence, checkTeacherExistence, checkExtraCurCourExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -10,6 +10,10 @@ const extraCurricularCoursesRouter = Router();
 extraCurricularCoursesRouter.get('/',[
     validateJWT
 ], getAllExtraCurricularCourses);
+
+extraCurricularCoursesRouter.get('/:id_ext_cou/students',[
+
+],getStudentsFromExtraCourse);
 
 extraCurricularCoursesRouter.post('/', [
     check('id_major','id_major es campo tipo integer, obligatorio').isInt().not().isEmpty(),

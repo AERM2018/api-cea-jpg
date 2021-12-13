@@ -25,6 +25,7 @@ const Graduation_courses =  db.define('graduation_courses',{
             notEmpty : true
         }
     },
+    // FIXME:VOLVER A ACTIVAR ESTE CAMPO
     // id_teacher : {
     //     type : DataTypes.STRING(30),
     //     validate : {

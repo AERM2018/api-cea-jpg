@@ -166,9 +166,30 @@ getStudentFromExtraCour = async(req, res) => {
         printAndSendError(res, err)
     }
 }
+
+const getStudentsFromExtraCourse = async(req, res = response) => {
+    const {id_ext_cou} = req.params
+    Stu_extracou.belongsTo(Student,{foreignKey:'id_student'})
+    Student.hasOne(Stu_extracou,{foreignKey:'id_student'})
+    let studentsSignedUp = await Stu_extracou.findAll({
+        include : {
+            model : Student,
+            attributes: ['id_student','matricula', [fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'name']]
+        },
+        where : { id_ext_cou },
+        raw : true,
+        nest : true
+    });
+    studentsSignedUp = studentsSignedUp.map( studentExtraCou => ({...studentExtraCou.student}))
+    res.json({
+        ok : true,
+        students : studentsSignedUp
+    })
+}
 module.exports = {
     getAllExtraCurricularCourses,
     createExtraCurricularCourse,
     updateExtraCurricularCourse,
-    deleteExtraCurricularCourse
+    deleteExtraCurricularCourse,
+    getStudentsFromExtraCourse
 }

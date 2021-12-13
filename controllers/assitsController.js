@@ -1,6 +1,6 @@
 const { response } = require("express");
 const { fn, col, literal, Op } = require("sequelize");
-const { getRegularCourseInfo } = require("../helpers/courses");
+const { getRegularCourseInfo, getGraduationSectionInfo } = require("../helpers/courses");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Assit = require("../models/assit");
 const Course = require("../models/courses");
@@ -496,68 +496,42 @@ const getGraSecAssistance= async (req, res = response)=>{
 
   try {
     Stu_gracou.belongsTo(Graduation_courses,{ foreignKey : 'id_graduation_course'});
-  Graduation_courses.hasMany(Stu_gracou,{ foreignKey : 'id_graduation_course'});
-
-  
-  Graduation_section.belongsTo(Graduation_courses,{ foreignKey : 'id_graduation_course'});
-  Graduation_courses.hasOne(Graduation_section,{ foreignKey : 'id_graduation_course'});
-  
-  Graduation_section.belongsTo(Teacher,{foreignKey:'id_teacher'})
-  Teacher.hasOne(Graduation_section,{foreignKey:'id_teacher'})
-  
-  Gra_sec_ass.belongsTo(Graduation_section,{foreignKey:'id_graduation_section'})
-  Graduation_section.hasOne(Gra_sec_ass,{foreignKey:'id_graduation_section'})
-  
-  Gra_sec_ass.belongsTo(Student,{ foreignKey : 'id_student'});
-  Student.hasMany(Gra_sec_ass,{ foreignKey : 'id_student'});
-
-  Gra_sec_ass.belongsTo(Assit,{foreignKey:'id_assistance'})
-  Assit.hasMany(Gra_sec_ass,{foreignKey:'id_assistance'})
-
-  let graduation_section_info = await Graduation_section.findOne({
-    include : [{
-      model : Graduation_courses,
-      attributes : ['id_graduation_course','course_grad_name']
-    },{
-      model : Teacher,
-      attributes : ['id_teacher',[fn('concat',col('teacher.name'),' ',col('teacher.surname_f'),' ',col('teacher.surname_m')),'teacher_name']]
-    }],
-    where : {id_graduation_section}
-  })
-
-  // Buscar información acerca de la sección del curso de graduación
-  const {graduation_course:graduation_course_info,teacher:teacher_info,...restoGraSec} = graduation_section_info.toJSON()
-  graduation_section_info = {
-    id_graduation_section : restoGraSec.id_graduation_section,
-    graduation_section_name : restoGraSec.graduation_section_name,
-    ...graduation_course_info,
-    ...teacher_info,
-  }
-
-  // Buscar asitencia de la sección del curso de graduación
-  let assistence = await Gra_sec_ass.findAll({
-          include : [{
-            model : Student,
-            attributes : ['id_student','matricula',[fn('concat',col('student.name'),' ',col('student.surname_f'),' ',col('student.surname_m')),'student_name']]
-          },{
-            model : Assit
-          }],
-    where : {id_graduation_section},
-    raw: true,
-    nest : true
-  });
-  let studentAssistance = [];
-    while (assistence.length > 0){
-        studentAssistance.push(assistence[0].student)
-        studentAssistance[studentAssistance.length - 1] = {...studentAssistance[studentAssistance.length - 1],assistences:assistence.filter( (assistence) => assistence.id_student == studentAssistance[studentAssistance.length - 1].id_student).map( (assistence) => assistence.assit)}
-        assistence = assistence.filter((assistence)=>assistence.id_student != studentAssistance[studentAssistance.length - 1].id_student)
-    }
-  return res.json({
-    ok : true,
-      ...graduation_section_info,
-      students:studentAssistance
+    Graduation_courses.hasMany(Stu_gracou,{ foreignKey : 'id_graduation_course'});
     
-  })
+    Gra_sec_ass.belongsTo(Graduation_section,{foreignKey:'id_graduation_section'})
+    Graduation_section.hasOne(Gra_sec_ass,{foreignKey:'id_graduation_section'})
+    
+    Gra_sec_ass.belongsTo(Student,{ foreignKey : 'id_student'});
+    Student.hasMany(Gra_sec_ass,{ foreignKey : 'id_student'});
+    
+    Gra_sec_ass.belongsTo(Assit,{foreignKey:'id_assistance'})
+    Assit.hasMany(Gra_sec_ass,{foreignKey:'id_assistance'})
+    
+    let graduationSectionInfo = await getGraduationSectionInfo(id_graduation_section)
+    // Buscar asitencia de la sección del curso de graduación
+    let assistence = await Gra_sec_ass.findAll({
+            include : [{
+              model : Student,
+              attributes : ['id_student','matricula',[fn('concat',col('student.name'),' ',col('student.surname_f'),' ',col('student.surname_m')),'student_name']]
+            },{
+              model : Assit
+            }],
+      where : {id_graduation_section},
+      raw: true,
+      nest : true
+    });
+    let studentAssistance = [];
+      while (assistence.length > 0){
+          studentAssistance.push(assistence[0].student)
+          studentAssistance[studentAssistance.length - 1] = {...studentAssistance[studentAssistance.length - 1],assistences:assistence.filter( (assistence) => assistence.id_student == studentAssistance[studentAssistance.length - 1].id_student).map( (assistence) => assistence.assit)}
+          assistence = assistence.filter((assistence)=>assistence.id_student != studentAssistance[studentAssistance.length - 1].id_student)
+      }
+    return res.json({
+      ok : true,
+        ...graduationSectionInfo,
+        students:studentAssistance
+      
+    })
   } catch ( err ) {
     printAndSendError(res,err)
   }

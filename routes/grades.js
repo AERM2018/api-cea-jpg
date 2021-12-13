@@ -45,7 +45,7 @@ gradesRouter.get('/extra/:id_ext_cou',[
     validateJWT
 ],getExtraCourseGrades)
 
-gradesRouter.get('/grasec/:id_graduation_course',[
+gradesRouter.get('/gracou/:id_graduation_course',[
     validateFields,
     validateJWT
 ],getGraduationCourseGrades)
