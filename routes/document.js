@@ -13,19 +13,19 @@ const documentsRouter = Router();
 
 documentsRouter.post( '/info', [
     // check('id','El id de la peticion es obligatorio y debe de ser un numero entero').isNumeric(),
-    check('document_type','El tipo de documento es obligatorio').isInt().custom(isValidDocumentType),
-    check('matricula','La matricula del estudiante es obligatoria').notEmpty(),
+    // check('document_type','El tipo de documento es obligatorio').isInt().custom(isValidDocumentType),
+    // check('matricula','La matricula del estudiante es obligatoria').notEmpty(),
     checkStudentExistence,
     validateFields,
     validateJWT
 ] ,getInfoDocument);
  
-documentsRouter.get('/',[
-    // check('document_type','El tipo de documento es obligatorio y es un numero entero').isInt().notEmpty().custom(isValidDocumentType),
-    // check('matricula','La matricula del estudiante es obligatoria').notEmpty(),
-    // validateFields,
-    // checkStudentExistence,
-    // validateJWT
+documentsRouter.post('/:document_type/students/:matricula',[
+    check('document_type','El tipo de documento es obligatorio y es un numero entero').isInt().notEmpty().custom(isValidDocumentType),
+    check('matricula','La matricula del estudiante es obligatoria').notEmpty(),
+    validateFields,
+    checkStudentExistence,
+    validateJWT
 ],createDocument)
 
 documentsRouter.delete('/:id_document',[

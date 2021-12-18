@@ -2,80 +2,47 @@ const VoilabPdfTable = require("voilab-pdf-table");
 const { AlePDFDocument } = require("../alePDFDocument");
 
 class Kardex extends AlePDFDocument {
-  constructor() {
-    super();
+  constructor(student = {}) {
+    super(student);
     this.writeHeader2();
     this.fillDocument();
     this.endDocument();
+    
   }
 
   fillDocument() {
-    this.PDFInstance.font("Helvetica-Bold")
+    this.PDFInstance.font("regular-bold")
       .fontSize(18)
       .moveDown(2)
-      .text(`Cárdex del Alumna`, { align: "center" }) // Saber genero para determinar si es alumno o alumna
-      .font("Helvetica")
+      .text(`Cárdex del ${this.student.gendre == 'F' ? 'Alumna' : 'Alumno'}`, { align: "center" }) // Saber genero para determinar si es alumno o alumna
+      .font("regular")
       .fontSize(12)
-      .text(`Nombre de la alumna: `, this.marginXDocument, this.PDFInstance.y) // Saber genero del alumno
-      .font("Helvetica-Bold")
-      .text(`xxxxxxxxxxxxxxxxxxxxxx`)
-      .font("Helvetica")
+      .text(`Nombre de ${this.student.gendre == 'F' ? 'la almuna' : 'el alumno'}: `, this.marginXDocument, this.PDFInstance.y) // Saber genero del alumno
+      .font("regular-bold")
+      .text(`${this.student.student_name}`)
+      .font("regular")
       .text(`Carrera: `)
-      .font("Helvetica-Bold")
-      .text(`xxxxxxxxxxxxxxxxxxxxxx`)
-      .font("Helvetica")
+      .font("regular-bold")
+      .text(`${this.student.major_name}`)
+      .font("regular")
       .text(`Matrícula: `)
-      .font("Helvetica-Bold")
-      .text(`xxxxxxxxxxxxxxxxxxxxxx`)
-      .fontSize(8);
-    let tableHeaders = [
-      {id: "Clave",header: "Clave",width: 0.1,},
-      {id: "Asignatura",header: "Asignatura",width: 0.25,},
-      {id: "Creditos",header: "Creditos",width: 0.1,},
-      {id: "Calificaciones",header: "Calificaciones",width: 0.25},
-      {id: "Fecha de examen",header: "Fecha de examen",width: 0.15,},
-      {id: "Tipo de examen",header: "Tipo de examen",width: 0.15,},
-    ];
-    tableHeaders = tableHeaders.map((h) => ({
-      ...h,
-      width: this.pageWidthWithMargin * h.width,
-    }));
-    this.createTable(tableHeaders, ["T", "L", "R"], ["L", "R"]);
-    this.tableDocument.addBody([]);
-    this.PDFInstance.x = this.marginXDocument;
-    let tableSubHeaders = [
-      {id: "key",width: 0.1,},
-      {id: "subject",width: 0.25,},
-      {id: "credits",width: 0.1,},
-      {id: "gradesNum",header: "No.",width: 0.125,headerBorder: ["B", "T", "L", "R"],},
-      {id: "gradesLetter",header: "Letra",width: 0.125,headerBorder: ["B", "T", "L", "R"],},
-      {id: "dateTest",width: 0.15,},
-      {id: "typeTest",width: 0.15,},
-    ];
-    tableSubHeaders = tableSubHeaders.map((h) => ({
-      ...h,
-      width: this.pageWidthWithMargin * h.width,
-    }));
-    this.createTable(tableSubHeaders, ["B", "L", "R"], ["B", "L", "R","T"]);
-    let array = [];
-    for (let i = 0; i < 36; i++) {
-      array.push({
-        key: "SDA",
-        subject: "SDA",
-        credits: "SDA",
-        gradesNum: `${i}`,
-        gradesLetter: "SDA",
-        dateTest: "SDA",
-        typeTest: "SDA",
-      });
-    }
-    this.tableDocument.addBody(array);
+      .font("regular-bold")
+      .text(`${this.student.matricula}`)
+      .fontSize(8)
+      .moveDown();
+    this.drawKardexTable(false)
+    this.setTableButtomBorder(this.student.grades.length)
+    this.tableDocument.addBody(this.student.grades.map(({key,credits,grade:gradeNum,course:courseName})=>({key,credits,gradeNum,courseName})));
     this.PDFInstance.x = this.marginXDocument
     this.PDFInstance
     .moveDown()
-    .text(`Este cárdex ampara 36 asignaturas, con promedio general de 9.5 y 426 créditos cubiertos.`)
+    .text(`Este cárdex ampara ${this.student.grades.length} asignaturas, con promedio general de ${this.student.generalAvg} y ${this.student.grades.reduce((current, previous) => previous.credits + current.credits)} créditos cubiertos.`)
     .moveDown(8)
-    this.drawLineToSign(this.pageWidthWithMargin / 2 + this.marginXDocument - 75, this.PDFInstance.y,150,'Ernesto Pruneda Mar~Jefe de Servicios Escolares','center')
+    this.drawLineToSign(this.pageWidthWithMargin / 2 + this.marginXDocument - 75, this.PDFInstance.y,150,{
+      txtButtom : 'Ernesto Pruneda Mar~Jefe de Servicios Escolares',
+      alignTxtButtom : 'center',
+      fontsSizeTxtButton : [10]
+    })
   }
 }
 

@@ -1,10 +1,8 @@
 const { AlePDFDocument } = require("../alePDFDocument");
-
+const conversor = require('numero-palabra');
 class CertficateOfStudies extends AlePDFDocument{
-    posYBody = 0;
-
-    constructor(){
-        super();
+    constructor(student = {}){
+        super(student);
         this.writeHeader();
         this.fillDocument();
         this.endDocument();
@@ -24,42 +22,29 @@ class CertficateOfStudies extends AlePDFDocument{
     }
 
     fillDocument(){
+        let posYBody
         this.PDFInstance.moveDown(2);
-        this.posYBody = this.PDFInstance.y
+        posYBody = this.PDFInstance.y
         this.PDFInstance.
-        ellipse(this.marginXDocument / 2 + 87 ,this.posYBody+50,37,50).stroke()
-        .text('La Jefatura de Servicios Escolares del Instituto de Educación y Cultura Alejandría CERTIFICA, que de acuerdo con el expediente número Matricula, la alumna',this.PDFInstance.x+30,this.posYBody,{align:'justify'})
+        ellipse(this.marginXDocument / 2 + 87 ,posYBody+50,37,50).stroke()
+        .text(`La Jefatura de Servicios Escolares del Instituto de Educación y Cultura Alejandría CERTIFICA, que de acuerdo con el expediente número ${this.student.matricula}, ${this.student.gendre == 'F' ? 'la alumna' : 'el alumno'}`,this.PDFInstance.x+30,posYBody,{align:'justify'})
         .moveDown()
         .font('regular-bold')
-        .text('Nombre xxxxxxxxxxx',{align:'center'})
+        .text(`${this.student.student_name}`,{align:'center'})
         .moveDown()
         .font('regular')
-        .text('cursó  y acreditó las asignaturas que a continuación se indican y que cubren ÍNTEGRAMENTE el Plan de Estudios  009 correspondiente a la',{align:'justify'})
+        .text(`cursó  y acreditó las asignaturas que a continuación se indican y que cubren ÍNTEGRAMENTE el Plan de Estudios  009 correspondiente a la`,{align:'justify'})
         .moveDown()
         .font('regular-bold')
-        .text('Carrera xxxxxx',{align:'center'})
+        .text(`${this.student.major_name}`,{align:'center'})
         .moveDown()
         .font('regular')
         .text('impartido por esta Institución, con los promedios finales que se anotan.',{align:'justify'})
         this.PDFInstance.x = this.marginXDocument
         this.PDFInstance.moveDown()
         this.drawKardexTable(true)
-        let array = [];
-        for (let i = 0; i < 36; i++) {
-            array.push({
-                key: "SDA",
-                subject: "SDA",
-                credits: "SDA",
-                gradesNum: `${i}`,
-                gradesLetter: "SDA",
-                dateTest: "SDA",
-                typeTest: "SDA",
-            });
-        }
-        this.setTableButtomBorder(array.length)
-        this.tableDocument.addBody(array);
-       
-        // this.tableDocument.addBody([]) // Add student's grades
+        this.setTableButtomBorder(this.student.grades.length)
+        this.tableDocument.addBody(this.student.grades.map(({key,credits,grade:gradeNum,course:courseName})=>({key,credits,gradeNum,courseName})));
         this.PDFInstance.x = this.marginXDocument
         this.PDFInstance
         .moveDown()
@@ -68,7 +53,7 @@ class CertficateOfStudies extends AlePDFDocument{
         .font('regular-bold')
         .text(`Certificado de Estudios`,{continued:true})
         .font('regular')
-        .text(` que ampara 36 asignaturas de un total de 36 asignaturas, con Promedio General de Promedio (Letra) y 504 créditos cubiertos, en la ciudad de Victoria de Durango, Dgo., a los ${this.dateDay} días del mes de ${this.dateMonth} de ${this.dateYear}`)
+        .text(` que ampara ${this.student.grades.length} asignaturas de un total de 36 asignaturas, con Promedio General de ${this.student.generalAvg} (${this.getLetterFromGrade(Number(this.student.generalAvg).toString())}) y ${this.student.grades.reduce((cur,prev)=>cur.credits + prev.credits)} créditos cubiertos, en la ciudad de Victoria de Durango, Dgo., a los ${this.dateDay} días del mes de ${this.dateMonth} de ${this.dateYear}`)
         .moveDown(2)
         .text('La escala de calificaciones es de 5 a 10, la mínima aprobatoria es de 7.')
         .text('Este documento no es válido si presenta raspaduras o enmendaduras.')
@@ -88,6 +73,11 @@ class CertficateOfStudies extends AlePDFDocument{
         .moveDown(5)
         .font('regular')
         this.drawLineToSign(this.marginXDocument+120,this.PDFInstance.y,this.pageWidthWithMargin - 120*2,{txtButtom:'PROFRA. MARÍA CRISTINA SOTO SOTO~COORDINADORA',alignTxtButtom:'center',fontsSizeTxtButton:[ 10 ]})
+    }
+
+    getLetterFromGrade(grade = ''){
+        let partsOfGrade = grade.split('.')
+        return `${conversor(partsOfGrade[0])} punto ${conversor(partsOfGrade[1])}`
     }
 }
 

@@ -22,6 +22,8 @@
     "moment-timezone": "^0.5.33",
     "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
+    "numero-a-letras": "^1.0.6",
+    "numero-palabra": "^1.0.1",
     "pdfkit": "^0.13.0",
     "rate-limiter-flexible": "^2.2.4",
     "sequelize": "^6.5.0",

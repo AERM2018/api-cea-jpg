@@ -7,19 +7,27 @@ const { db } = require('../database/connection');
 const Request = require('../models/request')
 const { document_types } = require("../types/dictionaries")
 const { printAndSendError } = require('../helpers/responsesOfReq');
-const { getGradesStudent, getCourseStudentIsTaking } = require("../helpers/students");
+const { getGradesStudent, getCourseStudentIsTaking, getStudentInfo } = require("../helpers/students");
 const Document = require("../models/document");
 const Student = require("../models/student");
 const moment = require('moment');
 const { generateNewDoc } = require("../helpers/documentGeneration");
 const { response } = require("express");
+const Stu_info = require("../models/stu_info");
 const getInfoDocument = async (req, res) => {
     const { document_type } = req.body;
     const { id_student } = req
     try {
         
-        const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-        
+        // const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
+        const student = await Stu_info.findOne({
+            where:{id_student},
+            attributes : {
+                exclude:['id','name','surname_f','surname_m',],
+                include : [[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
+            },
+            raw : true
+        })
         // const [grades] = await db.query(getGradesByStudent, { replacements: { id_student, id_group: student.id_group }, type: QueryTypes.SELECT })
         grades = await getGradesStudent(id_student)
         course = await getCourseStudentIsTaking(student.id_group)
@@ -72,11 +80,25 @@ const getInfoDocument = async (req, res) => {
 }
 
 const createDocument = async(req, res = response) => {
+    let {document_type,matricula} = req.params
+    const {personName,personWorkStation} = req.body
+    documentType = parseInt(documentType)
     const stream = res.writeHead(200,{
         'Content-Type':'application/pdf',
         'Content-Disposition':'inline'
     });
+    const student = await getStudentInfo(matricula)
+    if([0,1,4,7].includes(documentType)){
+        let { grades, generalAvg }= await getGradesStudent(student.id_student,{ withAvg : true }) || []
+        student.grades = grades
+        student.generalAvg = generalAvg
+    }
+    if([2,3].includes(documentType)){
+        student.worksFor = {personName,personWorkStation}
+    }
     generateNewDoc(
+        student,
+        document_type,
         (chunk) => { stream.write(chunk)},
         () => stream.end()
     )

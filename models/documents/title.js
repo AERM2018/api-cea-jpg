@@ -5,14 +5,16 @@ class Title extends AlePDFDocument{
     imagesYPos = 0
     durangoShieldXPosFixed =(this.PDFInstance.options.size[0] - this.PDFInstance.x) - this.imagesSize
 
-    constructor(){
-        super()
+    constructor(student = {}){
+        super(student)
+        this.writeHeader() // Insert document's header
         this.fillDocument()
+        this.endDocument()
     }
     
     writeHeader(){
         this.PDFInstance
-        .font('Helvetica-Bold')
+        .font('regular')
         .fontSize(18)
         .text("GOBIERNO DEL ESTADO DE DURANGO",{align:'center'})
         .moveDown(0.5)
@@ -35,7 +37,7 @@ class Title extends AlePDFDocument{
         let sendTxtPosX = 0
         let sendTxtPosY = 0
         let bodyDocumentOpts = {}
-        this.writeHeader() // Insert document's header
+        
         pdfBodyDocumentYPos = this.PDFInstance.y
         this.PDFInstance
         .ellipse(this.PDFInstance.x+10,pdfBodyDocumentYPos+95,60,95).stroke()
@@ -46,12 +48,12 @@ class Title extends AlePDFDocument{
         .text("OTORGA A",this.marginXDocument,pdfBodyDocumentYPos,{align:'center'})
         .moveDown(3)
         .fontSize(10)
-        .text("xxxxxxxxxxxxxxxxxxx",{align:'center'})
+        .text(`${this.student.student_name}`,{align:'center'})
         .moveDown(3)
         .fontSize(14)
         .text("EL TÍTULO DE",{align:'center'})
         .fontSize(10)
-        .text("xxxxxxxxxxxxxxxxxxxxx",{align:'center'})
+        .text(`${this.student.major_name}`,{align:'center'})
         .moveDown(4)
         sendTxtPosX = this.PDFInstance.x + this.imagesSize
         sendTxtPosY = this.PDFInstance.y
@@ -100,7 +102,6 @@ class Title extends AlePDFDocument{
         .text("",this.marginXDocument/2, this.PDFInstance.y + 85)
         .rect(this.marginXDocument/2,this.PDFInstance.y,this.PDFInstance.options.size[0]-this.marginXDocument,this.PDFInstance.options.size[1]-this.PDFInstance.y-this.marginYDocument).stroke()
         .text("Registro en la Dirección de Profesiones",this.marginXDocument, this.PDFInstance.y + (this.PDFInstance.options.size[1]-this.PDFInstance.y-this.marginYDocument)/2,{align:'center'})
-        this.endDocument()
     }
 }
 

@@ -1,64 +1,56 @@
+const { getGradesStudent } = require("../../helpers/students");
 const { document_types } = require("../../types/dictionaries");
 const { AlePDFDocument } = require("../alePDFDocument");
 
 class ProofOfStudies extends AlePDFDocument{
-    constructor( hasGrades = false){
-        super();
+    constructor( student = {},hasGrades = false){
+        super(student);
         this.hasGrades = hasGrades;
         this.fillDocument();
-    }
-
-    fillDocument(){
-        super.writeHeader()
-        this.PDFInstance
-        .font('Helvetica-Bold')
-        .fontSize(12)
-        .text(`Asunto: ${document_types[0].name}`,{align:"right"})
-        .moveDown(2)
-        .text("A quien corresponda:",)
-        .moveDown(2)
-        .font('Helvetica')
-        .text("El que suscribe ",{continued:true,align:'justify'})
-        .font('Helvetica-Bold')
-        .text(`${this.susbribePerson} `,{continued:true})
-        .font('Helvetica')
-        .text(`${this.workStation} del ${this.schoolShortName}, clave `,{continued:true})
-        .font('Helvetica-Bold')
-        .text(`${this.schoolKey} `,{continued:true})
-        .font('Helvetica')
-        .text("hace constar que el C. ",{continued:true})
-        .font('Helvetica-Bold')
-        .text("xxxxxxxxxxxxxxxxxxxx ",{continued:true})
-        .font('Helvetica')
-        .text("con número de matricula: ",{continued:true})
-        .font('Helvetica-Bold')
-        .text("xxxxxxxxxxxx ",{continued:true})
-        .font('Helvetica')
-        .text("es alumno y está inscrito en la ",{continued:true})
-        .font('Helvetica-Bold')
-        .text("xxxxxxxxxxxx ",{continued:true})
-        .font('Helvetica')
-        .text("en esta Institución.",{continued:this.hasGrades})
-        if( this.hasGrades ){
-            this.addGrades()
-        }
         this.writeExpeditionDate()
         this.writeFooter()
         super.endDocument();
     }
 
+    fillDocument(){
+        super.writeHeader()
+        this.PDFInstance
+        .font('regular-bold')
+        .fontSize(12)
+        .text(`Asunto: ${document_types[0].name}`,{align:"right"})
+        .moveDown(2)
+        .text("A quien corresponda:",)
+        .moveDown(2)
+        .font('regular')
+        .text("El que suscribe ",{continued:true,align:'justify'})
+        .font('regular-bold')
+        .text(`${this.susbribePerson} `,{continued:true})
+        .font('regular')
+        .text(`${this.workStation} del ${this.schoolShortName}, clave `,{continued:true})
+        .font('regular-bold')
+        .text(`${this.schoolKey} `,{continued:true})
+        .font('regular')
+        .text(`hace constar que ${this.student.gendre == 'F' ? 'la' : 'el'} C. `,{continued:true})
+        .font('regular-bold')
+        .text(`${this.student.student_name} `,{continued:true})
+        .font('regular')
+        .text("con número de matricula: ",{continued:true})
+        .font('regular-bold')
+        .text(`${this.student.matricula} `,{continued:true})
+        .font('regular')
+        .text(`es ${this.student.gendre == 'F' ? 'alumna' : 'alumno'} y está ${this.student.gendre == 'F' ? 'inscrita' : 'inscrito'} en la `,{continued:true})
+        .font('regular-bold')
+        .text(`${this.student.major_name} `,{continued:true})
+        .font('regular')
+        .text("en esta Institución.",{continued:this.hasGrades})
+        if( this.hasGrades ) this.addGrades()
+    }
+
     addGrades(){
         // let pageWidthWithMargin = this.PDFInstance.options.size[0] - (this.PDFInstance.x * 2)
-        let tableHeaders = [{
-                id : "courseName",
-                header : "Materia",
-                width : .5
-            },
-            {
-                id : "grade",
-                header : "Calificación",
-                width : .5
-            }
+        let tableHeaders = [
+            {id : "courseName",header : "Materia",width : .5},
+            {id : "grade",header : "Calificación",width : .5}
         ]
         tableHeaders = tableHeaders.map( h => ({...h,width : this.pageWidthWithMargin*h.width}))
         this.createTable(tableHeaders,{
@@ -70,14 +62,7 @@ class ProofOfStudies extends AlePDFDocument{
         this.PDFInstance
         .text("Y ha cursado las siguientes materias: ")
         this.PDFInstance.moveDown()
-        this.tableDocument.addBody([{
-            courseName : "xxxxxxxxxxxx",
-            grade : 10
-        },{
-            courseName : "xxxxxxxxxxxx",
-            grade : 10
-        },])
-        
+        this.tableDocument.addBody(this.student.grades.map(({grade,course:courseName})=>({grade,courseName})))
     }
 
     writeExpeditionDate(){
