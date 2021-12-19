@@ -82,18 +82,18 @@ const getInfoDocument = async (req, res) => {
 const createDocument = async(req, res = response) => {
     let {document_type,matricula} = req.params
     const {personName,personWorkStation} = req.body
-    documentType = parseInt(documentType)
+    document_type = parseInt(document_type)
     const stream = res.writeHead(200,{
         'Content-Type':'application/pdf',
         'Content-Disposition':'inline'
     });
     const student = await getStudentInfo(matricula)
-    if([0,1,4,7].includes(documentType)){
+    if([0,1,4,7].includes(document_type)){
         let { grades, generalAvg }= await getGradesStudent(student.id_student,{ withAvg : true }) || []
         student.grades = grades
         student.generalAvg = generalAvg
     }
-    if([2,3].includes(documentType)){
+    if([2,3].includes(document_type)){
         student.worksFor = {personName,personWorkStation}
     }
     generateNewDoc(
