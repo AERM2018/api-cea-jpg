@@ -17,7 +17,15 @@ const Course = db.define('courses',{
         validate : {
             notEmpty : true
         }
-    }
+    },
+    clave : {
+        type : DataTypes.STRING(5),
+        allowNull : false,
+    },
+    credits : {
+        type : DataTypes.FLOAT,
+        allowNull : false,
+    },
 },{
     timestamps : false
 })  

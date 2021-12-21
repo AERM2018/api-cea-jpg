@@ -11,6 +11,7 @@ const Gro_cou = require('../models/gro_cou');
 const { response } = require('express');
 const Student = require('../models/student');
 const { printAndSendError } = require('../helpers/responsesOfReq');
+const Cou_tea = require('../models/cou_tea');
 
 const getAllGroups = async (req, res) => {
     try {
@@ -271,7 +272,8 @@ const addCourseGroup = async (req, res) => {
 
         const gro_cou = new Gro_cou({ id_group, id_course, ...resto });
         await gro_cou.save()
-        
+        const cou_tea = new Cou_tea({id_course,...resto})
+        await cou_tea.save()
         res.status(200).json({
             ok: true,
             msg: "La materia se añadio al grupo correctamente"

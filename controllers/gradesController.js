@@ -82,35 +82,17 @@ const getAllGrades = async( req, res = response) => {
 }
 
 const getAllGradesByCourse = async (req, res = response) => {
-    const { id_gro_cou } = req.params
+    const { id_course,id_group } = req.params
 
     try {
-
-        // Check if the course exists
-        // const course = await Course.findByPk(id_course);
-        // if (!course) {
-        //     return res.status(404).json({
-        //         ok: false,
-        //         msg: `El curso con id ${id_course} no existe, verifíquelo por favor.`
-        //     })
-        // }
-        // // Check if the group exists
-        // const group = await Group.findOne({
-        //     where: { 'id_group': id_group }
-        // })
-        // if (!group) {
-        //     return res.status(404).json({
-        //         ok: false,
-        //         msg: `El grupo con id ${id_group} no existe, verifiquelo por favor.`
-        //     })
-        // }
         Grades.belongsTo(Course,{ foreignKey: 'id_course'})
         Course.hasMany(Grades,{ foreignKey: 'id_course'})
 
         Grades.belongsTo(Student, { foreignKey : 'id_student'})
         Student.hasMany(Grades, { foreignKey : 'id_student'})
 
-        let courseInfo = await getRegularCourseInfo(id_gro_cou)
+        const gro_cou = await Gro_cou.findOne({where:{[Op.and] : [{id_course},{id_group}]},raw:true})
+        let courseInfo = await getRegularCourseInfo(gro_cou.id_gro_cou)
         let grades = await Grades.findAll({
             include : [
             {
@@ -119,8 +101,8 @@ const getAllGradesByCourse = async (req, res = response) => {
             }],
             attributes:{exclude:['id_course']},
             where : { 
-                id_course : {[Op.eq] : literal(`(SELECT id_course FROM gro_cou WHERE gro_cou.id_gro_cou = ${id_gro_cou})`)}, 
-                id_student : { [Op.in] : literal(`(SELECT id_student FROM stu_gro WHERE id_group = (SELECT id_group FROM gro_cou WHERE gro_cou.id_gro_cou = ${id_gro_cou}))`)}
+                id_course,
+                id_student : { [Op.in] : literal(`(SELECT id_student FROM stu_gro WHERE id_group = ${id_group})`)}
             }
         })
         grades = grades.map( grade => {

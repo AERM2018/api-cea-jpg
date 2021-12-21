@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByGroup, getAllGroupsGrades, getAllGrades, getAllGradesByMatricula, uploadCourseGrades, uploadTesineGrade, uploadExtraCurCourGrades, updateExtraCurCourGrades, updateTesineGrades, getAllGradesByCourse, getExtraCourseGrades, getGraduationSectionGrades, getGraduationCourseGrades } = require('../controllers/gradesController');
-const { checkStudentExistence, checkGradeCourseExistence, checkGradeTesineExistence, checkStuExtraCouExistence, checkExtraCurCourExistence } = require('../middlewares/dbValidations');
+const { checkStudentExistence, checkGradeCourseExistence, checkGradeTesineExistence, checkStuExtraCouExistence, checkExtraCurCourExistence, checkGroupExistence, checkCourseExistence } = require('../middlewares/dbValidations');
 const checkGrades = require('../middlewares/grades');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -31,11 +31,11 @@ gradesRouter.get('/students/:matricula',[
     validateJWT
 ],getAllGradesByMatricula)
 
-gradesRouter.get('/regular/:id_gro_cou', [
-    // check('id_course','El id del curso es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    // check('id_group','El id del grupo es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    // check('id_student',"El id del estudiante es un número entero y es obligatorio").isNumeric().exists({checkNull:true}),
-    // check('grade',"El campo grade es de tipo float de 4 y es obligatorio").isFloat(4).exists({checkNull:true}),
+gradesRouter.get('/regular/:id_course/groups/:id_group', [
+    check('id_course','El id del curso es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
+    check('id_group','El id del grupo es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
+    checkGroupExistence,
+    checkCourseExistence,
     validateFields,
     validateJWT
 ] ,getAllGradesByCourse);
@@ -60,12 +60,11 @@ gradesRouter.post('/regular/:id_course', [
     validateJWT
 ], uploadCourseGrades);
 
+//FIXME: Las califiacaiones se les debe asignar a todos los alumnos, no solo a un alumno
 gradesRouter.post('/:id_ext_cou', [
-    check('id_ext_cou','El id es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    check('id_student',"El id del estudiante es obligatorio de tipo integer").isInt().exists({checkNull:true}),
-    check('grade',"La calificación es obligatoria de tipo float").isFloat().notEmpty(),
+    check('id_ext_cou','El id del curso extracurricular es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
     validateFields,
-    // checkGrades,
+    checkGrades,
     validateJWT
 ], uploadExtraCurCourGrades);
 

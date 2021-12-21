@@ -1,4 +1,5 @@
 const { response } = require('express');
+const { Op } = require('sequelize');
 const Assit = require('../models/assit');
 const Campus = require('../models/campus');
 const Card = require('../models/card');
@@ -19,6 +20,7 @@ const Student = require('../models/student');
 const Stu_extracou = require('../models/stu_extracou');
 const Teacher = require('../models/teacher');
 const Tesine = require('../models/tesine');
+const User = require('../models/user');
 const { document_types } = require('../types/dictionaries');
 
 const checkCampusExistence = async (id_campus = 0) => {
@@ -351,6 +353,20 @@ const checkAssitExistence = async(req, res, next) => {
     next();
 }
 
+const checkUserExistance = async(req, res = response, next) => {
+    const id_user = req.params.id_user || req.body.id_user || ""
+    const email = req.params.email || req.body.email || ""
+    const user = await User.findOne({where : {[Op.or] : [{id_user},{email}]}})
+    if(!user){
+        return res.json({
+            ok : false,
+            msg : `El usuario especificado no fue encontrado.`
+        })
+    }
+    req.user = user
+    next()
+
+}
 
 module.exports = {
     checkCampusExistence,
@@ -379,5 +395,6 @@ module.exports = {
     checkCourseExistence,
     checkGroupCourseExistence,
     checkAssitExistence,
-    isValidDocumentType
+    isValidDocumentType,
+    checkUserExistance
 }

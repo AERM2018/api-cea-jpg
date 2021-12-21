@@ -5,11 +5,12 @@ const Request = require("../models/request")
 const Stu_pay = require("../models/stu_pay")
 const Req_pay = require('../models/req_pay')
 const Student = require('../models/student')
-const { QueryTypes, where,fn,col } = require('sequelize');
+const { QueryTypes, where,fn,col, literal } = require('sequelize');
 const { getStuInfo } = require('../queries/queries');
 const { db } = require('../database/connection');
 const { document_types } = require("../types/dictionaries")
 const Partial_pay = require('../models/partial_pay')
+const Emp_par_pay = require('../models/emp_pay')
 moment().locale('es')
 const getAllTheRequests = async (req, res) => {
     try {
@@ -238,9 +239,8 @@ const deleteRequest = async  (req, res) => {
         });
         await stu_pay.destroy();
         const payment = await Payment.findByPk(id_payment);
-        await Partial_pay.destroy({
-            where : {id_payment}
-        })
+        await Emp_par_pay.destroy({where : {id_partial_pay : {[Op.in]:literal(`(SELECT id_partial_pay FROM partial_payments WHERE id_payment = ${id_payment})`)}}})
+        await Partial_pay.destroy({where : {id_payment}})
         await payment.destroy();
 
         res.status(200).json({

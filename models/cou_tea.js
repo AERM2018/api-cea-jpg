@@ -21,7 +21,8 @@ const Cou_tea =  db.define('cou_tea',{
         }
     },
     status : {
-        type : DataTypes.BOOLEAN
+        type : DataTypes.BOOLEAN,
+        defaultValue : true
     },
     start_date : {
         type : DataTypes.DATE,

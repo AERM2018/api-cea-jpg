@@ -9,12 +9,9 @@ const Stu_gracou = require("../models/stu_gracou");
 const Student = require("../models/student");
 
 const getAllGraduationCourses = async (req=request, res = response) => {
-    let {courseGradName} = req.query;
+    let {courseGradName = ''} = req.query;
 
     try{
-        if(courseGradName==undefined){
-            courseGradName='';
-        }
         const graduation_courses = await Graduation_courses.findAll({
             where: {[Op.or]:[{
                 course_grad_name: {[Op.like]: `%${courseGradName}%`}

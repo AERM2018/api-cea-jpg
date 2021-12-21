@@ -1,8 +1,11 @@
 const {Router} = require('express');
 const rateLimit = require('express-rate-limit');
-const { login, revalidateJWT, signup } = require('../controllers/auth');
+const { check } = require('express-validator');
+const { login, revalidateJWT, signup, sendForgotPassCode, verifyForgotPassCode, changePassword } = require('../controllers/auth');
 const { loginRateLimit } = require('../middlewares/auth');
+const { checkUserExistance } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
+const { validateFields } = require('../middlewares/validateFields');
 
 const authRouter = Router();
 
@@ -13,7 +16,14 @@ const authRouter = Router();
 // })
 
 authRouter.post('/login',loginRateLimit,login)
-authRouter.get('/renew', validateJWT, revalidateJWT)
+authRouter.post('/forgotPassword',sendForgotPassCode)
+authRouter.post('/forgotPassword/verify',verifyForgotPassCode)
+authRouter.post('/resetPassword/:id_user/:token',[
+    check('id_user','El id de usuario es obligatorio.'),
+    check('token','El token es obligatorio y debe de ser un json web token valido.').isJWT(),
+    validateFields
+],changePassword)
+authRouter.get('/renew', validateJWT, revalidateJWT) 
 //authRouter.post('/signup', signup)
 // Eliminar
 

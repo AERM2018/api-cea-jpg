@@ -122,7 +122,6 @@ const getGraduationSectionsById = async (req, res = response) => {
 const createGraduationSections = async (req, res = response ) =>{
     const { body } = req;
     try {
-        console.log("test")
         //  Create and save graduation section
         const graduation_section = new Graduation_section(body);
         await graduation_section.save();

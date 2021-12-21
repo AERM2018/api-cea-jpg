@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { getAllGraduationCourses, createGraduationCourses, updateGraduationCourses, deleteGraduationCourses, getStudentsFromGradCourse} = require('../controllers/graduation_coursesController');
-const { checkGraduationCourseExistence } = require('../middlewares/dbValidations');
+const { checkGraduationCourseExistence, checkTeacherExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -12,9 +12,11 @@ Graduation_courses_Router.get('/',[
 ], getAllGraduationCourses);
 
 Graduation_courses_Router.post('/', [
-    check('course_grad_name','course_grad_name es campo tipo string de 25 carácteres, es obligatorio').isString().not().isEmpty().isLength( { max: 25 } ),
+    check('course_grad_name','El nombre del curso de graduación es obligatorio').isString().not().isEmpty().isLength( { max: 25 } ),
+    check('id_teacher','El id del maestro es obligatorio').isString().notEmpty().isLength({ max : 15 }),
     check('start_date','start_date es campo de tipo DATE con fromato YYYY-MM-DD, es obligatorio').isDate().not().isEmpty(),
     check('end_date','end_date es campo de tipo DATE con fromato YYYY-MM-DD, es obligatorio').isDate().not().isEmpty(),
+    checkTeacherExistence,
     validateFields,
     validateJWT
 ],createGraduationCourses);

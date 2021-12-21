@@ -4,7 +4,7 @@ const Teacher = require('../models/teacher');
 const bcrypt = require('bcryptjs');
 const Cam_use = require('../models/cam_use');
 const Campus = require('../models/campus');
-const { Op, QueryTypes,fn, col } = require('sequelize');
+const { Op, QueryTypes,fn, col, literal, where } = require('sequelize');
 const {db} = require('../database/connection');
 const { getTeachers } = require('../queries/queries');
 const { primaryKeyAttributes } = require('../models/user');
@@ -222,7 +222,6 @@ const getAllCoursesTeacherGiven = async( req, res = response) => {
     const { id_teacher } = req.params
 
     try{
-
         // Regular courses
         Cou_tea.belongsTo( Course, { foreignKey : 'id_course'})
         Course.hasOne( Cou_tea, { foreignKey : 'id_course'})
@@ -298,28 +297,25 @@ const getAllCoursesTeacherGiven = async( req, res = response) => {
         })
 
         // Graduation courses
-        let gradCoursesTeacherGiven = await Graduation_courses.findAll({where : { id_teacher }})
-        //Graduation sections
         Graduation_section.belongsTo(Graduation_courses, {foreignKey : 'id_graduation_course'})
-        Graduation_courses.belongsTo(Graduation_section, {foreignKey : 'id_graduation_course'})
-        let gradSectionsTeacherGiven = await Graduation_section.findAll({
+        Graduation_courses.hasMany(Graduation_section, {foreignKey : 'id_graduation_course'})
+        let gradCoursesTeacherGiven = await Graduation_courses.findAll({
             include : {
-                model : Graduation_courses,
-                attributes : ['course_grad_name']
+                model : Graduation_section,
+                attributes :{ exclude : [ 'id_teacher','id_graduation_course']},
+                where :{  id_teacher },
+                required : false
             },
-            where : { id_teacher },
-            attributes : { exclude : ['id_teacher']},
-            raw : true,
-            nest : true
+            where : where(literal(`(((SELECT COUNT(id_graduation_section) FROM graduation_sections WHERE id_teacher = '${id_teacher}' AND id_graduation_course = ${col('id_graduation_course').col})) or (graduation_courses.id_teacher = '${id_teacher}'))`),true)
         })
-
-        gradSectionsTeacherGiven =  gradSectionsTeacherGiven.map( gradSection => {
-            const {id_graduation_section, graduation_course,...restoGradSection} = gradSection
-            return {id:id_graduation_section,...graduation_course,...restoGradSection,type:'graduation_section'}
+        gradCoursesTeacherGiven = gradCoursesTeacherGiven.map( course => {
+            let coursesInfoJSON = course.toJSON()
+            coursesInfoJSON.isTeacherTitular = (coursesInfoJSON.id_teacher == id_teacher) ? 1 : 0
+            return coursesInfoJSON
         })
         res.json({
             ok : true,
-            courses : {regular:[...coursesTeacherGiven], extra:[...extCoursesTeacherGiven], graduation_courses:[...gradCoursesTeacherGiven                                         ],graduation_section : [...gradSectionsTeacherGiven]}
+            courses : {regular:[...coursesTeacherGiven], extra:[...extCoursesTeacherGiven], graduation_courses:[...gradCoursesTeacherGiven]}
         })
     }catch( err ){
         printAndSendError( res, err )
