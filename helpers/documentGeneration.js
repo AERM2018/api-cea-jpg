@@ -6,36 +6,40 @@ const ProofOfStudies = require("../models/documents/proofOfStudies");
 const ProofOfTitleInProg = require("../models/documents/proofOfTitleInProg");
 const Kardex = require("../models/documents/kardex");
 const CertficateOfStudies = require("../models/documents/certificateOfStudies");
+const TestRecord = require("../models/documents/testRecord");
 
-const generateNewDoc = (student, document_type, dataCallback, endCallback) => {
+const generateNewDoc = (tools, document_type, dataCallback, endCallback) => {
   let aleDocument;
   switch (document_type) {
     case 0:
-      aleDocument = new ProofOfStudies(student, false);
+      aleDocument = new ProofOfStudies(tools.student, false);
       break;
     case 1:
-      aleDocument = new ProofOfStudies(student, true);
+      aleDocument = new ProofOfStudies(tools.student, true);
       break;
     case 2:
-      aleDocument = new ServiceLetter(student, "practicas");
+      aleDocument = new ServiceLetter(tools.student, "practicas");
       break;
     case 3:
-      aleDocument = new ServiceLetter(student, "servicio");
+      aleDocument = new ServiceLetter(tools.student, "servicio");
       break;
     case 4:
-      aleDocument = new CertficateOfStudies(student);
+      aleDocument = new CertficateOfStudies(tools.student);
       break;
     case 5:
-      aleDocument = new Title(student);
+      aleDocument = new Title(tools.student);
       break;
     case 6:
-      aleDocument = new InternshipLetter(student); //Carta pasante
+      aleDocument = new InternshipLetter(tools.student); //Carta pasante
       break;
     case 7:
-      aleDocument = new Kardex(student);
+      aleDocument = new Kardex(tools.student);
       break;
     case 8:
-      aleDocument = new ProofOfTitleInProg(student);
+      aleDocument = new ProofOfTitleInProg(tools.student);
+      break;
+    case 9:
+      aleDocument = new TestRecord(tools.tests);
       break;
     default:
       return

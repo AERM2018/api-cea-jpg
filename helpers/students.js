@@ -20,6 +20,8 @@ const Stu_gracou = require("../models/stu_gracou");
 const Tesine = require("../models/tesine");
 const Graduation_courses = require("../models/graduation_courses");
 const Stu_info = require("../models/stu_info");
+const Test = require("../models/test");
+const { raw } = require("mysql");
 
 const getStudentInfo = async (matricula = '') => {
     return await Stu_info.findOne({
@@ -168,7 +170,7 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
 
 }
 
-const getGradesStudent = async (id_student = "", opts = { onlyAvg : false ,withAvg : false}) => {
+const getGradesStudent = async (id_student = "", opts = { onlyAvg : false ,withAvg : false, forKardex : false}) => {
     let avgStudent = 0;
     let gradesStudentPaidCourses = []
     Course.hasOne(Grades, { foreignKey: "id_course" });
@@ -217,14 +219,16 @@ const getGradesStudent = async (id_student = "", opts = { onlyAvg : false ,withA
       });
   
       avgStudent /= gradesStudent.length;
+      avgStudent = avgStudent.toFixed(1)
   
       if (opts.onlyAvg ) return avgStudent;
     }
     gradesStudentPaidCourses = await Promise.all(gradesStudentPaidCourses)
     gradesStudentPaidCourses = gradesStudentPaidCourses.filter( gradeStudent => gradeStudent !== null);
     gradesStudentPaidCourses = gradesStudentPaidCourses.map( async(gradeStudent) => {
-          const {course} = gradeStudent.toJSON()
+          const {course, id_grade} = gradeStudent.toJSON()
           const {id_course,course_name,clave,credits} = course
+          let testInfo;
   
           Cou_tea.belongsTo(Teacher, {foreignKey: 'id_teacher'})
           Teacher.hasMany(Cou_tea, {foreignKey : 'id_teacher'})
@@ -236,11 +240,21 @@ const getGradesStudent = async (id_student = "", opts = { onlyAvg : false ,withA
           })
           
           const date = moment(courseTeacher.toJSON().end_date).format('MMMM,YYYY')
+          if(opts.forKardex){
+                testInfo = await Test.findAll({
+                    attributes:['application_date',['type','test_type']],
+                    where : {id_grade,applied:true},
+                    order : [['application_date','DESC']],
+                    limit:1,
+                    raw:true
+                })
+          }
           return {
               ...gradeStudent.toJSON(),
               course : course_name,
               key : clave,
               credits,
+              ...(testInfo)?testInfo[0]:{},
               teacher : courseTeacher.toJSON().teacher.name,
               date,
               type : 'regular'
@@ -331,7 +345,7 @@ const getTesineGradeStudent = async( id_student = '') => {
     }
     return tesineGradeStudent
    }
-   return {}
+   return null
 }
 
 

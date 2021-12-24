@@ -32,11 +32,11 @@ class Kardex extends AlePDFDocument {
       .moveDown();
     this.drawKardexTable(false)
     this.setTableButtomBorder(this.student.grades.length)
-    this.tableDocument.addBody(this.student.grades.map(({key,credits,grade:gradeNum,course:courseName})=>({key,credits,gradeNum,courseName})));
+    this.tableDocument.addBody(this.student.grades.map(({key,credits,grade:gradeNum,course:courseName,application_date : dateTest, test_type : typeTest})=>({key,credits,gradeNum,courseName,dateTest,typeTest})));
     this.PDFInstance.x = this.marginXDocument
     this.PDFInstance
     .moveDown()
-    .text(`Este cárdex ampara ${this.student.grades.length} asignaturas, con promedio general de ${this.student.generalAvg} y ${this.student.grades.reduce((current, previous) => previous.credits + current.credits)} créditos cubiertos.`)
+    .text(`Este cárdex ampara ${this.student.grades.length} asignaturas, con promedio general de ${this.student.generalAvg} y ${this.student.grades.map(({credits}) => credits).reduce((cur,pre) => pre+cur)} créditos cubiertos.`)
     .moveDown(8)
     this.drawLineToSign(this.pageWidthWithMargin / 2 + this.marginXDocument - 75, this.PDFInstance.y,150,{
       txtButtom : 'Ernesto Pruneda Mar~Jefe de Servicios Escolares',

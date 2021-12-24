@@ -294,10 +294,12 @@ const getAllGradesByMatricula = async( req, res = response) => {
     const { page = 1 } = req.query
     try {
         let grades   
-        const {grades:coursesGrades,generalAvg} = await getGradesStudent( id_student, { withAvg : true } )
+        const {grades:coursesGrades,generalAvg} = await getGradesStudent( id_student, { withAvg : true} )
         const extraCoursesGrades = await getExtraCoursesGradesStudent(id_student)
         const tesineGrade = await getTesineGradeStudent( id_student )
-        grades = [...coursesGrades,...extraCoursesGrades,tesineGrade]
+        grades = [...coursesGrades,...extraCoursesGrades]
+        if(tesineGrade) grades.push(tesineGrade)
+        console.log(grades)
         grades = grades.filter((grade,i) => i >= (9*page)-9 && i <= 9*page)
         res.json({
             ok : true,

@@ -14,6 +14,7 @@ const moment = require('moment');
 const { generateNewDoc } = require("../helpers/documentGeneration");
 const { response } = require("express");
 const Stu_info = require("../models/stu_info");
+const getTestInfo = require("../helpers/tests");
 const getInfoDocument = async (req, res) => {
     const { document_type } = req.body;
     const { id_student } = req
@@ -82,22 +83,29 @@ const getInfoDocument = async (req, res) => {
 const createDocument = async(req, res = response) => {
     let {document_type,matricula} = req.params
     const {personName,personWorkStation} = req.body
+    const {id_group,id_course} = req.body
     document_type = parseInt(document_type)
+    let toolsForMakingDoc = {};
     const stream = res.writeHead(200,{
         'Content-Type':'application/pdf',
         'Content-Disposition':'inline'
     });
-    const student = await getStudentInfo(matricula)
-    if([0,1,4,7].includes(document_type)){
-        let { grades, generalAvg }= await getGradesStudent(student.id_student,{ withAvg : true }) || []
-        student.grades = grades
-        student.generalAvg = generalAvg
+    if(![9].includes(document_type)){
+        toolsForMakingDoc = await getStudentInfo(matricula)
+        if([0,1,4,7].includes(document_type)){
+            let { grades, generalAvg }= await getGradesStudent(student.id_student,{ withAvg : true, forKardex:true }) || []
+            toolsForMakingDoc.student.grades = grades
+            toolsForMakingDoc.student.generalAvg = generalAvg
+        }
+        if([2,3].includes(document_type)){
+            toolsForMakingDoc.student.worksFor = {personName,personWorkStation}
+        }
     }
-    if([2,3].includes(document_type)){
-        student.worksFor = {personName,personWorkStation}
+    if([9].includes(document_type)){
+        toolsForMakingDoc.tests = await getTestInfo(true,{id_group,id_course})
     }
     generateNewDoc(
-        student,
+        toolsForMakingDoc,
         document_type,
         (chunk) => { stream.write(chunk)},
         () => stream.end()
