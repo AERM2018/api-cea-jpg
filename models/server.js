@@ -27,6 +27,7 @@ const extraCurricularCoursesRouter = require('../routes/extracurricularcourses')
 const assitsRouter = require('../routes/assits');
 const { loginRateLimit } = require('../middlewares/auth');
 const rateLimit = require('express-rate-limit');
+const testRouter = require('../routes/tests');
 
 class Server{
 
@@ -63,6 +64,7 @@ class Server{
             graduation_courses: `/${this.base}/graduation_courses`,
             extracurricular_courses: `/${this.base}/extracurricular_courses`,
             assits: `/${this.base}/assits`,
+            tests : `/${this.base}/tests`
 
         }
         this.routes();
@@ -99,6 +101,7 @@ class Server{
         this.app.use(this.apiPaths.graduation_courses, Graduation_courses_Router)
         this.app.use(this.apiPaths.extracurricular_courses, extraCurricularCoursesRouter)
         this.app.use(this.apiPaths.assits, assitsRouter)
+        this.app.use(this.apiPaths.tests, testRouter)
 
         this.app.use('*', (req, res) => {
             res.status(404).send('404 | Ruta no encontrada')

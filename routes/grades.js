@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByGroup, getAllGroupsGrades, getAllGrades, getAllGradesByMatricula, uploadCourseGrades, uploadTesineGrade, uploadExtraCurCourGrades, updateExtraCurCourGrades, updateTesineGrades, getAllGradesByCourse, getExtraCourseGrades, getGraduationSectionGrades, getGraduationCourseGrades } = require('../controllers/gradesController');
-const { checkStudentExistence, checkGradeCourseExistence, checkGradeTesineExistence, checkStuExtraCouExistence, checkExtraCurCourExistence, checkGroupExistence, checkCourseExistence } = require('../middlewares/dbValidations');
+const { checkStudentExistence, checkGradeCourseExistence, checkGradeTesineExistence, checkStuExtraCouExistence, checkExtraCurCourExistence, checkGroupExistence, checkCourseExistence, checkGroupCourseExistence, isAllowedToUploadGrades, isItPermitted, checkRoles } = require('../middlewares/dbValidations');
 const checkGrades = require('../middlewares/grades');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -9,7 +9,9 @@ const { validateFields } = require('../middlewares/validateFields');
 const gradesRouter = Router();
 
 gradesRouter.get('/all',[
-    validateJWT
+    validateJWT,
+    checkRoles([1,2]),
+    validateFields
 ],getAllGrades)
 
 // gradesRouter.get('/groups/all',[
@@ -36,6 +38,7 @@ gradesRouter.get('/regular/:id_course/groups/:id_group', [
     check('id_group','El id del grupo es un número entero y es obligatorio').isNumeric().exists({checkNull:true}),
     checkGroupExistence,
     checkCourseExistence,
+    checkGroupCourseExistence,
     validateFields,
     validateJWT
 ] ,getAllGradesByCourse);
@@ -52,15 +55,16 @@ gradesRouter.get('/gracou/:id_graduation_course',[
 
 
 gradesRouter.post('/regular/:id_course', [
+    validateJWT,
     check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
     check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
     check('students',"Las calificaciones de los estudiantes son obligatorias").isArray({ min:1 }),
     validateFields,
+    isAllowedToUploadGrades,
     checkGrades,
-    validateJWT
 ], uploadCourseGrades);
 
-//FIXME: Las califiacaiones se les debe asignar a todos los alumnos, no solo a un alumno
+
 gradesRouter.post('/:id_ext_cou', [
     check('id_ext_cou','El id del curso extracurricular es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
     validateFields,
@@ -77,18 +81,15 @@ gradesRouter.post('/:id_ext_cou', [
 //     validateJWT
 // ], uploadTesineGrade);
 
-gradesRouter.put( 'regular/:id_grade', [
+gradesRouter.put('/regular/:id_grade', [
     param('id_grade','El id de la calificación es un numero y es obligatorio').not().isEmpty().isInt(),
-    // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
-    // check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
     check('grade', 'Calificación es de tipo float obligatoria').isFloat().notEmpty(),
     checkGradeCourseExistence,
     validateFields,
     validateJWT
 ], updateGrades);
 
-gradesRouter.put( 'extra/:id_stu_extracou', [
+gradesRouter.put( '/extra/:id_stu_extracou', [
     param('id_stu_extracou','El id de estudiante_extracurricular es un numero y es obligatorio ').not().isEmpty().isInt(),
     // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
     // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
@@ -99,7 +100,7 @@ gradesRouter.put( 'extra/:id_stu_extracou', [
     validateJWT
 ], updateExtraCurCourGrades);
 
-gradesRouter.put( 'tesine/:id_tesine', [
+gradesRouter.put( '/tesine/:id_tesine', [
     param('id_tesine','Llave ').not().isEmpty().isInt(),
     // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
     // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),

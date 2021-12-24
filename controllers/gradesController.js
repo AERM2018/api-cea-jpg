@@ -23,6 +23,7 @@ const Major = require('../models/major');
 const Educational_level = require('../models/educational_level');
 const { getRegularCourseInfo, getExtraCourseInfo, getGraduationSectionInfo, getGraduationCourseInfo } = require('../helpers/courses');
 const ExtraCurricularCourses = require('../models/extracurricularcourses');
+const Test = require('../models/test');
 
 const getAllGrades = async( req, res = response) => {
     let grades;
@@ -378,10 +379,12 @@ const uploadCourseGrades = async (req, res = response) => {
         // // iterate array to get every student and create his grade voiding dupliactes
         Promise.all(students_grades).then((grades) => {
             grades.map( async(grade) => {
-                console.log(grade)
                 try {
                         const studentGrade = new Grades({ id_course, id_student : grade.id_student, grade : grade.grade })
                         await studentGrade.save();
+                        const {id_gro_cou} = await Gro_cou.findOne({where : {[Op.and]:[{id_group},{id_course}]}})
+                        const testGrade = new Test({id_student : grade.id_student,id_gro_cou, folio : 3,type:'Ordinario',application_date : moment().format('YYYY-MM-DD'),assigned_test_date : null,applied : true,id_grade : studentGrade.id_grade})
+                        await testGrade.save()
                 } catch (err) {
                     console.log(err)
                 }
@@ -440,6 +443,22 @@ const updateGrades = async (req, res = response) => {
     const { grade }= req.body;
 
     try {
+        const testGrade = await Test.findOne({
+            // where : { [Op.and] : [
+            //     {id_grade},
+            //     {assigned_test_date : {[Op.and]:[
+            //         {[Op.lte]:moment()},
+            //         {[Op.gte]}
+            //     ]}}]}
+            where : where(literal(`(id_grade = ${id_grade} AND (${moment().format('YYYY-MM-DD')} = ${moment(col('application_date')).format('YYYY-MM-DD')} OR ${moment().format('YYYY-MM-DD')} <= ${moment(col('application_date')).add(5,'days').format('YYYY-MM-DD')}) AND ${col('applied').col} = 0)`),true)
+        })
+        if(!testGrade){
+            return res.status(403).json({
+                ok : false,
+                msg : 'Acutilización de calificación denegada.'
+            })
+        }
+        await testGrade.update({applied : true})
          await Grades.update({grade},{where: {id_grade} });
 
         res.json({

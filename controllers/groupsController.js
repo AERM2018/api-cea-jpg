@@ -293,6 +293,26 @@ const addCourseGroup = async (req, res) => {
 
 }
 
+const removeCourseGroup = async(req, res) =>{
+    const {id_group,id_course} = req.params
+    try {
+        await Gro_cou.destroy({where : {[Op.and] : [{id_course},{id_group}]}})
+        const cou_tea = await Cou_tea.findOne({where : {id_course}})
+        if(!cou_tea){
+            return res.json({
+                ok : false,
+                msg : `El curso con id ${id_course} no se encuentra asociado con ningun maestro.`
+            })
+        }
+        await cou_tea.destroy()
+        return res.json({
+            ok : true,
+            msg : `La asociación entre el grupo con id ${id_group} y el curso con id ${id_course} se ha eliminado correctamente.`
+        })
+    } catch (error) {
+        printAndSendError(res,error)
+    }
+}
 const getStudentsFromGroup = async( req, res = response) => {
     const { id_group } = req.params
     try{
@@ -340,5 +360,6 @@ module.exports = {
     updateGroup,
     deleteGroup,
     addCourseGroup,
-    getStudentsFromGroup
+    getStudentsFromGroup,
+    removeCourseGroup
 }

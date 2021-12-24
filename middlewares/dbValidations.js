@@ -1,9 +1,11 @@
 const { response } = require('express');
-const { Op } = require('sequelize');
+const moment = require('moment');
+const { Op, literal } = require('sequelize');
 const Assit = require('../models/assit');
 const Campus = require('../models/campus');
 const Card = require('../models/card');
 const Course = require('../models/courses');
+const Cou_tea = require('../models/cou_tea');
 const Department = require('../models/department');
 const Document = require('../models/document');
 const Employees = require('../models/employee');
@@ -330,12 +332,15 @@ const checkCourseExistence = async (req, res, next) =>{
 }
 
 const checkGroupCourseExistence = async (req, res, next) =>{
-    const id_gro_cou = req.body.id_gro_cou || req.params.id_gro_cou
-    const gro_cou = await Gro_cou.findByPk(id_gro_cou)
+    const id_gro_cou = req.body.id_gro_cou || req.params.id_gro_cou || undefined
+    const id_group = req.body.id_group || req.params.id_group || undefined
+    const id_course = req.body.id_course || req.params.id_course || undefined
+    const condition = (id_gro_cou) ? {id_gro_cou} : {id_group,id_course}
+    const gro_cou = await Gro_cou.findOne({where : condition})
     if(!gro_cou){
         return res.status(404).json({
             ok:false,
-            msg:`El curso con id ${id_gro_cou} no existe.`
+            msg:`No se encuentra un curso asociado con el grupo especificado.`
         })
     }
     next();
@@ -365,9 +370,34 @@ const checkUserExistance = async(req, res = response, next) => {
     }
     req.user = user
     next()
-
 }
 
+const isAllowedToUploadGrades = async(req, res, next) => {
+    let id_course = req.params.id_course || req.body.id_course || undefined
+    let id_group = req.params.id_group || req.body.id_group || undefined
+    const {start_date} = await Gro_cou.findOne({where : {[Op.and] : [{id_course},{id_group}]}})
+    if(!req.roles.includes(1) && !req.roles.includes(2) && !moment().isSameOrBefore((moment(start_date).endOf('month')))){ //true 
+        return res.status(403).json({
+            ok :false,
+            msg : 'Publicación de calificaciones denegada, la fecha para publicar calificaciones ha vencido. Comuniquese con el departamento de administración.'
+        })
+    }
+    next()
+}
+
+const checkRoles = ( rolesWithPermission = []) => {
+    return (req, res, next) => {
+        const {roles = []} = req
+        if(!roles.some( role => rolesWithPermission.includes(role))){ 
+            res.status(403).json({
+                ok : false,
+                msg : 'Acción denegada, no tiene los persmisos necesarios.'
+            })
+        }
+        next()
+    }
+
+}
 module.exports = {
     checkCampusExistence,
     checkStudentExistence,
@@ -396,5 +426,7 @@ module.exports = {
     checkGroupCourseExistence,
     checkAssitExistence,
     isValidDocumentType,
-    checkUserExistance
+    checkUserExistance,
+    isAllowedToUploadGrades,
+    checkRoles
 }

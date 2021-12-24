@@ -2,7 +2,7 @@ const { response } = require("express");
 const { QueryTypes, fn, col } = require("sequelize");
 const { db } = require("../database/connection")
 const { getUserById } = require('../queries/queries');
-const { createJWT } = require("../helpers/jwt");
+const { createJWT, createPasswordJWT } = require("../helpers/jwt");
 const bcrypt = require('bcryptjs');
 const User = require("../models/user");
 const randomatic = require('randomatic');
@@ -72,7 +72,9 @@ const login = async (req, res = response) => {
 
     // get data and create token
     const { id_user, user_type, id_role, email } = user
-    const token = await createJWT(id_user, email, user_type, id_role)
+    let roles = await Rol_use.findAll({where : {id_user},attributes:['id_role']})
+    roles = roles.map(({id_role}) => id_role)
+    const token = await createJWT(id_user, email, user_type, roles)
     const userEntityInfo = await getLogInInfo(id,user_type)
     res.status(200).json({
         ok: true,
@@ -80,7 +82,7 @@ const login = async (req, res = response) => {
         id_user,
         email,
         user_type,
-        id_role,
+        roles,
         user: userEntityInfo
     })
 
@@ -112,15 +114,16 @@ const revalidateJWT = async (req, res = response) => {
 
 }
 
+// FIXME:Cambiar mi correo por el de la alejandría
 const sendForgotPassCode = async(req, res = response) => {
     const {email} = req.body
     const user = await User.findOne({where:{email},raw:true})
     const {name,id_user} = user
-    let code = randomatic('A0',6)
+    let code = `${randomatic('A0',4)}${randomatic('0',2)}`
     const codeDB = new Forgot_pass_code({code,issued_at:moment({}).toDate(),expirate_at:moment({}).add(10,'m').toDate(),id_user})
     await codeDB.save()
     await transporter.sendMail({
-        from: '"Servicios escolares Alejandría" <retana.martinez.angel.eduardo@gmail.com>', // sender address
+        from: `"Servicios escolares Alejandría" <${process.env.CONTROL_ESCOLAR_EMAIL}>`, // sender address
         to: `${name}, ${email}`, // list of receivers
         subject: "Solicitud de recuperación de contraseña", // Subject line
         html: `<p>El siguiente codigo es para restablecer su contraseña, no debe de compartirlo con nadie. Codigo: <b>${code}</b></p>`, // html body
@@ -142,32 +145,36 @@ const verifyForgotPassCode = async(req, res = response) => {
             where : {id_user : codeDB.id_user},
         })
         user = user.toJSON()
-        const { id_user, user_type,email, rol_uses} = user
-        // console.log(user)
+        const { id_user ,email } = user
         let JSONResponse;
         if(moment(codeDB.expirate_at).diff(moment({}),'m') > 0){
-            let JWTPassword = await createJWT(id_user, user_type,email, rol_uses[0])
+            let JWTPassword = await createPasswordJWT(id_user, email)
             JSONResponse = {ok:true,url:`http://localhost:3005/api-ale/v1/auth/resetPassword/${id_user}/${JWTPassword}`}
         }else{
-            JSONResponse = {ok:false,msg:"El codigo ha vencido, vuelva a generar uno para continuar con el proceso."}
+            JSONResponse = {ok:false,msg:"El código ha vencido, vuelva a generar uno para continuar con el proceso."}
         }
         await Forgot_pass_code.destroy({where:{code}})
         return res.json(JSONResponse)
     }
-    return res.sendStatus(404)
+    return res.json({ok:false,msg:"Código de recuperación de contraseña no encontrado."});
 }
 
 const changePassword = async(req, res = response) => {
     const {knownPassword = false} = req.query
-    const {oldPassword, newPassword } = req.body
+    console.log(knownPassword)
+    const {oldPassword = '', newPassword = '' } = req.body
     const { id_user, token }  = req.params
     let payload;
-    if(knownPassword){
-        // TODO: Cuando se conoce la contraseña anterior
-    }
     try {
-        payload = verify(token,process.env.SECRET_JWT)
+        if(knownPassword){
+            payload = verify(token,process.env.SECRET_JWT)
+            const {password} = await User.findOne({where : {id_user},raw:true})
+            if(!bcrypt.compareSync(oldPassword,password)) return res.status(400).json({ok : false,msg : 'La contraseña anterior es incorrecta, verifiquela por favor.'})
+        }else{
+            payload = verify(token,process.env.PASSWORD_JWT)
+        }
     } catch (error) {
+        console.log(error)
         return res.status(401).json({
             ok : false,
             msg : 'El token es inválido'

@@ -1,8 +1,8 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { getAllGroups, createGroup,
-    updateGroup, deleteGroup, addCourseGroup, getStudentsFromGroup } = require('../controllers/groupsController');
-const { checkGroupExistence } = require('../middlewares/dbValidations');
+    updateGroup, deleteGroup, addCourseGroup, getStudentsFromGroup, removeCourseGroup } = require('../controllers/groupsController');
+const { checkGroupExistence, checkCourseExistence, checkGroupCourseExistence } = require('../middlewares/dbValidations');
 const { isValidSchedule } = require('../middlewares/schedule');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -48,6 +48,16 @@ groupsRouter.post('/:id_group/courses/:id_course', [
     validateFields,
     validateJWT
 ], addCourseGroup);
+
+groupsRouter.delete('/:id_group/courses/:id_course',[
+    check('id_group','El id del grupo es un número y es obligatorio').isNumeric(),
+    check('id_course','El id del curso es un número y es obligatorio').isNumeric(),
+    checkGroupExistence,
+    checkCourseExistence,
+    checkGroupCourseExistence,
+    validateFields,
+    validateJWT
+],removeCourseGroup);
 
 groupsRouter.get('/:id_group/students',[
     check('id_group','El id del grupo es obligatorio y debe de ser un numero entero').isNumeric(),

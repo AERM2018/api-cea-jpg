@@ -34,12 +34,16 @@ const getAllGraduationCourses = async (req=request, res = response) => {
 
 
 const createGraduationCourses = async (req, res = response ) =>{
-    const { body } = req;
+    const { sections = [],...rest } = req.body;
     try {
         
-        const graduation_course = new Graduation_courses(body)
-        await graduation_course.save();
-
+        const graduation_course = new Graduation_courses(rest)
+        const {id_graduation_course} = await graduation_course.save();
+        while(sections.length > 0){
+            let graduation_section = new Graduation_section({...sections[0],id_graduation_course})
+            await graduation_section.save()
+            sections.pop()
+        }
         res.status(201).json({
             ok: true,
             msg: 'Curso de graduación creado correctamente'

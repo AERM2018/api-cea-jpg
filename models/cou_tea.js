@@ -25,13 +25,13 @@ const Cou_tea =  db.define('cou_tea',{
         defaultValue : true
     },
     start_date : {
-        type : DataTypes.DATE,
+        type : DataTypes.DATEONLY,
         validate : {
             notEmpty : true
         }
     },
     end_date : {
-        type : DataTypes.DATE
+        type : DataTypes.DATEONLY
     }
 },{
     timestamps : false,

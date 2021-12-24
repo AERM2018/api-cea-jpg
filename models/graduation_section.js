@@ -40,6 +40,7 @@ const Graduation_section =  db.define('graduation_sections',{
     },
     in_progress : {
         type : DataTypes.TINYINT(1),
+        defaultValue : true,
         validate : {
             notEmpty : true
         }
