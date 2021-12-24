@@ -24,8 +24,12 @@
     "mysql2": "^2.2.5",
     "nodemailer": "^6.7.2",
     "randomatic": "^3.1.1",
+    "numero-a-letras": "^1.0.6",
+    "numero-palabra": "^1.0.1",
+    "pdfkit": "^0.13.0",
     "rate-limiter-flexible": "^2.2.4",
-    "sequelize": "^6.5.0"
+    "sequelize": "^6.5.0",
+    "voilab-pdf-table": "^0.5.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"

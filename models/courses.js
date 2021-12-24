@@ -21,6 +21,9 @@ const Course = db.define('courses',{
     clave : {
         type : DataTypes.STRING(5),
         allowNull : false,
+        validate : {
+            notEmpty : true
+        }
     },
     credits : {
         type : DataTypes.FLOAT,

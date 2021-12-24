@@ -19,6 +19,21 @@ const ExtraCurricularCourses = require("../models/extracurricularcourses");
 const Stu_gracou = require("../models/stu_gracou");
 const Tesine = require("../models/tesine");
 const Graduation_courses = require("../models/graduation_courses");
+const Stu_info = require("../models/stu_info");
+
+const getStudentInfo = async (matricula = '') => {
+    return await Stu_info.findOne({
+        where:{matricula},
+        attributes : {
+            exclude:['id','name','surname_f','surname_m',],
+            include : [
+                [fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name'],
+                [fn('concat',col('educational_level'),' en ',col('major_name')),'major_name']
+            ]
+        },
+        raw : true
+    })
+}
 
 const getPaymentStudent = async (id_student = '', details = false, status_payment = {}, edu_level = "") => {
 
@@ -153,7 +168,7 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
 
 }
 
-const getGradesStudent = async (id_student = "", getAvg = false) => {
+const getGradesStudent = async (id_student = "", opts = { onlyAvg : false ,withAvg : false}) => {
     let avgStudent = 0;
     let gradesStudentPaidCourses = []
     Course.hasOne(Grades, { foreignKey: "id_course" });
@@ -183,9 +198,10 @@ const getGradesStudent = async (id_student = "", getAvg = false) => {
             payment_type : 'Materia'}},
         where: {id_student}
       })
-      if(!paymentCourse &&  moment().diff(moment(start_date).endOf('month').add('15','days'),'days') >= 0){
-        return null;
-      }
+    //   FIXME: SE TIENE QUE RETORNAR NULL?
+    //   if(!paymentCourse &&  moment().diff(moment(start_date).endOf('month').add('15','days'),'days') >= 0){
+    //     return null;
+    //   }
   
       // if(!paymentCourse && moment().diff(moment(start_date).endOf('month').add('15','days')) >= 0){
         // console.log('se destruyó')
@@ -195,20 +211,20 @@ const getGradesStudent = async (id_student = "", getAvg = false) => {
       return grade
     })
   
-    if (getAvg) {
+    if (opts.onlyAvg || opts.withAvg) {
       gradesStudent.forEach((grade) => {
         avgStudent += grade.toJSON().grade;
       });
   
       avgStudent /= gradesStudent.length;
   
-      return avgStudent;
+      if (opts.onlyAvg ) return avgStudent;
     }
     gradesStudentPaidCourses = await Promise.all(gradesStudentPaidCourses)
     gradesStudentPaidCourses = gradesStudentPaidCourses.filter( gradeStudent => gradeStudent !== null);
     gradesStudentPaidCourses = gradesStudentPaidCourses.map( async(gradeStudent) => {
           const {course} = gradeStudent.toJSON()
-          const {id_course,course_name} = course
+          const {id_course,course_name,clave,credits} = course
   
           Cou_tea.belongsTo(Teacher, {foreignKey: 'id_teacher'})
           Teacher.hasMany(Cou_tea, {foreignKey : 'id_teacher'})
@@ -223,15 +239,17 @@ const getGradesStudent = async (id_student = "", getAvg = false) => {
           return {
               ...gradeStudent.toJSON(),
               course : course_name,
+              key : clave,
+              credits,
               teacher : courseTeacher.toJSON().teacher.name,
               date,
               type : 'regular'
           }
     })
   
-   const gradesWithTeacher = await Promise.all(gradesStudentPaidCourses) 
+    let gradesWithTeacher = await Promise.all(gradesStudentPaidCourses)
   
-    return gradesWithTeacher
+    return {grades:gradesWithTeacher , generalAvg : (opts.withAvg) ? avgStudent : undefined}
 };
   
   
@@ -380,5 +398,6 @@ module.exports = {
     getExtraCoursesGradesStudent,
     getTesineGradeStudent,
     filterGradesStudent,
-    getCourseStudentIsTaking
+    getCourseStudentIsTaking,
+    getStudentInfo
 };

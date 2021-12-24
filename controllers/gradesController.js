@@ -273,7 +273,7 @@ const searchAverageByStudent = async ( req, res = response ) => {
         })
         if(coincidencesStudents.length > 0){
             coincidencesStudents =  coincidencesStudents.map( async(student) => {
-                const avgStudent = await getGradesStudent(student.toJSON().id_student,true)
+                const avgStudent = await getGradesStudent(student.toJSON().id_student,{onlyAvg:true})
                 return {...student.toJSON(),avgStudent}
     
             })
@@ -294,14 +294,15 @@ const getAllGradesByMatricula = async( req, res = response) => {
     const { page = 1 } = req.query
     try {
         let grades   
-        const coursesGrades = await getGradesStudent( id_student, false )
+        const {grades:coursesGrades,generalAvg} = await getGradesStudent( id_student, { withAvg : true } )
         const extraCoursesGrades = await getExtraCoursesGradesStudent(id_student)
         const tesineGrade = await getTesineGradeStudent( id_student )
         grades = [...coursesGrades,...extraCoursesGrades,tesineGrade]
         grades = grades.filter((grade,i) => i >= (9*page)-9 && i <= 9*page)
         res.json({
             ok : true,
-            grades
+            grades,
+            generalAvg
         })
     } catch ( err ) {
         printAndSendError( res, err)
