@@ -391,7 +391,7 @@ const getAllPaymentsByGroup = async (req, res = response) => {
               " ",
               col("surname_m")
             ),
-            "student_fullname",
+            "student_name",
           ],
           "matricula",
         ],
@@ -423,11 +423,11 @@ const getAllPaymentsByStudent = async (req, res = response) => {
   const status_payment = status != null ? { status_payment: status } : {};
 
   const [student] = await db.query(getStuInfo,{replacements : {'id':id_student}, type : QueryTypes.SELECT})
-  const {student_fullname, educational_level} = student
+  const {student_name, educational_level} = student
 
   try {
     let payments = await getPaymentStudent(id_student, true, status_payment, educational_level);
-    payments = { ...payments, matricula, id_student, student_fullname, educational_level};
+    payments = { ...payments, matricula, id_student, student_name, educational_level};
 
     return res.status(200).json({
       ok: true,
