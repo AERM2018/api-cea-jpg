@@ -8,9 +8,10 @@ const { validateFields } = require('../middlewares/validateFields');
 
 const gradesRouter = Router();
 
+// FIXME: Arreglar error de roles en produción
 gradesRouter.get('/all',[
     validateJWT,
-    checkRoles([1,2]),
+    // checkRoles([1,2]),
     validateFields
 ],getAllGrades)
 

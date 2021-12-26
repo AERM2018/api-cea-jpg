@@ -24,51 +24,24 @@ const Educational_level = require('../models/educational_level');
 const { getRegularCourseInfo, getExtraCourseInfo, getGraduationSectionInfo, getGraduationCourseInfo } = require('../helpers/courses');
 const ExtraCurricularCourses = require('../models/extracurricularcourses');
 const Test = require('../models/test');
+const Stu_info = require('../models/stu_info');
 
 const getAllGrades = async( req, res = response) => {
     let grades;
     let {q = '', page = 1}=req.query
     q = q.toLowerCase().split(' ').join('');
-
-    Stu_gro.belongsTo(Student,{ foreignKey : 'id_student'})
-    Student.hasMany(Stu_gro,{ foreignKey : 'id_student'})
-
-    Stu_gro.belongsTo(Group,{ foreignKey : 'id_group'})
-    Group.hasOne(Stu_gro,{ foreignKey : 'id_group'})
-
-    Group.belongsTo(Major,{ foreignKey : 'id_major'})
-    Major.hasOne(Group,{ foreignKey : 'id_major'})
-
-    Major.belongsTo(Educational_level,{ foreignKey : 'id_edu_lev'})
-    Educational_level.hasMany(Major,{ foreignKey : 'id_edu_lev'})
-    let students = await Student.findAll({
-           include : [{
-               model : Stu_gro,
-                include : {
-                    model : Group,
-                    include : {
-                        model : Major,
-                        include : {
-                            model : Educational_level
-                        }
-                    }
-                }
-           }],
-           where : {id_student : {[Op.in] : literal('(SELECT id_student FROM grades)')}}
+    let students = await Stu_info.findAll({
+        where : {id_student : {[Op.in] : literal('(SELECT id_student FROM grades)')}},
+        attributes : {exclude:['id']}
     })
-    
-    // console.log(students[0].toJSON())
-    
-    students = students.map( async(student) => {
-        const { stu_gros, ...restoStudent } = student.toJSON()
-        
-        const {groupss, groupss:{major}, groupss:{major:{educational_level}}} = stu_gros[stu_gros.length - 1]
+    students = students.map( (student) => {
         return {
-            id_student  : restoStudent.id_student,
-            matricula : restoStudent.matricula,
-            student_name : `${restoStudent.name} ${restoStudent.surname_f} ${restoStudent.surname_m}`,
-            group_name : groupss.name_group,
-            major_name : `${educational_level.educational_level} en ${major.major_name}`,
+            id_student  : student.id_student,
+            matricula : student.matricula,
+            student_name : `${student.name} ${student.surname_f} ${student.surname_m}`,
+            campus_name : student.campus_name,
+            group_name : student.name_group,
+            major_name : `${student.educational_level} en ${student.major_name}`,
             q
         }
     })
