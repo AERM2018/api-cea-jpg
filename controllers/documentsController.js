@@ -15,40 +15,47 @@ const { generateNewDoc } = require("../helpers/documentGeneration");
 const { response } = require("express");
 const Stu_info = require("../models/stu_info");
 const getTestInfo = require("../helpers/tests");
-const getInfoDocument = async (req, res) => {
-    const { document_type } = req.body;
+const getDocsTypesAvailableToStudent = async (req, res) => {
+    // const { document_type } = req.body;
     const { id_student } = req
     try {
-        
+        const {educational_level} = await Stu_info.findOne({where:{id_student},attributes:{exclude:['id']},raw:true})
+        // console.log(educational_level)
+        // console.log(document_types.filter(({name}) => name.toLowerCase().includes(`certificado de ${educational_level.toLowerCase()}`) || name.toLowerCase().includes(`titulo de ${educational_level.toLowerCase()}`)))
         // const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-        const student = await Stu_info.findOne({
-            where:{id_student},
-            attributes : {
-                exclude:['id','name','surname_f','surname_m',],
-                include : [[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
-            },
-            raw : true
-        })
-        // const [grades] = await db.query(getGradesByStudent, { replacements: { id_student, id_group: student.id_group }, type: QueryTypes.SELECT })
-        grades = await getGradesStudent(id_student)
-        course = await getCourseStudentIsTaking(student.id_group)
-        let info = {}
-        info = (document_type != 0)
-        ? {
-            ...student,
-            ...course,
-            document_name:document_types[document_type]['name']
-        }
-        : {
-                ...student,
-                ...course,
-                document_name:document_types[document_type]['name'],
-                grades
-        }
-
+        // const student = await Stu_info.findOne({
+        //     where:{id_student},
+        //     attributes : {
+        //         exclude:['id','name','surname_f','surname_m',],
+        //         include : [[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
+        //     },
+        //     raw : true
+        // })
+        // // const [grades] = await db.query(getGradesByStudent, { replacements: { id_student, id_group: student.id_group }, type: QueryTypes.SELECT })
+        // grades = await getGradesStudent(id_student)
+        // course = await getCourseStudentIsTaking(student.id_group)
+        // let info = {}
+        // info = (document_type != 0)
+        // ? {
+        //     ...student,
+        //     ...course,
+        //     document_name:document_types[document_type]['name']
+        // }
+        // : {
+        //         ...student,
+        //         ...course,
+        //         document_name:document_types[document_type]['name'],
+        //         grades
+        // }
+        const documents = [
+            ...document_types.filter(({name}) => (
+                (!name.toLowerCase().includes('certificado de') && !name.toLowerCase().includes('titulo de')) || 
+                (name.toLowerCase().includes(`certificado de ${educational_level.toLowerCase()}`) || name.toLowerCase().includes(`titulo de ${educational_level.toLowerCase()}`))
+            ))
+        ]
         return res.status(200).json({
             ok :true,
-            info
+            document_types:documents
         })
         // if (document_type != 0) {
 
@@ -90,18 +97,17 @@ const createDocument = async(req, res = response) => {
         'Content-Type':'application/pdf',
         'Content-Disposition':'inline'
     });
-    if(![9].includes(document_type)){
-        toolsForMakingDoc = await getStudentInfo(matricula)
-        if([0,1,4,7].includes(document_type)){
-            let { grades, generalAvg }= await getGradesStudent(student.id_student,{ withAvg : true, forKardex:true }) || []
+    if(![11].includes(document_type)){
+        toolsForMakingDoc.student = await getStudentInfo(matricula)
+        if([0,1,5,6,10].includes(document_type)){
+            let { grades, generalAvg }= await getGradesStudent(toolsForMakingDoc.student.id_student,{ withAvg : true, forKardex:true }) || []
             toolsForMakingDoc.student.grades = grades
             toolsForMakingDoc.student.generalAvg = generalAvg
         }
         if([2,3].includes(document_type)){
             toolsForMakingDoc.student.worksFor = {personName,personWorkStation}
         }
-    }
-    if([9].includes(document_type)){
+    }else{
         toolsForMakingDoc.tests = await getTestInfo(true,{id_group,id_course})
     }
     generateNewDoc(
@@ -170,7 +176,7 @@ const deleteDocument = async(req, res) => {
     })
 }
 module.exports = {
-    getInfoDocument,
+    getDocsTypesAvailableToStudent,
     createDocument,
     getDocuments,
     deleteDocument

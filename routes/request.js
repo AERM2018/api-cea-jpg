@@ -19,7 +19,7 @@ requestRouter.post('/',[
     checkStudentExistence,
 ], createRequest)
 
-requestRouter.put('/:id',[
+requestRouter.post('/:id',[
     param('id','El id de la solicitud es obligatorio y debe de ser un numero entero').isNumeric(),
     validateJWT,
     validateFields

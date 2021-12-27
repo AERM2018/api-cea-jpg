@@ -24,26 +24,28 @@ const generateNewDoc = (tools, document_type, dataCallback, endCallback) => {
       aleDocument = new ServiceLetter(tools.student, "servicio");
       break;
     case 4:
-      aleDocument = new CertficateOfStudies(tools.student);
-      break;
-    case 5:
-      aleDocument = new Title(tools.student);
-      break;
-    case 6:
       aleDocument = new InternshipLetter(tools.student); //Carta pasante
       break;
-    case 7:
-      aleDocument = new Kardex(tools.student);
+    case 5:
+    case 6:
+      aleDocument = new CertficateOfStudies(tools.student);
       break;
+    case 7:
     case 8:
-      aleDocument = new ProofOfTitleInProg(tools.student);
+      aleDocument = new Title(tools.student);
       break;
     case 9:
+      aleDocument = new ProofOfTitleInProg(tools.student);
+      break;
+    case 10:
+      aleDocument = new Kardex(tools.student);
+      break;
+    case 11:
       aleDocument = new TestRecord(tools.tests);
       break;
     default:
-      return
-      break;
+      console.log("se trabaaaaaaa")
+      return;
   }
   aleDocument.PDFInstance.on("data", dataCallback);
   aleDocument.PDFInstance.on("end", endCallback);

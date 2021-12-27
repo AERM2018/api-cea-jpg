@@ -3,7 +3,7 @@ const Group = require('../models/group');
 const Time_tables = require('../models/time_tables');
 const Major = require('../models/major');
 const Stu_gro = require('../models/stu_gro');
-const { Op, QueryTypes, fn, col } = require('sequelize');
+const { Op, QueryTypes, fn, col, literal } = require('sequelize');
 const { db } = require('../database/connection');
 const { getGroups } = require('../queries/queries');
 const Courses = require('../models/courses')
@@ -12,35 +12,35 @@ const { response } = require('express');
 const Student = require('../models/student');
 const { printAndSendError } = require('../helpers/responsesOfReq');
 const Cou_tea = require('../models/cou_tea');
+const { getGroupInfo, getTitularTeacherOfCourse } = require('../helpers/groups');
+const { getGroupDaysAndOverdue } = require('../helpers/dates');
+const moment = require('moment');
 
 const getAllGroups = async (req, res) => {
+    const {timeTable = false} = req.query
+    let groups = []
     try {
-        const groups_no_time = await db.query(getGroups, { type: QueryTypes.SELECT })
-
-        const groups_time = groups_no_time.map(async group => {
-            const gro_tim = await Gro_tim.findAll({
-                where: { id_group: group.id_group },
-                attributes: ['id_time_table'],
-
-            })
-            const time_tables = await Time_tables.findAll({
-                where: { id_time_table: { [Op.in]: gro_tim.map(time_table => time_table.toJSON().id_time_table) } },
-                attributes: { exclude: ['id_time_table'] }
-            })
-            return { ...group, time_table: time_tables.map(time_table => time_table.toJSON()) }
-        })
-
-        Promise.all(groups_time).then(groups => {
-            return res.status(200).json({
-                ok: true,
-                groups,
-            })
+        groups = await getGroupInfo()
+        if(timeTable){
+            groups = await Promise.all(groups.map(async group => {
+                const gro_tim = await Gro_tim.findAll({
+                    where: { id_group: group.id_group },
+                    attributes: ['id_time_table'],
+    
+                })
+                const time_tables = await Time_tables.findAll({
+                    where: { id_time_table: { [Op.in]: gro_tim.map(time_table => time_table.toJSON().id_time_table) } },
+                    attributes: { exclude: ['id_time_table'] }
+                })
+                return { ...group, time_table: time_tables.map(time_table => time_table.toJSON()) }
+            }))
+        }
+        res.json({
+            ok:true,
+            groups
         })
     } catch (err) {
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador"
-        })
+        printAndSendError(res,err)
     }
 }
 
@@ -137,6 +137,7 @@ const createGroup = async (req, res) => {
 
 
 }
+
 const updateGroup = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
@@ -238,7 +239,7 @@ const deleteGroup = async (req, res) => {
 
 const addCourseGroup = async (req, res) => {
     const { id_group,id_course} = req.params
-    const { ...resto } = req.body;
+    const { id_teacher } = req.body;
 
 
     try {
@@ -262,17 +263,16 @@ const addCourseGroup = async (req, res) => {
                 id_group: { [Op.ne]: id_group }
             }
         });
-
         if (groupCourse) {
             return res.status(400).json({
                 ok: false,
                 msg: `Ya existe una materia en ese grupo con el id ${id_course}`
             })
         }
-
-        const gro_cou = new Gro_cou({ id_group, id_course, ...resto });
+        const {first_day:start_date,last_day:end_date} = await getGroupDaysAndOverdue(id_group,{})
+        const gro_cou = new Gro_cou({ id_group, id_course,start_date,end_date });
         await gro_cou.save()
-        const cou_tea = new Cou_tea({id_course,...resto})
+        const cou_tea = new Cou_tea({id_course, id_teacher,start_date,end_date})
         await cou_tea.save()
         res.status(200).json({
             ok: true,
@@ -296,8 +296,8 @@ const addCourseGroup = async (req, res) => {
 const removeCourseGroup = async(req, res) =>{
     const {id_group,id_course} = req.params
     try {
-        await Gro_cou.destroy({where : {[Op.and] : [{id_course},{id_group}]}})
-        const cou_tea = await Cou_tea.findOne({where : {id_course}})
+        const gro_cou = await Gro_cou.findOne({where : {[Op.and] : [{id_course},{id_group}]}})
+        const cou_tea = await Cou_tea.findOne({where : {[Op.and]:[{id_course},{start_date:{[Op.eq]:gro_cou.start_date}},{end_date:{[Op.eq]:gro_cou.end_date}}]}})
         if(!cou_tea){
             return res.json({
                 ok : false,
@@ -305,6 +305,7 @@ const removeCourseGroup = async(req, res) =>{
             })
         }
         await cou_tea.destroy()
+        await gro_cou.destroy();
         return res.json({
             ok : true,
             msg : `La asociación entre el grupo con id ${id_group} y el curso con id ${id_course} se ha eliminado correctamente.`
@@ -313,6 +314,7 @@ const removeCourseGroup = async(req, res) =>{
         printAndSendError(res,error)
     }
 }
+
 const getStudentsFromGroup = async( req, res = response) => {
     const { id_group } = req.params
     try{
@@ -351,8 +353,24 @@ const getStudentsFromGroup = async( req, res = response) => {
     }
 }
 
-
-
+const getCoursesGroupHasTaken = async(req, res = response) => {
+    const { id_group } = req.params;
+    const groupInfo = {...await getGroupInfo(id_group)}
+    const coursesTakenByGroup = await Courses.findAll({
+        where : { id_course : {[Op.in] : literal(`(SELECT id_course FROM gro_cou WHERE id_group = ${id_group})`)}},
+        raw :true,
+        nest : true
+    });
+    groupInfo.coursesTaken = await Promise.all(coursesTakenByGroup.map( async(course) => {
+        const {teacher} = await getTitularTeacherOfCourse(id_group,course.id_course)
+        return {...course,...teacher }
+    }))
+    console.log(await getGroupDaysAndOverdue(id_group,{}))
+    res.json({
+        ok : true,
+        group:groupInfo,
+    })
+}
 
 module.exports = {
     getAllGroups,
@@ -361,5 +379,6 @@ module.exports = {
     deleteGroup,
     addCourseGroup,
     getStudentsFromGroup,
-    removeCourseGroup
+    removeCourseGroup,
+    getCoursesGroupHasTaken
 }

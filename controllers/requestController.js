@@ -11,6 +11,7 @@ const { db } = require('../database/connection');
 const { document_types } = require("../types/dictionaries")
 const Partial_pay = require('../models/partial_pay')
 const Emp_par_pay = require('../models/emp_pay')
+const { response } = require('express')
 moment().locale('es')
 const getAllTheRequests = async (req, res) => {
     try {
@@ -171,12 +172,16 @@ const createRequest = async (req, res) => {
         })
     }
 }
-const completeARequest = async (req, res)=>{
-
+const completeARequest = async (req, res = response)=>{
     const { id } = req.params;
+    Request.belongsTo(Document,{foreignKey:'id_document'});
+    Document.hasOne(Request,{foreignKey:'id_document'});
     try {
         const request = await Request.findOne({
-            where: {id_request: id}
+            where: {id_request: id},
+            include : { model : Document, attributes : ['document_type',[literal(`(SELECT matricula FROM students WHERE id_student = document.id_student)`),'matricula']]},
+            raw : true,
+            nest : true
         })
         if (!request){
             return res.status(400).json({
@@ -190,12 +195,8 @@ const completeARequest = async (req, res)=>{
                 msg: "La petición ya esta completada."
             })
         }
-        await request.update({
-            status_request: 1
-        })
-
+        await Request.update({status_request: 1},{where:{id_request:request.id_request}})
         await Document.update({ creation_date : moment().format('YYYY-MM-DD').toString()},{where : {id_document : request.id_document}})
-        
         const {id_payment} = request
         const payment  = await Payment.findByPk(id_payment)
         if (payment.status_payment){
@@ -205,11 +206,8 @@ const completeARequest = async (req, res)=>{
                 msg: `La solicitud se completo correctamente, pero el pago todavia no se ha completado`
             })
         }
-        res.status(200).json({
-            ok: true,
-            msg: `La solicitud se completo correctamente`
-        })
-        
+        const {matricula,document_type} = request.document
+        res.redirect(307,`http://localhost:3005/api-ale/v1/documents/${document_type}/students/${matricula}`)
     } catch (error) {
         console.log(error)
         return res.status(500).json({

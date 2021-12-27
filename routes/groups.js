@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
 const { getAllGroups, createGroup,
-    updateGroup, deleteGroup, addCourseGroup, getStudentsFromGroup, removeCourseGroup } = require('../controllers/groupsController');
+    updateGroup, deleteGroup, addCourseGroup, getStudentsFromGroup, removeCourseGroup, getCoursesGroupHasTaken } = require('../controllers/groupsController');
 const { checkGroupExistence, checkCourseExistence, checkGroupCourseExistence } = require('../middlewares/dbValidations');
 const { isValidSchedule } = require('../middlewares/schedule');
 const validateJWT = require('../middlewares/validar-jwt');
@@ -12,6 +12,10 @@ const groupsRouter = Router();
 groupsRouter.get('/', [
     validateJWT
 ], getAllGroups);
+
+groupsRouter.get('/:id_group/courses',[
+    validateJWT
+],getCoursesGroupHasTaken)
 
 groupsRouter.post('/', [
     check('id_major', 'El id de la cerrera es obligatorio y tiene que un numero entero').notEmpty().isNumeric(),

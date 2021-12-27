@@ -53,7 +53,7 @@ class CertficateOfStudies extends AlePDFDocument{
         .font('regular-bold')
         .text(`Certificado de Estudios`,{continued:true})
         .font('regular')
-        .text(` que ampara ${this.student.grades.length} asignaturas de un total de 36 asignaturas, con Promedio General de ${this.student.generalAvg} (${this.getLetterFromGrade(Number(this.student.generalAvg).toString())}) y ${this.student.grades.reduce((cur,prev)=>cur.credits + prev.credits)} créditos cubiertos, en la ciudad de Victoria de Durango, Dgo., a los ${this.dateDay} días del mes de ${this.dateMonth} de ${this.dateYear}`)
+        .text(` que ampara ${this.student.grades.length} asignaturas de un total de 36 asignaturas, con Promedio General de ${this.student.generalAvg} (${this.getLetterFromGrade(this.student.generalAvg)}) y ${this.student.grades.map(({credits}) => credits).reduce((cur,pre) => pre+cur)} créditos cubiertos, en la ciudad de Victoria de Durango, Dgo., a los ${this.dateDay} días del mes de ${this.dateMonth} de ${this.dateYear}`)
         .moveDown(2)
         .text('La escala de calificaciones es de 5 a 10, la mínima aprobatoria es de 7.')
         .text('Este documento no es válido si presenta raspaduras o enmendaduras.')

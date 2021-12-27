@@ -32,13 +32,13 @@ const getGroupDaysAndOverdue = async( id_group = 0, date = {} ) => {
         first_day_date = moment(date).local().startOf('month').day(first_day)
     }
 
-    const weeks_missing_month = moment(end_of_month).diff(first_day_date, 'weeks') + 1
+    const weeks_missing_month = moment(end_of_month).diff(first_day_date, 'weeks')
 
     const pre_last_day = first_day_date.clone().add(weeks_missing_month, 'weeks')
 
     // Find the last day in which the stdent attends class
     last_day = time_table_days.reverse().find(day => (first_day_date.month() === pre_last_day.day(day).month()))
-    last_day_date = (last_day) ? pre_last_day.day(last_day) : pre_last_day.subtract(1, 'week')
+    last_day_date = (last_day != undefined) ? pre_last_day.day(last_day) : pre_last_day.subtract(1, 'week')
 
     first_day_date = first_day_date.format().substr(0, 10)
     last_day_date = last_day_date.format().substr(0, 10)

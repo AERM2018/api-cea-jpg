@@ -1,4 +1,4 @@
-const { Op, col, fn, QueryTypes } = require("sequelize")
+const { Op, col, fn, QueryTypes, literal, where } = require("sequelize")
 const { document_types, fee_school, getFeeCourseByMajor, getFeeSchoolByMajor } = require('../types/dictionaries')
 const Course = require("../models/courses")
 const Gro_cou = require("../models/gro_cou")
@@ -22,6 +22,7 @@ const Graduation_courses = require("../models/graduation_courses");
 const Stu_info = require("../models/stu_info");
 const Test = require("../models/test");
 const { raw } = require("mysql");
+const { getTitularTeacherOfCourse } = require("./groups");
 
 const getStudentInfo = async (matricula = '') => {
     return await Stu_info.findOne({
@@ -179,7 +180,7 @@ const getGradesStudent = async (id_student = "", opts = { onlyAvg : false ,withA
     const gradesStudent = await Grades.findAll({
       where: { id_student },
       include : { model: Course},
-      attributes: ["id_course", "grade", "id_grade"],
+      attributes: ["id_course", "grade", "id_grade","creation_date"],
     });
   
     gradesStudentPaidCourses = gradesStudent.map( async( grade ) => {
@@ -226,20 +227,28 @@ const getGradesStudent = async (id_student = "", opts = { onlyAvg : false ,withA
     gradesStudentPaidCourses = await Promise.all(gradesStudentPaidCourses)
     gradesStudentPaidCourses = gradesStudentPaidCourses.filter( gradeStudent => gradeStudent !== null);
     gradesStudentPaidCourses = gradesStudentPaidCourses.map( async(gradeStudent) => {
-          const {course, id_grade} = gradeStudent.toJSON()
+          const {course, id_grade, creation_date,...restGrade} = gradeStudent.toJSON()
           const {id_course,course_name,clave,credits} = course
           let testInfo;
-  
-          Cou_tea.belongsTo(Teacher, {foreignKey: 'id_teacher'})
-          Teacher.hasMany(Cou_tea, {foreignKey : 'id_teacher'})
-          let courseTeacher = await Cou_tea.findOne({
-              where : {id_course},
-              include : {model : Teacher, attributes: [
-                  [fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name'],
-              ]}
+          const {id_group}  = await Gro_cou.findOne({
+              where : where(literal(`(
+                  ${moment(col('start_date')).month == moment(creation_date).month && moment(col('end_date')).month == moment(creation_date).month} AND ${col('id_group').col} IN (SELECT id_group FROM stu_gro WHERE id_student = '${id_student}')
+              )`),true)
           })
+          const courseTeacher = await getTitularTeacherOfCourse(id_group,id_course)
+        //   Cou_tea.belongsTo(Teacher, {foreignKey: 'id_teacher'})
+        //   Teacher.hasMany(Cou_tea, {foreignKey : 'id_teacher'})
+        //   let courseTeacher = await Cou_tea.findOne({
+        //       where : {
+        //           id_course,
+        //         //   start_date : {[Op.eq]:literal(`(SELECT start_date)`)}
+        //         },
+        //       include : {model : Teacher, attributes: [
+        //           [fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name'],
+        //       ]}
+        //   })
           
-          const date = moment(courseTeacher.toJSON().end_date).format('MMMM,YYYY')
+          const date = moment(courseTeacher.end_date).format('MMMM,YYYY')
           if(opts.forKardex){
                 testInfo = await Test.findAll({
                     attributes:['application_date',['type','test_type']],
@@ -250,12 +259,13 @@ const getGradesStudent = async (id_student = "", opts = { onlyAvg : false ,withA
                 })
           }
           return {
-              ...gradeStudent.toJSON(),
+              id_grade,
+              ...restGrade,
               course : course_name,
               key : clave,
               credits,
               ...(testInfo)?testInfo[0]:{},
-              teacher : courseTeacher.toJSON().teacher.name,
+              teacher : courseTeacher.teacher.teacher_name,
               date,
               type : 'regular'
           }
