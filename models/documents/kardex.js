@@ -39,7 +39,7 @@ class Kardex extends AlePDFDocument {
     .text(`Este cárdex ampara ${this.student.grades.length} asignaturas, con promedio general de ${this.student.generalAvg} y ${this.student.grades.map(({credits}) => credits).reduce((cur,pre) => pre+cur)} créditos cubiertos.`)
     .moveDown(8)
     this.drawLineToSign(this.pageWidthWithMargin / 2 + this.marginXDocument - 75, this.PDFInstance.y,150,{
-      txtButtom : 'Ernesto Pruneda Mar~Jefe de Servicios Escolares',
+      txtButtom : `${this.peopleToSign[1].name}~${this.peopleToSign[1].workstation}`,
       alignTxtButtom : 'center',
       fontsSizeTxtButton : [10]
     })

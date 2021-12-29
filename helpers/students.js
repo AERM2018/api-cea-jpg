@@ -250,13 +250,12 @@ const getGradesStudent = async (id_student = "", opts = { onlyAvg : false ,withA
           
           const date = moment(courseTeacher.end_date).format('MMMM,YYYY')
           if(opts.forKardex){
-                testInfo = await Test.findAll({
-                    attributes:['application_date',['type','test_type']],
+                testInfo = await Test.findOne({
+                    attributes:['application_date',['type','test_type'],'folio'],
                     where : {id_grade,applied:true},
-                    order : [['application_date','DESC']],
-                    limit:1,
                     raw:true
                 })
+                console.log(testInfo)
           }
           return {
               id_grade,
@@ -264,7 +263,7 @@ const getGradesStudent = async (id_student = "", opts = { onlyAvg : false ,withA
               course : course_name,
               key : clave,
               credits,
-              ...(testInfo)?testInfo[0]:{},
+              ...(testInfo)?testInfo:{},
               teacher : courseTeacher.teacher.teacher_name,
               date,
               type : 'regular'

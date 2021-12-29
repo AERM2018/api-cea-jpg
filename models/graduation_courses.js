@@ -30,6 +30,10 @@ const Graduation_courses =  db.define('graduation_courses',{
         validate : {
             notEmpty : true
         }
+    },
+    status:{
+        type : DataTypes.TINYINT,
+        allowNull : false
     }
 },
 {

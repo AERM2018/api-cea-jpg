@@ -16,7 +16,12 @@ const authRouter = Router();
 // })
 
 authRouter.post('/login',loginRateLimit,login)
-authRouter.post('/forgotPassword',sendForgotPassCode)
+authRouter.post('/forgotPassword',
+    [
+        checkUserExistance,
+        validateFields
+    ]
+,sendForgotPassCode)
 authRouter.post('/forgotPassword/verify',verifyForgotPassCode)
 authRouter.post('/resetPassword/:id_user/:token',[
     check('id_user','El id de usuario es obligatorio.'),

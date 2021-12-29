@@ -72,6 +72,26 @@ This kind of error most of the time has an code error *400*
 
 
 ------------------------------------------------------------------------------
+
+## Roles list
+```
+| Rol id  | Type             |
+|       1 | admin            |
+|       2 | administrativo_c |
+|       3 | administrativo_r |
+|       4 | administrativo_u |
+|       5 | administrativo_d |
+|       6 | contraloria_c    |
+|       7 | contraloria_r    |
+|       8 | contraloria_u    |
+|       9 | contraloria_d    |
+|      10 | recepcion_c      |
+|      11 | recepcion_r      |
+|      12 | recepcion_u      |
+|      13 | recepcion_d      |
+|      14 | directivos       |
+```
+----------------------------------------------------------------------------
 # Endpints
 
 
@@ -102,7 +122,7 @@ Endpoint:  URL/auth/login   HTTP method: POST
     "id_user": 1,
     "email": "admin@alejandria.edu.mx",
     "user_type": "admin",
-    "id_role": 1,
+    "id_role": [1],
     "user": {}
 }
 ```
@@ -114,6 +134,106 @@ The attribute "user" on the body's response will contain more data about it such
         "name": "Rafudo fudo Fudo Fudo"
     }
 ```
+### Change password not knowing the previous one
+
+This action consists of 3 steps.
+1. Send code for restart password to user's email
+```
+    URL/auth/forgotPassword  HTTP method: POST
+```
+
+**You need to send an onject like this in the request's body:**
+```
+        {
+            email : STRING
+        }
+```
+
+**The request's response would be**
+```
+    {
+        ok : true
+    }
+```
+
+**In case the email doesn't exists, the response would be**
+```
+    {
+        "ok": false,
+        "msg": "No existe un usuario con email reana_461@hotmail.com"
+    }
+```
+
+2. Verify code  
+Once the user has gotten the code and put it in the textfield, it's needed to verify it so as to go to the third step
+
+```
+    URL/auth/forgotPassword/verify  HTTP method: POST
+```
+
+**The request's reponse would be:**
+```
+{
+    "ok": true,
+    "url": "http://localhost:3005/api-ale/v1/auth/resetPassword/108/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoxMDgsImVtYWlsIjoicmV0YW5hXzQ2MUBob3RtYWlsLmNvbSIsImlhdCI6MTY0MDY0NzIzOCwiZXhwIjoxNjQwNjQ3NTM4fQ.iAUzF37TO0lXJc0SF9Xno2LSDUlr-udWCLUm38Fk33w"
+}
+```
+
+**In case there will be a problem with the code, the response would be**
+```
+{
+    "ok": false,
+    "msg": "Código de recuperación de contraseña no encontrado."
+}
+```
+3. Reset password  
+For restarting the password it's needed to send a resquest to the url provided by the endpoint of verifying the code
+
+**You need to send an onject like this in the request's body:**
+```
+        {
+            newPassword : STRING
+        }
+```
+**The request's reponse would be:**
+```
+{
+    "ok": true,
+    "msg": "La contraseña ha sido cambiada correctamente."
+}
+```
+### Change password knowing the previous one
+This endpoint will change a user's password when the previous password is known. You need to send the id user and the user's token in the url.
+
+```
+    URL/auth/resetPassword/id_user/token  HTTP method: POST
+```
+* Put the value of user id instead of "id_user" and the user's token insted of token.
+
+**You need to send an onject like this in the request's body:**
+```
+        {
+            oldPassword : STRING
+            newPassword : STRING
+        }
+```
+
+**The request's response would be**
+```
+{
+    "ok": true,
+    "msg": "La contraseña ha sido cambiada correctamente."
+}
+```
+**In case the previous password is wrong, the response would be**
+
+```
+    {
+        ok : false,
+        msg : 'La contraseña anterior es incorrecta, verifiquela por favor.'
+    }
+```
+
 -------------------------------------------------------------------------------------
 
 ## Majors
@@ -123,7 +243,7 @@ The attribute "user" on the body's response will contain more data about it such
 This endpoint will return all the careers registed.
 
 ```
-URL/majors /*HTTP method: GET*/
+URL/majors /*HTTP method: GET*/ 
 ```
 
 **The result will look like:**
@@ -336,6 +456,8 @@ This endpoint will return a list of all the groups
 ```
 URL/groups         /*HTTP method: GET*/
 ```
+Query params you can use:
+- time_table : specify if you want to return the time table of each group. (1 or 0)
 
 
 **If the request is successful, the response would be:**
@@ -344,12 +466,13 @@ URL/groups         /*HTTP method: GET*/
     "ok": true,
     "groups": [
         {
-            "id_group": 6,
-            "id_major": 1,
-            "name_group": "1 derecho",
-            "entry_year": "1000-01-01",
-            "end_year": "2000-01-01",
-            "major_name": "Licenciatura en derecho",
+            "campus_name": "El mejor campus de todos 2.0",
+            "major_name": "Licenciatura en Johan",
+            "id_group": 5,
+            "id_major": 14,
+            "entry_year": '2017-01-01',
+            "end_year": '2020-03-01',
+            "group_name": "ASDFASDFA"
             "time_table": [
                 {
                     "day": 0,
@@ -448,11 +571,6 @@ URL/groups/id_group   /*HTTP method: PUT*/
 }
 ```
 
-
-
-
-
-
 ### Delete group
 
 This endpoint will delete an existing group. You need to pass the group id in the url.
@@ -478,7 +596,7 @@ URL/groups/id_group   /*HTTP method: DELETE*/
 This endpoint will return the list of students who belong to a group. You need to send the group id in the url.
 
 ```
-URL/groups/:id_group/students
+URL/groups/:id_group/students   /*HTTP method: GET*/
 ```
 
 * Put the value of group id instead of "id_group"
@@ -524,6 +642,63 @@ URL/groups/:id_group/students
     {
         "ok": true,
         "students": []
+    }
+```
+
+## Get courses a group has taken
+
+This endpoint will return the list of courses which a group has taken. You need to send the group id in the url.
+
+```
+URL/groups/:id_group/courses     /*HTTP method: GET*/
+```
+
+* Put the value of group id instead of "id_group"
+
+**It's not neccesary to send a body in the request**
+
+**If the request is successful, the response would be:**
+```
+{
+ "ok": true,
+    "group": {
+        "campus_name": "Alejandria 2",
+        "major_name": "Licenciatura en Johan",
+        "id_group": 6,
+        "id_major": 14,
+        "entry_year": '2018-06-01',
+        "end_year": '2021-08-01',
+        "group_name": "Rafael Beltran",
+        "coursesTaken": [
+            {
+                "id_course": 6,
+                "id_major": 13,
+                "course_name": "Español avanzado 2.0",
+                "clave": "",
+                "credits": 0,
+                "id_teacher": "ale109188",
+                "teacher_name": "Rafael Beltran Retana"
+            }
+        ]
+    }
+}
+```
+
+
+**If there're no courses taken by the group, the request's propiety 'coursesTaken' will be an empty array []. It looks like this:**
+```
+    {
+        ok : true
+        "group": {
+        "campus_name": "Alejandria 2",
+        "major_name": "Licenciatura en Johan",
+        "id_group": 6,
+        "id_major": 14,
+        "entry_year": '2018-06-01',
+        "end_year": '2021-08-01',
+        "group_name": "Rafael Beltran",
+        "coursesTaken": []
+    }
     }
 ```
 ------------------------------------------------------------
@@ -984,73 +1159,76 @@ URL/teachers/id_teacher   /*HTTP method: DELETE*/
 
 This endpoint will return a list of all the courses that a teacher has given. You need to send the teacher id in the url.
 
+
 ```
 URL/teachers/:id_teacher/courses   /*HTTP method: GET*/
 ```
 
+Query params you can use:
+- courseName : specify a word to search coincidences with the course name.
+- status : specify the courses' status you want to filter (1 | 0 | all)  
+
 * Put the value of teacher id instead of "id_teacher"
 
 **If the request is successful, the response would be:**
+```
 {
     "ok": true,
-    "courses": {
-        "regular": [
-            {
-                "id": 5,
-                "status": true,
-                "start_date": "2021-07-01",
-                "end_date": "2021-07-30",
-                "course": "Español avanzado",
-                "id_group": 5,
-                "id_major": 15,
-                "name_group": "3 derecho",
-                "entry_year": "1000-12-01",
-                "end_year": "2000-01-01",
-                "major_name": "Licenciatura en Angel",
-                "type": "regular"
-            },
-            {
-                "id": 6,
-                "status": true,
-                "start_date": "2021-07-01",
-                "end_date": "2021-07-30",
-                "course": "Español avanzado 2.0",
-                "id_group": 5,
-                "id_major": 15,
-                "name_group": "3 derecho",
-                "entry_year": "1000-12-01",
-                "end_year": "2000-01-01",
-                "major_name": "Licenciatura en Angel",
-                "type": "regular"
-            }
-        ],
-        "extra": [
-            {
-                "id": 2,
-                "major_name": "Maestria en Johan",
-                "id_major": 13,
-                "ext_cou_name": "Curso extra chingon",
-                "start_date": "2021-07-01",
-                "finish_date": "2021-07-31",
-                "limit_participants": 20,
-                "cost": 120.5,
-                "type": "extra"
-            }
-        ],
-        "graduation_section": [
-            {
-                "id": 1,
-                "course_grad_name": "graduacion prueba",
-                "id_graduation_course": 1,
-                "graduation_section_name": "seccion del curso de prueba",
-                "start_date": "2021-08-01",
-                "end_date": "2021-08-07",
-                "in_progress": 1,
-                "type": "graduation_section"
-            }
-        ]
-    }
+    "courses": [
+        {
+            "id_course": 5,
+            "course_name": "Español avanzado",
+            "id_group": 5,
+            "id_major": 15,
+            "group_name": "3 derecho",
+            "major_name": "Licenciatura en Angel",
+            "id_gro_cou": 1,
+            "status": true,
+            "start_date": "2021-04-04",
+            "end_date": "2021-04-25",
+            "type": "regular"
+        },
+        {
+            "id_ext_cou": 2,
+            "id_major": 13,
+            "ext_cou_name": "Curso extra chingon",
+            "start_date": "2021-07-01",
+            "finish_date": "2021-07-31",
+            "limit_participants": 20,
+            "cost": 120.5,
+            "id_teacher": "ale108421",
+            "major_name": "Maestria en Johan",
+            "type": "extra"
+        },
+        {
+            "id_graduation_course": 3,
+            "course_grad_name": "Curso de prueba 2",
+            "start_date": "2021-11-01",
+            "end_date": "2021-11-30",
+            "id_teacher": "ale108421",
+            "graduation_sections": [
+                {
+                    "id_graduation_section": 5,
+                    "graduation_section_name": "Prueba 1",
+                    "start_date": "2021-11-01",
+                    "end_date": "2021-12-01",
+                    "in_progress": 1
+                },
+                {
+                    "id_graduation_section": 6,
+                    "graduation_section_name": "Prueba 1",
+                    "start_date": "2021-11-01",
+                    "end_date": "2021-12-01",
+                    "in_progress": 1
+                }
+            ],
+            "teacher_name": "Johan Gonzalez Vargas",
+            "isTeacherTitular": 1,
+            "type": "graduation_course"
+        }
+    ]
 }
+```
 --------------------------------------------------------------------
 ## Courses
 
@@ -2037,20 +2215,14 @@ URL/requests         /*HTTP method: POST*/
 ### Complete a request
 
 ```
-URL/requests/id_request  /*HTTP method: PUT*/
+URL/requests/id_request  /*HTTP method: POST*/
 ```
 
 * Put the value of request id instead of "id_request"
 
 **It's not neccesary to send a body in the request**
 
-**If the request is successful, the response would be:**
-```
-{
-    "ok": true,
-    "msg": "La solicitud se completo correctamente"
-}
-```
+**This request's response would be an PDF file of the document type the request makes reference to**
 
 ### Delete a request
 
@@ -2236,73 +2408,66 @@ URL/documents     /* HTTP method : GET */
         "documents": []
     }
 ```
-### Get info so as to create a document
+### Create PDF file from document (without request)
 
 ```
-URL/documents/info  /*HTTP method: POST*/
+URL/documents/document_type/students/matricula  /*HTTP method: POST*/
 ```
 
-This endpoint will return the necessary info of a student in order to make a document.
-
-**You need to send an object like this in the request's body:**
+This endpoint will return the PDF file of the document type indicated filled with tha student's data matricula references to.
+**The request's body changes depending on the document type**
+**If document type is 2 or 3  
+You need to send an object like this in the request's body:**
 ```
     {
-        document_type : INT,
-        matricula : STRING
+        person_name : STRING
+        person_workstation : STRING
     }
 ```
+**If document type is 11
+You need to send an object like this in the request's body:**
+```
+    {
+        id_group : INT
+        id_course : INT
+    }
+```
+**If document type is any other  
+You wont need to add a body to the request**
+
+**This request's response would be an PDF file of the document type the request makes reference to**
+
+### Get document list available to student
+
+```
+URL/documents/students/matricula/check  /*HTTP method: GET*/
+```
+
+This endpoint will return the list of documents that is available to the student who the matricula refers to.You need to send the id student in the url.
+
+* Put the value of student matricula instead of "matricula"
+
+**It's not neccesary to send a body in the request**
 
 **If the request is successful, the response would be:**
 ```
-
+{
    {
-        "ok": true,
-        "info": {
-            "id_student": "ale106009",
-            "matricula": "DEDG202103001",
-            "student_fullname": "Angel Gonzalez Vergas",
-            "name_group": "3 derecho",
-            "id_group": 5,
-            "campus_name": "El mejor campus de todos 2.0",
-            "major_name": "Licenciatura en Angel",
-            "educational_level": "Licenciatura",
-            "ins_date": "2020-11-01",
-            "course_name": "Materia no asignada",
-            "document_name": "Constancia de estudios"
-        }
-    }
-
+    "ok": true,
+    "document_types": [
+        {
+            "id": 0,
+            "name": "Constancia de estudios.",
+            "price": 50
+        },
+        {
+            "id": 1,
+            "name": "Constancia de estudios con calificaciones.",
+            "price": 100
+        },...
+    ]
+}
 ```
-
-**Important**
-- ins_date is the date when the student was enrolled to the schook.
-- the grades of the students only will be send them when the document requires them
-
-
-### Create a document without a request
-
-This endpoint will create a document without creating a request before.
-
-```
-URL/documents  /* HTTP method: POST*/
-```
-
-**You need to send an object like this in the request's body:**
-```
-    {
-        document_type : INT,
-        matricula : STRING
-    }
-```
-
-**If the request is successful, the response would be:**
-```
-    {
-        ok : true,
-        msg : "El documento fue creado correctamente."
-    }
-```
-
 ### Delete a document
 
 This endpoint will delete an existing document. You need to send the document id in the url.
@@ -2340,20 +2505,6 @@ URL/documents/:id_document
 - 8: Pagos a servicios extras
 - 9: Pagos para evento
 
-
-
-
-### Documents list
-- 0: Constancia de estudios.
-- 1: Constancia de estudios con calificaciones.
-- 2: Carta maestrante.
-- 3: Credencial.
-- 4: Certificado de maestri
-- 5: Certificado de licenciatura.
-- 6: Titulo de maestria
-- 7: Titulo de licenciatura.
-- 8: Acta de examen.
-- 9: Constancia de titulo en progreso
 ---------------------------------------------
 ## Assists
 

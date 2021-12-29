@@ -32,8 +32,8 @@ class InternshipLetter extends AlePDFDocument{
         .text(`Comprobada su escolaridad, mediante previa y rigurosa revisión curricular y con fundamento en los Artículos 16, 153 y 163 párrafo II de la ley de Educación del Estado de Durango, se extiende la presente en Durango, Dgo., a los veinticinco días del mes de ${this.dateDay} del año dos mil veintiuno`)
         .moveDown(5)
         .fontSize(13)
-        .text(`${this.principalName}`,{align:"center"})
-        .text("Directora",{align:"center"})
+        .text(`${this.peopleToSign[0].name}`,{align:"center"})
+        .text(`${this.peopleToSign[0].workstation}`,{align:"center"})
         this.endDocument()
     }
 }

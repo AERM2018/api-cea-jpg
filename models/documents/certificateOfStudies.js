@@ -44,7 +44,10 @@ class CertficateOfStudies extends AlePDFDocument{
         this.PDFInstance.moveDown()
         this.drawKardexTable(true)
         this.setTableButtomBorder(this.student.grades.length)
-        this.tableDocument.addBody(this.student.grades.map(({key,credits,grade:gradeNum,course:courseName})=>({key,credits,gradeNum,courseName})));
+        this.tableDocument.addBody(
+            this.student.grades.map(({key,credits,grade:gradeNum,course:courseName,folio:testFolio,application_date : dateTest, test_type : typeTest})=>(
+                {key,credits,gradeNum,gradeLetter:this.getLetterFromGrade(Number(gradeNum).toString()),courseName,dateTest,typeTest,testFolio}
+            )));
         this.PDFInstance.x = this.marginXDocument
         this.PDFInstance
         .moveDown()
@@ -53,14 +56,14 @@ class CertficateOfStudies extends AlePDFDocument{
         .font('regular-bold')
         .text(`Certificado de Estudios`,{continued:true})
         .font('regular')
-        .text(` que ampara ${this.student.grades.length} asignaturas de un total de 36 asignaturas, con Promedio General de ${this.student.generalAvg} (${this.getLetterFromGrade(this.student.generalAvg)}) y ${this.student.grades.map(({credits}) => credits).reduce((cur,pre) => pre+cur)} créditos cubiertos, en la ciudad de Victoria de Durango, Dgo., a los ${this.dateDay} días del mes de ${this.dateMonth} de ${this.dateYear}`)
+        .text(` que ampara ${this.student.grades.length} asignaturas de un total de 36 asignaturas, con Promedio General de ${this.student.generalAvg} (${this.getLetterFromGrade(this.student.generalAvg,true)}) y ${this.student.grades.map(({credits}) => credits).reduce((cur,pre) => pre+cur)} créditos cubiertos, en la ciudad de Victoria de Durango, Dgo., a los ${this.dateDay} días del mes de ${this.dateMonth} de ${this.dateYear}`)
         .moveDown(2)
         .text('La escala de calificaciones es de 5 a 10, la mínima aprobatoria es de 7.')
         .text('Este documento no es válido si presenta raspaduras o enmendaduras.')
         .moveDown(5)
         let posYSigns = this.PDFInstance.y
-        this.drawLineToSign(this.PDFInstance.x+20,posYSigns,this.pageWidthWithMargin / 2 - 20*2,{txtButtom:`${this.principalName}~Directora`,alignTxtButtom:'center',fontsSizeTxtButton:[8,10]})
-        this.drawLineToSign(this.marginXDocument + 20 + this.pageWidthWithMargin / 2,posYSigns,this.pageWidthWithMargin / 2 - 20*2,{txtButtom:`${this.susbribePerson}~${this.workStation}`,alignTxtButtom:'center',fontsSizeTxtButton:[8,10]})
+        this.drawLineToSign(this.PDFInstance.x+20,posYSigns,this.pageWidthWithMargin / 2 - 20*2,{txtButtom:`${this.peopleToSign[0].name}~${this.peopleToSign[0].workstation}`,alignTxtButtom:'center',fontsSizeTxtButton:[8,10]})
+        this.drawLineToSign(this.marginXDocument + 20 + this.pageWidthWithMargin / 2,posYSigns,this.pageWidthWithMargin / 2 - 20*2,{txtButtom:`${this.peopleToSign[1].name}~${this.peopleToSign[1].workstation}`,alignTxtButtom:'center',fontsSizeTxtButton:[8,10]})
         this.PDFInstance
         .addPage()
         .text('El presente Certificado se resella por la suscrita Coordinadora de Educación Media Superior, Superior y Particular de la Secretaría de Educación del Estado de Durango, en cumplimiento a lo dispuesto por los Artículos 8, 17, 18 y 54 del Reglamento para la Educación que imparten los Particulares, en la ciudad de Victoria de Durango, Dgo.',{align:'justify'})
@@ -75,9 +78,9 @@ class CertficateOfStudies extends AlePDFDocument{
         this.drawLineToSign(this.marginXDocument+120,this.PDFInstance.y,this.pageWidthWithMargin - 120*2,{txtButtom:'PROFRA. MARÍA CRISTINA SOTO SOTO~COORDINADORA',alignTxtButtom:'center',fontsSizeTxtButton:[ 10 ]})
     }
 
-    getLetterFromGrade(grade = ''){
+    getLetterFromGrade(grade = '',decimal=false){
         let partsOfGrade = grade.split('.')
-        return `${conversor(partsOfGrade[0])} punto ${conversor(partsOfGrade[1])}`
+        return (decimal) ? `${conversor(partsOfGrade[0])} punto ${conversor(partsOfGrade[1])}` : `${conversor(partsOfGrade[0])}`
     }
 }
 

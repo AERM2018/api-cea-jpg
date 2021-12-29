@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, literal } = require("sequelize");
 const moment = require('moment');
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Grades = require("../models/grades");
@@ -21,13 +21,13 @@ const assignTestToStudent = async(req, res) => {
             attributes : ['id_gro_cou'],
             raw : true
         })
+        const {folio:lastFolio} = await Test.findOne({attributes:['folio'],order:[['folio','DESC']],raw:true}) || 1
         const {id_grade} = await Grades.findOne({
             where : {[Op.and]:[{id_student},{id_course}]},
             attributes : ['id_grade'],
             raw : true
         })
-        const test = new Test({id_student,id_gro_cou,folio:34,type:'Extraordinario',application_date,assigned_test_date : moment().format('YYYY-MM-DD'),applied:false,id_grade})
-        await test.save();
+        const test = await Test.update({folio : lastFolio + 1,type:'Extraordinario',application_date,assigned_test_date : moment().format('YYYY-MM-DD'),applied:false},{where : {id_grade}})
         return res.json({
             ok : true,
             msg : 'Examen asignado correctamente.'

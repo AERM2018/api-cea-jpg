@@ -26,7 +26,7 @@ const ExtraCurricularCourses =  db.define('extracurricular_courses',{
             notEmpty : true
         }
     },
-    finish_date: {
+    end_date: {
         type : DataTypes.DATE
     },
     limit_participants: {
@@ -46,6 +46,10 @@ const ExtraCurricularCourses =  db.define('extracurricular_courses',{
         validate : {
             notEmpty : true
         }
+    },
+    status:{
+        type : DataTypes.TINYINT,
+        allowNull : false
     }
 },{
     timestamps : false,

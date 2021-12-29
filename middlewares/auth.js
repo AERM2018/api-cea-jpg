@@ -23,13 +23,6 @@ const loginRateLimit = (req = request, res, next) => {
         } segundos y vuelva a intarlo`,
       });
     });
-  // console.log("rate limit")
-  // const limiter = rateLimit({
-  //     windowMs : 1000,
-  //     max : 1,
-  //     message : "El numero de intentos de inicio de sesión fue superado, espere 5 minutos y vuelva a intarlo"
-  // })
-  // return limiter
 };
 
 module.exports = {

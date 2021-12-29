@@ -22,6 +22,7 @@ const Student = require('../models/student');
 const Stu_extracou = require('../models/stu_extracou');
 const Teacher = require('../models/teacher');
 const Tesine = require('../models/tesine');
+const Test = require('../models/test');
 const User = require('../models/user');
 const { document_types } = require('../types/dictionaries');
 
@@ -67,6 +68,19 @@ const checkStudentEnroll = async (req, res = respone, next) => {
     req.enroll = (enroll_payments.count > 0) ? true : false
     // console.log(req.enroll)
 
+    next()
+}
+
+const hasStudentTakenCourse = async(req, res = response, next) => {
+    const id_course = req.params.id_course || req.body.id_course
+    const matricula = req.params.matricula || req.body.matricula
+    const {id_student} = req
+    const gradeTest = await Test.findOne(
+        {where:{id_grade : {[Op.eq]:literal(`(SELECT id_grade FROM grades WHERE id_course = ${id_course} AND id_student ='${id_student}')`)}}})
+    if(!gradeTest) return res.status(404).json({
+        ok:false,
+        msg : `El alumno con matricula ${matricula} aún no tiene una calificaión de tipo ordinaria de la materia con id ${id_course}.`
+    })
     next()
 }
 
@@ -359,13 +373,13 @@ const checkAssitExistence = async(req, res, next) => {
 }
 
 const checkUserExistance = async(req, res = response, next) => {
-    const id_user = req.params.id_user || req.body.id_user || ""
     const email = req.params.email || req.body.email || ""
-    const user = await User.findOne({where : {[Op.or] : [{id_user},{email}]}})
+    const user = await User.findOne({where : {email}})
+    console.log(user)
     if(!user){
         return res.json({
             ok : false,
-            msg : `El usuario especificado no fue encontrado.`
+            msg : `No existe un usuario con email ${email}`
         })
     }
     req.user = user
@@ -428,5 +442,6 @@ module.exports = {
     isValidDocumentType,
     checkUserExistance,
     isAllowedToUploadGrades,
-    checkRoles
+    checkRoles,
+    hasStudentTakenCourse
 }

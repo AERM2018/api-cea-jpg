@@ -5,6 +5,8 @@ const { QueryTypes, Op} = require("sequelize")
 const { getCourses } = require("../queries/queries")
 const Major = require("../models/major")
 const { printAndSendError } = require("../helpers/responsesOfReq")
+const Gro_cou = require("../models/gro_cou")
+const { setCourseInactivate } = require("../helpers/courses")
 
 const getAllCourses = async (req, res = response) => {
 
@@ -14,7 +16,11 @@ const getAllCourses = async (req, res = response) => {
     Major.hasMany(Course,{foreignKey:'id_major'})
 
     try{
-
+        let gro_cou = await Gro_cou.findAll()
+        await Promise.all(gro_cou.map( async(gro_cou) => {
+            gro_cou = await setCourseInactivate(gro_cou)
+            return gro_cou.status
+        }))
         let courses = await Course.findAll({
             include:{ model: Major, attributes: ['major_name']},
             where: {[Op.or]:[{

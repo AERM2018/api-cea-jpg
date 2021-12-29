@@ -1,6 +1,6 @@
 const { response } = require("express");
 const { fn, col, literal, Op } = require("sequelize");
-const { getRegularCourseInfo, getGraduationSectionInfo } = require("../helpers/courses");
+const { getRegularCourseInfo, getGraduationSectionInfo, getExtraCourseInfo } = require("../helpers/courses");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Assit = require("../models/assit");
 const Course = require("../models/courses");
@@ -241,7 +241,7 @@ const getCourseAssistance =  async(req, res) => {
     Gro_cou_ass.belongsTo(Assit,{foreignKey:'id_assistance'})
     Assit.hasOne(Gro_cou_ass,{foreignKey:'id_assistance'})
   
-    let courseInfo = await getRegularCourseInfo(id_gro_cou)
+    let courseInfo = await getRegularCourseInfo({id_gro_cou,addTeacher:true})
     let students_group_ass = await Gro_cou_ass.findAll({
       include:[{
         model : Student,
@@ -370,13 +370,6 @@ const getExtrCourAssistance= async (req, res = response)=>{
   const { id_ext_cou } = req.params
 
   try {
-    Stu_extracou.belongsTo(ExtraCurricularCourses,{ foreignKey : 'id_ext_cou'});
-    ExtraCurricularCourses.hasMany(Stu_extracou,{ foreignKey : 'id_ext_cou'});
-  
-    
-    ExtraCurricularCourses.belongsTo(Teacher,{foreignKey:'id_teacher'})
-    Teacher.hasOne(ExtraCurricularCourses,{foreignKey:'id_teacher'})
-    
     Extracurricularcourse_ass.belongsTo(ExtraCurricularCourses,{foreignKey:'id_ext_cou'})
     ExtraCurricularCourses.hasMany(Extracurricularcourse_ass,{foreignKey:'id_ext_cou'})
     
@@ -386,20 +379,7 @@ const getExtrCourAssistance= async (req, res = response)=>{
     Extracurricularcourse_ass.belongsTo(Assit,{foreignKey:'id_assistance'})
     Assit.hasOne(Extracurricularcourse_ass,{foreignKey:'id_assistance'})
   
-    // Buscar información acerca del curso
-    let extraCourse = await ExtraCurricularCourses.findOne({
-      include : {
-        model : Teacher,
-        attributes : ['id_teacher',[fn('concat',col('teacher.name'),' ',col('teacher.surname_f'),' ',col('teacher.surname_m')),'teacher_name']],
-      },
-      where : {id_ext_cou}
-    })
-  
-    extraCourse = {
-      id_ext_cou : extraCourse.toJSON().id_ext_cou,
-      ...extraCourse.toJSON().teacher
-    }
-  
+    let extraCourse = await getExtraCourseInfo({id_ext_cou,addTeacher:true}) 
     // Buscar la assistencia del curso
     let assistence = await Extracurricularcourse_ass.findAll({
           include : [{
@@ -418,13 +398,6 @@ const getExtrCourAssistance= async (req, res = response)=>{
         studentAssistance[studentAssistance.length - 1] = {...studentAssistance[studentAssistance.length - 1],assistences:assistence.filter( (assistence) => assistence.id_student == studentAssistance[studentAssistance.length - 1].id_student).map( (assistence) => assistence.assit)}
         assistence = assistence.filter((assistence)=>assistence.id_student != studentAssistance[studentAssistance.length - 1].id_student)
     }
-    // assistence = assistence.map( ass => {
-    //   const {student,assit} = ass.toJSON()
-    //     return {
-    //       ...student,
-    //       ...assit
-    //     }
-    // })
     return res.json({
       ok : true,
         ...extraCourse,
@@ -495,12 +468,6 @@ const getGraSecAssistance= async (req, res = response)=>{
   const { id_graduation_section } = req.params
 
   try {
-    Stu_gracou.belongsTo(Graduation_courses,{ foreignKey : 'id_graduation_course'});
-    Graduation_courses.hasMany(Stu_gracou,{ foreignKey : 'id_graduation_course'});
-    
-    Gra_sec_ass.belongsTo(Graduation_section,{foreignKey:'id_graduation_section'})
-    Graduation_section.hasOne(Gra_sec_ass,{foreignKey:'id_graduation_section'})
-    
     Gra_sec_ass.belongsTo(Student,{ foreignKey : 'id_student'});
     Student.hasMany(Gra_sec_ass,{ foreignKey : 'id_student'});
     

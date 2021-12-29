@@ -89,7 +89,7 @@ const getDocsTypesAvailableToStudent = async (req, res) => {
 
 const createDocument = async(req, res = response) => {
     let {document_type,matricula} = req.params
-    const {personName,personWorkStation} = req.body
+    const {person_name,person_workstation} = req.body
     const {id_group,id_course} = req.body
     document_type = parseInt(document_type)
     let toolsForMakingDoc = {};
@@ -105,7 +105,7 @@ const createDocument = async(req, res = response) => {
             toolsForMakingDoc.student.generalAvg = generalAvg
         }
         if([2,3].includes(document_type)){
-            toolsForMakingDoc.student.worksFor = {personName,personWorkStation}
+            toolsForMakingDoc.student.worksFor = {person_name, person_workstation}
         }
     }else{
         toolsForMakingDoc.tests = await getTestInfo(true,{id_group,id_course})

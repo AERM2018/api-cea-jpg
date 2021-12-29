@@ -7,9 +7,11 @@ const { fn,col } = require('sequelize');
 class AlePDFDocument{
     PDFInstance = PDFKit;
     documentType = 0;
-    susbribePerson = "Ing. Ernesto Pruneda Mar"
-    workStation = "Jefe de Servicios Escolares"
-    principalName = "Mtra. Julieta Hernández Camargo"
+    peopleToSign = [
+        {name:'Mtra. Julieta Hernández Camargo',workstation:'Directora'},
+        {name:'Ing. Ernesto Pruneda Mar',workstation:'Jefe de Servicios Escolares'},
+        {name:'Lic. Edna García',workstation:'Directora escolar'},
+    ]
     schoolShortName = "Instituto Alejandría"
     schoolName = "Instituto de Educación y Cultura Alejandría S.C."
     schoolKey = "10PSU0020G"
@@ -96,8 +98,8 @@ class AlePDFDocument{
         // .moveDown(2)
         .text("ATENTAMENTE",this.marginXDocument,this.PDFInstance.y,{align:"center"})
         .moveDown(4)
-        .text("Ing. Ernesto Pruneda Mar",{align:"center"})
-        .text("Jefe de Servicios Escolares",{align:"center"})
+        .text(this.peopleToSign[2].name,{align:"center"})
+        .text(this.peopleToSign[2].workstation,{align:"center"})
     }
 
     writeSendDocumentTxt(posX = this.PDFInstance.y, posY  = this.PDFInstance.y, opts = {}){

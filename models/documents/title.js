@@ -67,7 +67,7 @@ class Title extends AlePDFDocument{
         this.PDFInstance
         .moveDown(2)
         let linesToSignPosY = this.PDFInstance.y
-        this.drawLineToSign(this.marginXDocument,linesToSignPosY,180,{txtButtom:"MTRA. JULIETA HERNÁNDEZ CAMARGO",alignTxtButtom:'center',fontsSizeTxtButton:[8]})
+        this.drawLineToSign(this.marginXDocument,linesToSignPosY,180,{txtButtom:this.peopleToSign[0].name,alignTxtButtom:'center',fontsSizeTxtButton:[8]})
         this.drawLineToSign(this.PDFInstance.options.size[0]-this.marginXDocument-180,linesToSignPosY,180,{txtButtom:"C.P. RUBÉN CALDERÓN LUJAN",alignTxtButtom:'center',fontsSizeTxtButton:[8]})
         // Type info about the title
         this.PDFInstance.addPage()

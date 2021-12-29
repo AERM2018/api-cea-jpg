@@ -161,7 +161,6 @@ const verifyForgotPassCode = async(req, res = response) => {
 
 const changePassword = async(req, res = response) => {
     const {knownPassword = false} = req.query
-    console.log(knownPassword)
     const {oldPassword = '', newPassword = '' } = req.body
     const { id_user, token }  = req.params
     let payload;
@@ -173,20 +172,20 @@ const changePassword = async(req, res = response) => {
         }else{
             payload = verify(token,process.env.PASSWORD_JWT)
         }
-    } catch (error) {
-        console.log(error)
-        return res.status(401).json({
-            ok : false,
-            msg : 'El token es inválido'
-        })
-    }
-    if(moment({unix:payload.exp}).isSameOrBefore(moment({}))){
         const salt = bcrypt.genSaltSync()
         const passEncrypted = bcrypt.hashSync(newPassword,salt)
         await User.update({password:passEncrypted},{where:{id_user}})
-        return res.sendStatus(200)
-    } 
-    res.sendStatus(400)
+        return res.json({
+            ok : true,
+            msg : 'La contraseña ha sido cambiada correctamente.'
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json({
+            ok : false,
+            msg : 'El link es inválido o expiró'
+        })
+    }
 }
 module.exports = {
     login,
