@@ -75,13 +75,10 @@ class CertficateOfStudies extends AlePDFDocument{
         .text('Sello',this.PDFInstance.options.size[0]-this.marginXDocument-80,this.PDFInstance.y)
         .moveDown(5)
         .font('regular')
-        this.drawLineToSign(this.marginXDocument+120,this.PDFInstance.y,this.pageWidthWithMargin - 120*2,{txtButtom:'PROFRA. MARÍA CRISTINA SOTO SOTO~COORDINADORA',alignTxtButtom:'center',fontsSizeTxtButton:[ 10 ]})
+        this.drawLineToSign(this.marginXDocument+120,this.PDFInstance.y,this.pageWidthWithMargin - 120*2,{txtButtom:`${this.peopleToSign[3].name.toUpperCase()}~${this.peopleToSign[3].workstation.toUpperCase()}`,alignTxtButtom:'center',fontsSizeTxtButton:[ 10 ]})
     }
 
-    getLetterFromGrade(grade = '',decimal=false){
-        let partsOfGrade = grade.split('.')
-        return (decimal) ? `${conversor(partsOfGrade[0])} punto ${conversor(partsOfGrade[1])}` : `${conversor(partsOfGrade[0])}`
-    }
+    
 }
 
 module.exports = CertficateOfStudies;

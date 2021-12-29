@@ -2,15 +2,16 @@ const PDFKit = require('pdfkit');
 const PDFTable = require('voilab-pdf-table');
 const moment = require('moment');
 const path = require('path');
-const Stu_info = require('./stu_info');
-const { fn,col } = require('sequelize');
+const conversor = require('numero-palabra');
+
 class AlePDFDocument{
     PDFInstance = PDFKit;
     documentType = 0;
     peopleToSign = [
-        {name:'Mtra. Julieta Hernández Camargo',workstation:'Directora'},
-        {name:'Ing. Ernesto Pruneda Mar',workstation:'Jefe de Servicios Escolares'},
-        {name:'Lic. Edna García',workstation:'Directora escolar'},
+        {name:'Mtra. Julieta Hernández Camargo',workstation:'Directora',article:'La'},
+        {name:'Ing. Ernesto Pruneda Mar',workstation:'Jefe de Servicios Escolares',article:'El'},
+        {name:'Lic. Edna García Herrera',workstation:'Directora escolar',article:'La'},
+        {name:'Profra. María Cristina Soto Soto',workstation:'Coordinadora',article:'La'},
     ]
     schoolShortName = "Instituto Alejandría"
     schoolName = "Instituto de Educación y Cultura Alejandría S.C."
@@ -105,7 +106,7 @@ class AlePDFDocument{
     writeSendDocumentTxt(posX = this.PDFInstance.y, posY  = this.PDFInstance.y, opts = {}){
         this.PDFInstance
         .moveDown(2)
-        .text(`Expedido en la ciudad de Victoria de Durango, Dgo., a los veinte días del mes de Septiembre del año dos mil diecinueve`,posX,posY,opts)
+        .text(`Expedido en la ciudad de Victoria de Durango, Dgo., a los ${conversor(Number(this.dateDay).toString())} días del mes de ${this.dateMonth} del año ${conversor(Number(this.dateYear).toString())}`,posX,posY,opts)
     }
 
     endDocument(){
@@ -196,6 +197,11 @@ class AlePDFDocument{
             posY = this.PDFInstance.y
         }
         
+    }
+
+    getLetterFromGrade(grade = '',decimal=false){
+        let partsOfGrade = grade.split('.')
+        return (decimal) ? `${conversor(partsOfGrade[0])} punto ${conversor(partsOfGrade[1])}` : `${conversor(partsOfGrade[0])}`
     }
 }
 

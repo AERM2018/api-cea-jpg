@@ -22,7 +22,7 @@ documentsRouter.post('/:document_type/students/:matricula',[
     check('matricula','La matricula del estudiante es obligatoria').notEmpty(),
     validateFields,
     checkStudentExistence,
-    validateJWT
+    // validateJWT
 ],createDocument)
 
 documentsRouter.delete('/:id_document',[

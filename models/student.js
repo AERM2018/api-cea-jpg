@@ -84,13 +84,16 @@ const Student = db.define('students', {
     birthdate:{
         type: DataTypes.DATE,
         allowNull: false,
+    },
+    regular : {
+        type : DataTypes.TINYINT,
+        allowNull : false,
+        defaultValue : 1
+    },
+    gendre : {
+        type : DataTypes.ENUM('F','M'),
+        allowNull : false
     }
-
-
-
-
-
-
 }, {
     timestamps: false
 })

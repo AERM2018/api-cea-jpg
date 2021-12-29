@@ -22,7 +22,7 @@ class ProofOfStudies extends AlePDFDocument{
         .text("A quien corresponda:",)
         .moveDown(2)
         .font('regular')
-        .text("El que suscribe ",{continued:true,align:'justify'})
+        .text(`${this.peopleToSign[2].article} que suscribe `,{continued:true,align:'justify'})
         .font('regular-bold')
         .text(`${this.peopleToSign[2].name} `,{continued:true})
         .font('regular')

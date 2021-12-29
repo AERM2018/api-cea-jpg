@@ -3,7 +3,7 @@ const moment = require("moment");
 
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Student = require("../models/student");
-const { Op, QueryTypes, col, fn } = require("sequelize");
+const { Op, QueryTypes, col, fn, where, literal } = require("sequelize");
 const Stu_gro = require("../models/stu_gro");
 const Stu_pay = require("../models/stu_pay");
 const Emp_pay = require("../models/emp_pay");
@@ -29,26 +29,28 @@ const Card_pay = require("../models/card_pay");
 const Emp_par_pay = require("../models/emp_pay");
 const Partial_pay = require("../models/partial_pay");
 const { getGroupDaysAndOverdue } = require("../helpers/dates");
+const Educational_level = require("../models/educational_level");
 
 const getAllPayments = async (req, res = response) => {
-  const { major_name = "", name_group = "" } = req.query;
+  const { major_name = "%%", name_group = "%%", order_money = 'asc',order_money_exp = 'asc' } = req.query;
   try {
     Group.belongsTo(Major, { foreignKey: "id_major" });
     Major.hasMany(Group, { foreignKey: "id_major" });
+    Major.belongsTo(Educational_level, { foreignKey: "id_edu_lev" });
+    Educational_level.hasOne(Major, { foreignKey: "id_edu_lev" });
     const groups = await Group.findAll({
       include: {
         model: Major,
-        attributes: ["major_name"],
-        where: {
-          major_name: { [Op.like]: `${major_name}%` },
-        },
+        attributes: [[fn('concat',col('educational_level')," en ",col('major_name')),'major_name']],
+        include :{model:Educational_level,attributes:[]}
       },
-      where: {
-        name_group: { [Op.like]: `%${name_group}%` },
-      },
+      where:{[(Object.keys(req.query).includes('major_name') && (Object.keys(req.query).includes('name_group')))?Op.and:Op.or]:[
+        where(fn('concat',col('major.educational_level.educational_level')," en ",col('major_name')),{[Op.like]:`%${major_name}%`}),
+        {name_group : {[Op.like]:`%${name_group}%`}}
+      ]},
     });
 
-    const pay_group = groups.map(async ({ id_group, name_group, major }) => {
+    let pay_group = await Promise.all(groups.map(async ({ id_group, name_group, major }) => {
       const stu_gro = await Stu_gro.findAll({
         where: {
           id_group: id_group,
@@ -63,7 +65,7 @@ const getAllPayments = async (req, res = response) => {
 
       let money_exp = 0,
         money = 0;
-      gro_pay_info.forEach((pay_info) => {
+        gro_pay_info.forEach((pay_info) => {
         if (!pay_info.money_exp && !pay_info.money) return;
         money_exp += pay_info.money_exp;
         money += pay_info.money;
@@ -76,13 +78,20 @@ const getAllPayments = async (req, res = response) => {
         money,
         missing: money_exp - money,
       };
-    });
-    Promise.all(pay_group).then((payments_info) => {
-      res.status(200).json({
+    }));
+    if(Object.keys(req.query).includes('order_money'))
+      pay_group = pay_group.sort((a,b) => (order_money=='asc')
+        ?a.money - b.money
+        :b.money - a.money)
+    if(Object.keys(req.query).includes('order_money_exp'))
+      pay_group = pay_group.sort((a,b) => (order_money_exp=='asc')
+        ?a.money_exp - b.money_exp
+        :b.money - a.money_exp)
+    res.status(200).json({
         ok: true,
-        payments: payments_info,
-      });
-    });
+        payments: pay_group,
+    })
+  
   } catch (err) {
     printAndSendError(res, err);
   }
@@ -99,6 +108,7 @@ const getPricesPayments = (req, res = response) => {
     ...prices,
   });
 };
+
 const createPayment = async (req, res = response) => {
   const {
     matricula,
@@ -426,12 +436,12 @@ const getAllPaymentsByStudent = async (req, res = response) => {
   const {student_name, educational_level} = student
 
   try {
-    let payments = await getPaymentStudent(id_student, true, status_payment, educational_level);
-    payments = { ...payments, matricula, id_student, student_name, educational_level};
-
+    let paymentsInfo = await getPaymentStudent(id_student, true, status_payment, educational_level);
+    paymentsInfo = { ...paymentsInfo, matricula, id_student, student_name, educational_level};
+    paymentsInfo.payments = paymentsInfo.payments.filter( pay => pay.missing > 0)
     return res.status(200).json({
       ok: true,
-      student: payments,
+      student: paymentsInfo,
     });
   } catch (err) {
     printAndSendError(res, err);

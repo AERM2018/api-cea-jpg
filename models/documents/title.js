@@ -16,6 +16,7 @@ class Title extends AlePDFDocument{
         this.PDFInstance
         .font('regular')
         .fontSize(18)
+        .font('regular-bold')
         .text("GOBIERNO DEL ESTADO DE DURANGO",{align:'center'})
         .moveDown(0.5)
         // Get y pos from the cursor and assigned it to both images
@@ -25,9 +26,11 @@ class Title extends AlePDFDocument{
         .image("types/durangoShield.jpg",this.durangoShieldXPosFixed,this.imagesYPos,{fit:[this.imagesSize,this.imagesSize]})
         this.PDFInstance
         .moveUp(0.5)
+        .font('regular-bold')
         .text("SECRETARIA DE EDUCACIÓN",{align:'center'})
         .moveDown(1)
         .fontSize(12)
+        .font('regular-bold')
         .text("INSTITUTO DE EDUCACIÓN Y CULTURA ALEJANDRÍA",{align:'center'})
         .moveDown(3)
     }
@@ -41,19 +44,34 @@ class Title extends AlePDFDocument{
         pdfBodyDocumentYPos = this.PDFInstance.y
         this.PDFInstance
         .ellipse(this.PDFInstance.x+10,pdfBodyDocumentYPos+95,60,95).stroke()
-        .fontSize(8)
-        .rect(this.PDFInstance.x-50,pdfBodyDocumentYPos*2,this.PDFInstance.x+50,0).stroke()
-        .text("Firma del alumno.",50,pdfBodyDocumentYPos*2+15)
+        .font('regular')
+        this.drawLineToSign(
+            this.PDFInstance.x-30,
+            pdfBodyDocumentYPos*1.9,
+            90,
+            {txtButtom:`Firma del alumn${(this.student.gendre == 'F')?'a':'o'}.`,
+            alignTxtButtom:'center',
+            fontsSizeTxtButton:[8]
+        })
+        
+        // .rect(this.PDFInstance.x-50,pdfBodyDocumentYPos*2,this.PDFInstance.x+30,0).stroke()
+        // .text(`Firma del alumn${(this.student.gendre == 'F')?'a':'o'}.`,50,pdfBodyDocumentYPos*2+15)
+        this.PDFInstance
         .fontSize(14)
+        .font('regular-bold')
         .text("OTORGA A",this.marginXDocument,pdfBodyDocumentYPos,{align:'center'})
+        .font('regular')
         .moveDown(3)
         .fontSize(10)
-        .text(`${this.student.student_name}`,{align:'center'})
+        .text(`${this.student.student_name.toUpperCase()}`,{align:'center'})
         .moveDown(3)
         .fontSize(14)
+        .font('regular-bold')
         .text("EL TÍTULO DE",{align:'center'})
+        .font('regular')
         .fontSize(10)
-        .text(`${this.student.major_name}`,{align:'center'})
+        .moveDown(1)
+        .text(`${this.student.major_name.toUpperCase()}`,{align:'center'})
         .moveDown(4)
         sendTxtPosX = this.PDFInstance.x + this.imagesSize
         sendTxtPosY = this.PDFInstance.y
@@ -65,9 +83,9 @@ class Title extends AlePDFDocument{
         .moveDown(2)
         this.writeSendDocumentTxt(sendTxtPosX,undefined,bodyDocumentOpts)
         this.PDFInstance
-        .moveDown(2)
+        .moveDown(8)
         let linesToSignPosY = this.PDFInstance.y
-        this.drawLineToSign(this.marginXDocument,linesToSignPosY,180,{txtButtom:this.peopleToSign[0].name,alignTxtButtom:'center',fontsSizeTxtButton:[8]})
+        this.drawLineToSign(this.marginXDocument,linesToSignPosY,180,{txtButtom:this.peopleToSign[0].name.toUpperCase(),alignTxtButtom:'center',fontsSizeTxtButton:[8]})
         this.drawLineToSign(this.PDFInstance.options.size[0]-this.marginXDocument-180,linesToSignPosY,180,{txtButtom:"C.P. RUBÉN CALDERÓN LUJAN",alignTxtButtom:'center',fontsSizeTxtButton:[8]})
         // Type info about the title
         this.PDFInstance.addPage()
@@ -82,7 +100,11 @@ class Title extends AlePDFDocument{
         .text('Del libro No.: __________________').moveDown(1.5)
         .text('Con el folio: __________________').moveDown(4)
         .text('Sello').moveDown(2)
-        this.drawLineToSign((this.marginXDocument/2) + (infoTxtSquareWidth/2)-50,this.PDFInstance.y,100,{txtButtom:"sutanito~jefe de jefes",alignTxtButtom:'center',fontsSizeTxtButton:[8]})
+        this.drawLineToSign(
+            (this.marginXDocument/2) + (infoTxtSquareWidth/2)-50
+            ,this.PDFInstance.y,
+            120,
+            {txtButtom:`${this.peopleToSign[3].name.toUpperCase()}~${this.peopleToSign[3].workstation.toUpperCase()}`,alignTxtButtom:'center',fontsSizeTxtButton:[8]})
         this.PDFInstance.rect(this.marginXDocument/2,infoTxtPosY,infoTxtSquareWidth-5,this.PDFInstance.y - infoTxtPosY + 10).stroke()
         // Type and draw the second square the info is in.
         this.PDFInstance
@@ -92,7 +114,11 @@ class Title extends AlePDFDocument{
         .text('Del libro No.: __________________').moveDown(1.5)
         .text('Con el folio: __________________').moveDown(4)
         .text('Sello').moveDown(2)
-        this.drawLineToSign((this.marginXDocument/2) + (infoTxtSquareWidth*1.5)-50 ,this.PDFInstance.y,100,{txtButtom:"sutanito~jefe de jefes 2",alignTxtButtom:'center',fontsSizeTxtButton:[8]})
+        this.drawLineToSign(
+            (this.marginXDocument/2) + (infoTxtSquareWidth*1.5)-50 ,
+            this.PDFInstance.y,
+            120,
+            {txtButtom:`${this.peopleToSign[1].name.toUpperCase()}~${this.peopleToSign[1].workstation.toUpperCase()}`,alignTxtButtom:'center',fontsSizeTxtButton:[8]})
         this.PDFInstance.rect(infoTxtSquareWidth + (this.marginXDocument/2) + 5,infoTxtPosY,infoTxtSquareWidth-5,this.PDFInstance.y - infoTxtPosY + 10).stroke()        
         // Draw legalization of government signs and teacher record
         this.PDFInstance

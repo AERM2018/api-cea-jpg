@@ -1,6 +1,5 @@
 const {AlePDFDocument} = require("../alePDFDocument");
-
-
+const conversor = require('numero-palabra');
 class InternshipLetter extends AlePDFDocument{
     constructor(student = {}){
         super(student)
@@ -29,7 +28,7 @@ class InternshipLetter extends AlePDFDocument{
         .moveDown(2)
         .text(`Curso y aprobó las asignaturas correspondientes al Plan de Estudios de la ${this.student.major_name}.`)
         .moveDown(2)
-        .text(`Comprobada su escolaridad, mediante previa y rigurosa revisión curricular y con fundamento en los Artículos 16, 153 y 163 párrafo II de la ley de Educación del Estado de Durango, se extiende la presente en Durango, Dgo., a los veinticinco días del mes de ${this.dateDay} del año dos mil veintiuno`)
+        .text(`Comprobada su escolaridad, mediante previa y rigurosa revisión curricular y con fundamento en los Artículos 16, 153 y 163 párrafo II de la ley de Educación del Estado de Durango, se extiende la presente en Durango, Dgo., a los ${conversor(Number(this.dateDay).toString())} días del mes de ${this.dateMonth} del año ${conversor(Number(this.dateYear).toString())}`)
         .moveDown(5)
         .fontSize(13)
         .text(`${this.peopleToSign[0].name}`,{align:"center"})

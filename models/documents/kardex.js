@@ -32,7 +32,7 @@ class Kardex extends AlePDFDocument {
       .moveDown();
     this.drawKardexTable(false)
     this.setTableButtomBorder(this.student.grades.length)
-    this.tableDocument.addBody(this.student.grades.map(({key,credits,grade:gradeNum,course:courseName,application_date : dateTest, test_type : typeTest})=>({key,credits,gradeNum,courseName,dateTest,typeTest})));
+    this.tableDocument.addBody(this.student.grades.map(({key,credits,grade:gradeNum,course:courseName,application_date : dateTest, test_type : typeTest})=>({key,credits,gradeNum,gradeLetter:this.getLetterFromGrade(Number(gradeNum).toString()),courseName,dateTest,typeTest})));
     this.PDFInstance.x = this.marginXDocument
     this.PDFInstance
     .moveDown()

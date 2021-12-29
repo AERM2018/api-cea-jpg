@@ -56,6 +56,7 @@ const getTestInfo = async(forMakingActa = false, opts = {id_group : 0,id_course:
         raw : true,
         nest : true
     })
+    if(tests.length < 1) return null
     if(forMakingActa){
         let {teacher} = await Cou_tea.findOne({
             where : {

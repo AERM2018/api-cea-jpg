@@ -110,27 +110,25 @@ const createStudent = async (req, res = response) => {
     const { body } = req;
     const { email } = body;
     const { id_group, id_campus } = body;
-    const { matricula, street, zip, colony, birthdate, name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number, start_date, end_date } = body;
+    const { matricula, street, zip, colony, birthdate, name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number, start_date, end_date,gendre } = body;
     let id_user, id_student, user
-    try {
-        //email
-        const student = await Student.findOne({
-            where: { matricula }
-        })
-        if (student) {
-            //aqui hacer cosas de pros
+        try {
+            //email
+            const student = await Student.findOne({
+                where: { matricula }
+            })
+            if (student) {
+                //aqui hacer cosas de pros
 
-            if (student.status === 1) {
+                if (student.status === 1) {
 
-                return res.status(400).json({
-                    ok: false,
-                    msg: "Ya existe un estudiante con la matricula " + matricula,
-                })
-            }
-            else {
-                const { id_student } = student
-                try {
-                   
+                    return res.status(400).json({
+                        ok: false,
+                        msg: "Ya existe un estudiante con la matricula " + matricula,
+                    })
+                }
+                else {
+                    const { id_student } = student
                     const group = await Group.findOne({
                         where: { id_group }
                     })
@@ -149,27 +147,14 @@ const createStudent = async (req, res = response) => {
                             msg: "No existe un campus con ese id " + id_campus,
                         })
                     }
-
                     const stu_gro = await Stu_gro.findOne({
                         where: { id_student: student.id_student }
                     })
-
                     await stu_gro.update({ id_group })
-
-                } catch (error) {
-                    printAndSendError(res, error)
-                }
-                try {
                     const cam_use = await Cam_use.findOne({
                         where: { id_user: student.id_user }
                     });
-
-                    await cam_use.update({ id_campus })
-
-                } catch (error) {
-                    printAndSendError(res, error)
-                }
-                try {
+                    await cam_use.update({ id_campus })             
                     await student.update({
                         status: 1, name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number,
                         street, zip, birthdate
@@ -178,107 +163,64 @@ const createStudent = async (req, res = response) => {
                         ok: true,
                         msg: "El estudiante se creo correctamente",
                         id_student
-
                     })
-
-                } catch (error) {
-                    printAndSendError(res, error)
-
                 }
             }
-        }
-        const studentCurp = await Student.findOne({
-            where: { curp }
-        })
-        if (studentCurp) {
-            return res.status(400).json({
-                ok: false,
-                msg: `Ya existe un estudiante con la CURP ${curp}`,
+            const studentCurp = await Student.findOne({
+                where: { curp }
             })
-        }
-
-
-        const group = await Group.findOne({
-            where: { id_group }
-        })
-        if (!group) {
-            return res.status(400).json({
-                ok: false,
-                msg: "No existe un grupo con ese id " + id_group,
+            if (studentCurp) {
+                return res.status(400).json({
+                    ok: false,
+                    msg: `Ya existe un estudiante con la CURP ${curp}`,
+                })
+            }
+            const group = await Group.findOne({
+                where: { id_group }
             })
-        }
-        const campus = await Campus.findOne({
-            where: { id_campus }
-        })
-        if (!campus) {
-            return res.status(400).json({
-                ok: false,
-                msg: "No existe un campus con ese id " + id_campus,
+            if (!group) {
+                return res.status(400).json({
+                    ok: false,
+                    msg: "No existe un grupo con ese id " + id_group,
+                })
+            }
+            const campus = await Campus.findOne({
+                where: { id_campus }
             })
+            if (!campus) {
+                return res.status(400).json({
+                    ok: false,
+                    msg: "No existe un campus con ese id " + id_campus,
+                })
+            }
+            const usern = new User({ user_type: "student", password: "123456" });
+            const newUser = await usern.save()
+            const userJson = newUser.toJSON();
+            id_user = userJson['id_user']
+            //matricula
+            id_student = generateMatricula(id_user)
+            const newStudent = new Student({ id_student, matricula, id_user, name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number, street, zip, colony, birthdate,gendre });
+            await newStudent.save();
+            // password
+            const user = await User.findByPk(id_user);
+            const salt = bcrypt.genSaltSync();
+            const pass = bcrypt.hashSync(matricula, salt)
+            await user.update({ password: pass });
+            const inst_email = `${id_student}@alejandria.edu.mx`
+            await user.update({ email: inst_email })
+            const stu_gro = new Stu_gro({ id_student, id_group })
+            await stu_gro.save();
+            //campus
+            const cam_use = new Cam_use({ id_campus, id_user });
+            await cam_use.save();
+            return res.status(201).json({
+                ok: true,
+                msg: "Estudiante creado correctamente",
+                id_student
+            })
+        } catch (err) {
+            printAndSendError(res,err)
         }
-
-
-        const usern = new User({ user_type: "student", password: "123456" });
-        const newUser = await usern.save()
-        const userJson = newUser.toJSON();
-        id_user = userJson['id_user']
-
-
-
-
-    } catch (err) {
-        printAndSendError(res, err)
-    }
-    try {
-        //matricula
-        id_student = generateMatricula(id_user)
-        const student = new Student({ id_student, matricula, id_user, name, surname_f, surname_m, group_chief, curp, mobile_number, mobile_back_number, street, zip, colony, birthdate });
-        await student.save();
-        // password
-        const user = await User.findByPk(id_user);
-        const salt = bcrypt.genSaltSync();
-        const pass = bcrypt.hashSync(matricula, salt)
-        await user.update({ password: pass });
-
-        const inst_email = `${id_student}@alejandria.edu.mx`
-        await user.update({ email: inst_email })
-
-    } catch (err) {
-        printAndSendError(res, err)
-    }
-    try {
-        const group = await Group.findByPk(id_group);
-        if (!group) {
-            return res.status(404).json({
-                ok: false,
-                msg: "No existe un grupo con el id " + id_major,
-            });
-        }
-        const stu_gro = new Stu_gro({ id_student, id_group })
-        await stu_gro.save();
-
-    } catch (err) {
-        printAndSendError(res, err)
-    }
-    try {
-        //campus
-
-        const cam_use = new Cam_use({ id_campus, id_user });
-        await cam_use.save();
-        return res.status(201).json({
-            ok: true,
-            msg: "Estudiante creado correctamente",
-            id_student
-        })
-
-
-    } catch (err) {
-        printAndSendError(res, err)
-    }
-
-
-
-
 }
 const updateStudent = async (req, res) => {
     const { id } = req.params;

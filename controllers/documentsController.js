@@ -93,10 +93,7 @@ const createDocument = async(req, res = response) => {
     const {id_group,id_course} = req.body
     document_type = parseInt(document_type)
     let toolsForMakingDoc = {};
-    const stream = res.writeHead(200,{
-        'Content-Type':'application/pdf',
-        'Content-Disposition':'inline'
-    });
+    
     if(![11].includes(document_type)){
         toolsForMakingDoc.student = await getStudentInfo(matricula)
         if([0,1,5,6,10].includes(document_type)){
@@ -109,7 +106,15 @@ const createDocument = async(req, res = response) => {
         }
     }else{
         toolsForMakingDoc.tests = await getTestInfo(true,{id_group,id_course})
+        if (toolsForMakingDoc.tests == null) return res.status(404).json({
+            ok :false,
+            msg : 'No existen exámenes asignados para generar la acta de exámen.'
+        })
     }
+    const stream = res.writeHead(200,{
+        'Content-Type':'application/pdf',
+        'Content-Disposition':'inline'
+    });
     generateNewDoc(
         toolsForMakingDoc,
         document_type,
