@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { getAllStudents,createStudent,updateStudent,deleteStudent, getStudentByMatricula } = require('../controllers/studentController');
-const { checkStudentExistence } = require('../middlewares/dbValidations');
+const { getAllStudents,createStudent,updateStudent,deleteStudent, getStudentByMatricula, moveStudentFromGroup } = require('../controllers/studentController');
+const { checkStudentExistence, checkGroupExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
 
@@ -65,6 +65,13 @@ studentsRouter.put('/:id',[
     validateJWT
 
 ], updateStudent);
+
+studentsRouter.put('/:matricula/groups/:id_group',[
+    check('matricula','La matricula del estudiante es obligatoria.').isNumeric().notEmpty(),   
+    check('id_group','El id del grupo es un número entero y es obligatorio.').isNumeric().notEmpty(),
+    checkStudentExistence,
+    checkGroupExistence,
+],moveStudentFromGroup)
 
 studentsRouter.delete('/:id',[
     param('id','El id es obligatorio y tiene que ser la matricula de un alumno').notEmpty().isString(),

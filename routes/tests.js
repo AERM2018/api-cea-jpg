@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { check } = require("express-validator");
-const { assignTestToStudent, getTests } = require("../controllers/testsController");
+const { assignTestToStudent, getTests, changeApplicationDate } = require("../controllers/testsController");
 const { checkStudentExistence, hasStudentTakenCourse } = require("../middlewares/dbValidations");
 const validateJWT = require("../middlewares/validar-jwt");
 const { validateFields } = require("../middlewares/validateFields");
@@ -20,4 +20,10 @@ testRouter.post('/',[
 testRouter.get('/',[
     validateJWT,
 ],getTests)
+
+testRouter.put('/:id_test',[
+    check('application_date','La nueva fecha de aplicación del exámen es obligatoria y debe de ser valida').isDate(),
+    validateFields,
+    validateJWT,
+],changeApplicationDate)
 module.exports = testRouter;

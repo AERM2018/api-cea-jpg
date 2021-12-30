@@ -38,14 +38,32 @@ const assignTestToStudent = async(req, res) => {
 }
 
 const getTests = async(req, res) => {
-    // const tests = await getTestInfo(true,{id_group:5,id_course:12})
-    const tests = await getTestInfo()
+    const {applied,dateOrder = 'desc'} = req.query
+    const tests = await getTestInfo(false,{...(applied!=undefined)?{applied}:{}},dateOrder)
     res.json({
         ok : true,
         tests
     })
 }
+
+const changeApplicationDate = async( req, res) => {
+    const {application_date} = req.body
+    const {id_test} = req.params
+    try {
+        const test = await Test.findByPk(id_test)
+        await test.update({application_date})
+        return res.json({
+            ok : true,
+            msg : `Fecha de aplicación del examen con id ${test.id_test} actualizada correctamente.`
+        })
+    } catch (err) {
+        printAndSendError(res,err)        
+    }
+}
+
+
 module.exports = {
     assignTestToStudent,
-    getTests
+    getTests,
+    changeApplicationDate
 };

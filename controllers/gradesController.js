@@ -66,7 +66,7 @@ const getAllGradesByCourse = async (req, res = response) => {
         Student.hasMany(Grades, { foreignKey : 'id_student'})
 
         const gro_cou = await Gro_cou.findOne({where:{[Op.and] : [{id_course},{id_group}]},raw:true})
-        let courseInfo = await getRegularCourseInfo(gro_cou.id_gro_cou)
+        let courseInfo = await getRegularCourseInfo({id_gro_cou:gro_cou.id_gro_cou})
         let grades = await Grades.findAll({
             include : [
             {
@@ -419,19 +419,30 @@ const updateGrades = async (req, res = response) => {
     const { grade }= req.body;
 
     try {
+        await Grades.update({grade},{where: {id_grade} });
+
+        res.json({
+            ok:true,
+            msg: 'Calificación de materia corregida correctamente.'
+        })
+        
+    } catch (err) {
+        printAndSendError(res,err)
+    }
+}
+
+const updateGradeByTest = async(req, res = response) => {
+    const { id_grade  } = req.params;
+    const { grade }= req.body;
+
+    try {
         const testGrade = await Test.findOne({
-            // where : { [Op.and] : [
-            //     {id_grade},
-            //     {assigned_test_date : {[Op.and]:[
-            //         {[Op.lte]:moment()},
-            //         {[Op.gte]}
-            //     ]}}]}
             where : where(literal(`(id_grade = ${id_grade} AND (${moment().format('YYYY-MM-DD')} = ${moment(col('application_date')).format('YYYY-MM-DD')} OR ${moment().format('YYYY-MM-DD')} <= ${moment(col('application_date')).add(5,'days').format('YYYY-MM-DD')}) AND ${col('applied').col} = 0)`),true)
         })
         if(!testGrade){
             return res.status(403).json({
                 ok : false,
-                msg : 'Acutilización de calificación denegada.'
+                msg : 'Acutilización de calificación denegada, primero necesita asignar un exámen.'
             })
         }
         await testGrade.update({applied : true})
@@ -443,9 +454,7 @@ const updateGrades = async (req, res = response) => {
         })
         
     } catch (err) {
-
-    printAndSendError(res,err)
-        
+        printAndSendError(res,err)
     }
 }
 
@@ -465,6 +474,7 @@ const updateExtraCurCourGrades =async (req, res)=>{
     }
 
 }
+
 const updateTesineGrades =async (req, res)=>{
     const {id_tesine}= req.params;
     const {grade}=req.body;
@@ -531,6 +541,7 @@ module.exports = {
     getGraduationCourseGrades,
     uploadCourseGrades,
     updateGrades,
+    updateGradeByTest,
     deleteGradeByStudentId,
     searchAverageByStudent,
     // getAllGroupsGrades,

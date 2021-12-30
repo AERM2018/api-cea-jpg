@@ -19,7 +19,7 @@ const Graduation_section = require('../models/graduation_section');
 const Major = require('../models/major');
 const Educational_level = require('../models/educational_level');
 const Graduation_courses = require('../models/graduation_courses');
-const { getRegularCourseInfo, getExtraCourseInfo, setCourseInactivate, setSectionInactivate } = require('../helpers/courses');
+const { getRegularCourseInfo, getExtraCourseInfo, setCourseInactivate, setSectionInactivate, getCoursesGiveTeachersOrTeacher } = require('../helpers/courses');
 
 const getAllTeachers = async (req, res) => {
     const teachers = await db.query(getTeachers, { type : QueryTypes.SELECT})
@@ -221,90 +221,27 @@ const deleteTeacher = async (req, res) => {
 
 }
 
-const getAllCoursesTeacherGiven = async( req, res = response) => {
+const getAllCoursesATeacherGiven = async( req, res = response) => {
     const { id_teacher } = req.params
-    const {courseName = '',status='all'} = req.query
-    const statusCondition = (status == 'all')  ? {} : {status}
+    const {courseName = '',teacherName='' , status='all'} = req.query
     try{
-        // Regular courses
-        Cou_tea.belongsTo( Course, { foreignKey : 'id_course'})
-        Course.hasOne( Cou_tea, { foreignKey : 'id_course'})
-        let coursesTeacherGiven =  await Cou_tea.findAll({
-            include : {
-                model : Course,
-                attributes : ['course_name'],
-                where : {course_name:{[Op.like]:`%${courseName}%`}}
-            },
-            attributes : ['id_course','status','start_date','end_date'],
-            where : { id_teacher },
-
-        })
-        coursesTeacherGiven = coursesTeacherGiven.map( async(course) => {
-            const { id_course,start_date,end_date, ...restoCourse} = course.toJSON()
-            const gro_cou = await Gro_cou.findOne({
-                where : {
-                    id_course,
-                    start_date,
-                    end_date,
-                    ...statusCondition
-                }
-            })
-            if(!gro_cou) return
-            let courseData = await getRegularCourseInfo({id_gro_cou:gro_cou.id_gro_cou})
-            courseData.type='regular'
-            return courseData
-        })
-        coursesTeacherGiven = await Promise.all(coursesTeacherGiven)
-        coursesTeacherGiven = coursesTeacherGiven.filter( course => course )
-        // Extracurricular courses
-        let extCoursesTeacherGiven = await ExtraCurricularCourses.findAll({
-            where : { id_teacher, ext_cou_name:{[Op.like]:`%${courseName}%`},...statusCondition }, attributes : ['id_ext_cou'],
-            raw : true,
-            nest : true
-        })
-
-        extCoursesTeacherGiven = await Promise.all(extCoursesTeacherGiven.map( async({id_ext_cou}) => {
-            const extraCourseInfo = await getExtraCourseInfo({id_ext_cou})
-            return {id_ext_cou,...extraCourseInfo,type:'extra'}
-        }))
-        // // Graduation courses
-        Graduation_section.belongsTo(Graduation_courses, {foreignKey : 'id_graduation_course'})
-        Graduation_courses.hasMany(Graduation_section, {foreignKey : 'id_graduation_course'})
-        Graduation_courses.hasMany(Graduation_section, {foreignKey : 'id_graduation_course'})
-        Graduation_courses.belongsTo(Teacher,{foreignKey:'id_teacher'})
-        Teacher.hasOne(Graduation_courses,{foreignKey:'id_teacher'})
-        let gradCoursesTeacherGiven = await Graduation_courses.findAll({
-            include : [{
-                model : Graduation_section,
-                attributes :{ exclude : [ 'id_teacher','id_graduation_course']},
-                where :{  id_teacher, ...(statusCondition=={})&&{in_progress:statusCondition.status} },
-                required : false
-            },
-            {
-                model : Teacher,
-                attributes : ['id_teacher',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'teacher_name']]
-            }],
-            where : where(literal(`(((SELECT COUNT(id_graduation_section) FROM graduation_sections WHERE id_teacher = '${id_teacher}' AND ${col('id_graduation_course').col == col('id_graduation_course')}) > 0) or (graduation_courses.id_teacher = '${id_teacher}') AND ${col('course_grad_name').col} LIKE '%${courseName}%' ${(status!='all')?` AND status = ${status}`:''})`),true)
-        })
-        gradCoursesTeacherGiven = await Promise.all( gradCoursesTeacherGiven.map( async(course) => {
-            let {teacher,...coursesInfoJSON} = course.toJSON()
-            coursesInfoJSON.graduation_sections = await Promise.all( course.graduation_sections.map(async(section) => {
-                section = await setSectionInactivate(section)
-                if(status!='all' && !section.in_progress) return
-                return section
-            }))
-            coursesInfoJSON.graduation_sections = coursesInfoJSON.graduation_sections.filter(section => section)
-            course = await setCourseInactivate(course)
-            if(!course.status) return
-            coursesInfoJSON.teacher_name = teacher.teacher_name
-            coursesInfoJSON.isTeacherTitular = (coursesInfoJSON.id_teacher == id_teacher) ? 1 : 0
-            coursesInfoJSON.type = 'graduation_course'
-            return coursesInfoJSON
-        }))
-        gradCoursesTeacherGiven = gradCoursesTeacherGiven.filter( graduation_course => graduation_course)
+        const coursesTeachers = await getCoursesGiveTeachersOrTeacher({courseName,teacherName,id_teacher,status})
         res.json({
             ok : true,
-            courses:[...coursesTeacherGiven,...extCoursesTeacherGiven,...gradCoursesTeacherGiven]
+            courses:coursesTeachers
+        })
+    }catch( err ){
+        printAndSendError( res, err )
+    }
+}
+
+const getAllCoursesTeachersGiven = async( req, res = response) => {
+    const {courseName = '',teacherName='' , status='all'} = req.query
+    try{
+        const coursesTeachers = await getCoursesGiveTeachersOrTeacher({courseName,id_teacher:undefined,id_teacher:id_teacher,status})
+        res.json({
+            ok : true,
+            courses:coursesTeachers
         })
     }catch( err ){
         printAndSendError( res, err )
@@ -312,12 +249,11 @@ const getAllCoursesTeacherGiven = async( req, res = response) => {
 }
 
 
-
-
 module.exports = {
     getAllTeachers,
     createTeacher,
     updateTeacher,
     deleteTeacher,
-    getAllCoursesTeacherGiven
+    getAllCoursesATeacherGiven,
+    getAllCoursesTeachersGiven
 }

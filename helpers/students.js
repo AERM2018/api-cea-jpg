@@ -25,7 +25,7 @@ const { raw } = require("mysql");
 const { getTitularTeacherOfCourse } = require("./groups");
 
 const getStudentInfo = async (matricula = '') => {
-    return await Stu_info.findOne({
+    let student = await Stu_info.findAll({
         where:{matricula},
         attributes : {
             exclude:['id','name','surname_f','surname_m',],
@@ -36,6 +36,7 @@ const getStudentInfo = async (matricula = '') => {
         },
         raw : true
     })
+    return student[student.length - 1]
 }
 
 const getPaymentStudent = async (id_student = '', details = false, status_payment = {}, edu_level = "") => {

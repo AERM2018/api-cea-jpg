@@ -15,6 +15,7 @@ const Cou_tea = require('../models/cou_tea');
 const { getGroupInfo, getTitularTeacherOfCourse } = require('../helpers/groups');
 const { getGroupDaysAndOverdue } = require('../helpers/dates');
 const moment = require('moment');
+const { setCourseInactivate } = require('../helpers/courses');
 
 const getAllGroups = async (req, res) => {
     const {timeTable = false} = req.query
@@ -356,8 +357,13 @@ const getStudentsFromGroup = async( req, res = response) => {
 const getCoursesGroupHasTaken = async(req, res = response) => {
     const { id_group } = req.params;
     const groupInfo = {...await getGroupInfo(id_group)}
+    const gro_cous = await Gro_cou.findAll({where:{id_group}})
+    const coursesId = await Promise.all(gro_cous.map( async(gro_cou) => {
+        await setCourseInactivate(gro_cou)
+        return gro_cou.id_course
+    }))
     const coursesTakenByGroup = await Courses.findAll({
-        where : { id_course : {[Op.in] : literal(`(SELECT id_course FROM gro_cou WHERE id_group = ${id_group})`)}},
+        where : { id_course : {[Op.in] : coursesId}},
         raw :true,
         nest : true
     });
@@ -365,7 +371,6 @@ const getCoursesGroupHasTaken = async(req, res = response) => {
         const {teacher} = await getTitularTeacherOfCourse(id_group,course.id_course)
         return {...course,...teacher }
     }))
-    console.log(await getGroupDaysAndOverdue(id_group,{}))
     res.json({
         ok : true,
         group:groupInfo,

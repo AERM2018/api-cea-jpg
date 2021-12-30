@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByGroup, getAllGroupsGrades, getAllGrades, getAllGradesByMatricula, uploadCourseGrades, uploadTesineGrade, uploadExtraCurCourGrades, updateExtraCurCourGrades, updateTesineGrades, getAllGradesByCourse, getExtraCourseGrades, getGraduationSectionGrades, getGraduationCourseGrades } = require('../controllers/gradesController');
+const { uploadGrades, updateGrades, deleteGradeByStudentId, getAllGradesByGroup, getAllGroupsGrades, getAllGrades, getAllGradesByMatricula, uploadCourseGrades, uploadTesineGrade, uploadExtraCurCourGrades, updateExtraCurCourGrades, updateTesineGrades, getAllGradesByCourse, getExtraCourseGrades, getGraduationSectionGrades, getGraduationCourseGrades, updateGradeByTest } = require('../controllers/gradesController');
 const { checkStudentExistence, checkGradeCourseExistence, checkGradeTesineExistence, checkStuExtraCouExistence, checkExtraCurCourExistence, checkGroupExistence, checkCourseExistence, checkGroupCourseExistence, isAllowedToUploadGrades, isItPermitted, checkRoles } = require('../middlewares/dbValidations');
 const checkGrades = require('../middlewares/grades');
 const validateJWT = require('../middlewares/validar-jwt');
@@ -89,6 +89,14 @@ gradesRouter.put('/regular/:id_grade', [
     validateFields,
     validateJWT
 ], updateGrades);
+
+gradesRouter.put('/regular/:id_grade/tests', [
+    param('id_grade','El id de la calificación es un numero y es obligatorio').not().isEmpty().isInt(),
+    check('grade', 'Calificación es de tipo float obligatoria').isFloat().notEmpty(),
+    checkGradeCourseExistence,
+    validateFields,
+    validateJWT
+], updateGradeByTest);
 
 gradesRouter.put( '/extra/:id_stu_extracou', [
     param('id_stu_extracou','El id de estudiante_extracurricular es un numero y es obligatorio ').not().isEmpty().isInt(),

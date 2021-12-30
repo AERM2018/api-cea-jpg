@@ -3,30 +3,29 @@ const { db } = require("../database/connection")
 const Teacher = require('../models/teacher');
 const Graduation_courses = require("../models/graduation_courses");
 const Graduation_section = require("../models/graduation_section");
-const { Op, fn, col } = require("sequelize");
+const { Op, fn, col, literal, where } = require("sequelize");
 const {printAndSendError} = require("../helpers/responsesOfReq");
 const ExtraCurricularCourses = require("../models/extracurricularcourses");
 const Stu_extracou = require("../models/stu_extracou");
 const Student = require("../models/student");
+const { getExtraCourseInfo } = require("../helpers/courses");
 
 const getAllExtraCurricularCourses = async (req=request, res = response) => {
-    let {teacherName}= req.query;
+    let {teacherName=''}= req.query;
 
     ExtraCurricularCourses.belongsTo(Teacher, {foreignKey: 'id_teacher'})
     Teacher.hasMany(ExtraCurricularCourses,{foreignKey:'id_teacher'})
 
     try{
-
-        if(teacherName==undefined){
-            teacherName='';
-        }
-        const extraCurricularCourses = await ExtraCurricularCourses.findAll({
+        let extraCurricularCourses = await ExtraCurricularCourses.findAll({
             include: {model:Teacher,
-            where: {[Op.or]:[{
-                name: {[Op.like]: `%${teacherName}%`}
-            }, {surname_f: {[Op.like]: `%${teacherName}%`}}, {surname_m: {[Op.like]: `%${teacherName}%`}}
-            ]} }
+                attributes : ['id_teacher',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'teacher_name']],
+                where: where(literal(`(CONCAT(LOWER(name),' ',LOWER(surname_f),' ',LOWER(surname_m)))`),{[Op.like]:`%${teacherName}%`})
+            },
+            raw : true,
+            nest : true
         });
+        extraCurricularCourses = extraCurricularCourses.map(({teacher,...restCourse})=>({...restCourse,...teacher}))
         return res.status(200).json({//200 means success
             ok: true,
             extraCurricularCourses
@@ -41,7 +40,6 @@ const getAllExtraCurricularCourses = async (req=request, res = response) => {
     }
 
 }
-
 
 const createExtraCurricularCourse = async (req, res = responde ) =>{
     const { body } = req;
@@ -128,45 +126,6 @@ const deleteExtraCurricularCourse = async (req, res = responde ) =>{
     }
 }
 
-getStudentFromExtraCour = async(req, res) => {
-    const {id_ext_cou} = req.params;
-
-    try {
-        Stu_extracou.belongsTo(ExtraCurricularCourses, { foreignKey : 'id_ext_cou'})
-        ExtraCurricularCourses.hasMany(Stu_extracou, { foreignKey : 'id_ext_cou'})
-
-        Stu_extracou.belongsTo(Student, { foreignKey : 'id_student'})
-        Student.hasOne(Stu_extracou, { foreignKey : 'id_student'})
-
-        let studentsExtraCou = await Stu_extracou.findAll({
-            include : [{
-                model : Student,
-                attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'student_name']]
-            },{
-                model : ExtraCurricularCourses,
-                attributes : ['id_ext_cou','ext_cou_name']
-            }],
-            where : { id_ext_cou }
-        })
-
-        studentsExtraCou = studentsExtraCou.map( studentExtraCou => {
-            const {student,extracurricular_course,grade,...restoStudentExtraCou} = studentExtraCou.toJSON()
-            return {
-                ...restoStudentExtraCou,
-                ...student,
-                ...extracurricular_course
-            }
-        })
-
-        return res.json({
-            ok : true,
-            students:studentsExtraCou
-        });
-    } catch ( err ) {
-        printAndSendError(res, err)
-    }
-}
-
 const getStudentsFromExtraCourse = async(req, res = response) => {
     const {id_ext_cou} = req.params
     Stu_extracou.belongsTo(Student,{foreignKey:'id_student'})
@@ -180,7 +139,7 @@ const getStudentsFromExtraCourse = async(req, res = response) => {
         raw : true,
         nest : true
     });
-    studentsSignedUp = studentsSignedUp.map( studentExtraCou => ({...studentExtraCou.student}))
+    studentsSignedUp = studentsSignedUp.map( ({student}) => ({...student}))
     res.json({
         ok : true,
         students : studentsSignedUp
@@ -191,5 +150,5 @@ module.exports = {
     createExtraCurricularCourse,
     updateExtraCurricularCourse,
     deleteExtraCurricularCourse,
-    getStudentsFromExtraCourse
+    getStudentsFromExtraCourse,
 }

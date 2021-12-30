@@ -11,7 +11,7 @@ const Test = require("../models/test");
 const Major = require("../models/major");
 const Educational_level = require("../models/educational_level");
 
-const getTestInfo = async(forMakingActa = false, opts = {id_group : 0,id_course:0}) => {
+const getTestInfo = async(forMakingActa = false, findOpts = {applied : false},order='desc',actaOpts = {id_group : 0,id_course:0}) => {
     Test.belongsTo(Student,{foreignKey : 'id_student'})
     Student.hasOne(Test,{foreignKey : 'id_student'}) // Test - student
     Test.belongsTo(Gro_cou,{foreignKey : 'id_gro_cou'})
@@ -28,7 +28,7 @@ const getTestInfo = async(forMakingActa = false, opts = {id_group : 0,id_course:
     Major.hasOne(Group,{foreignKey:'id_major'}) //Group - major
     Major.belongsTo(Educational_level,{foreignKey:'id_edu_lev'})
     Educational_level.hasOne(Major,{foreignKey:'id_edu_lev'}) //Group - major
-
+    console.log((Object.keys(findOpts),this.length!=0) ? findOpts : undefined)
     let tests = await Test.findAll({
         include : [
             {
@@ -49,10 +49,11 @@ const getTestInfo = async(forMakingActa = false, opts = {id_group : 0,id_course:
                                     attributes:['educational_level']}}},
                     {model : Course,attributes : ['id_course','course_name']}
                 ],
-                where : (forMakingActa) ? opts : {}
+                where : (forMakingActa) ? actaOpts : {}
             },
         ],
-        where : (forMakingActa) ? {assigned_test_date : {[Op.not]:null}} : {},
+        where : (forMakingActa) ? {assigned_test_date : {[Op.not]:null}} : {...findOpts },
+        order : [['application_date',`${order}`]],
         raw : true,
         nest : true
     })

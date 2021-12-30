@@ -32,7 +32,7 @@ const { getGroupDaysAndOverdue } = require("../helpers/dates");
 const Educational_level = require("../models/educational_level");
 
 const getAllPayments = async (req, res = response) => {
-  const { major_name = "%%", name_group = "%%", order_money = 'asc',order_money_exp = 'asc' } = req.query;
+  const { major_name = "", name_group = "", order_money = 'asc',order_money_exp = 'asc' } = req.query;
   try {
     Group.belongsTo(Major, { foreignKey: "id_major" });
     Major.hasMany(Group, { foreignKey: "id_major" });
@@ -44,10 +44,11 @@ const getAllPayments = async (req, res = response) => {
         attributes: [[fn('concat',col('educational_level')," en ",col('major_name')),'major_name']],
         include :{model:Educational_level,attributes:[]}
       },
-      where:{[(Object.keys(req.query).includes('major_name') && (Object.keys(req.query).includes('name_group')))?Op.and:Op.or]:[
-        where(fn('concat',col('major.educational_level.educational_level')," en ",col('major_name')),{[Op.like]:`%${major_name}%`}),
-        {name_group : {[Op.like]:`%${name_group}%`}}
-      ]},
+      ...(Object.keys(req.query).includes('major_name') || (Object.keys(req.query).includes('name_group')))?
+      {where:{[(Object.keys(req.query).includes('major_name') && (Object.keys(req.query).includes('name_group')))?Op.and:Op.or]:[
+        (major_name!='')&&where(fn('concat',col('major.educational_level.educational_level')," en ",col('major_name')),{[Op.like]:`%${major_name}%`}),
+        (name_group!='')?[{name_group : {[Op.like]:`%${name_group}%`}}]:[]
+      ]}}:{},
     });
 
     let pay_group = await Promise.all(groups.map(async ({ id_group, name_group, major }) => {

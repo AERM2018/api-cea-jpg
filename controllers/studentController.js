@@ -21,7 +21,8 @@ const Gro_tim = require('../models/gro_tim');
 const Time_tables = require('../models/time_tables');
 const Cou_tea = require('../models/cou_tea');
 const Teacher = require('../models/teacher');
-const { getCourseStudentIsTaking } = require('../helpers/students');
+const { getCourseStudentIsTaking, getStudentInfo } = require('../helpers/students');
+const Stu_info = require('../models/stu_info');
 
 
 const getAllStudents = async (req, res) => {
@@ -89,13 +90,10 @@ const getAllStudents = async (req, res) => {
 }
 
 const getStudentByMatricula = async (req, res = response) => {
-    const { id_student } = req
-    let course;
+    const { matricula } = req.params
     try {
-        const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-       
+        const student = await getStudentInfo(matricula)
         const course = await getCourseStudentIsTaking(student.id_group)
-
         return res.status(200).json({
             ok: true,
             student: { ...student, ...course }
@@ -222,6 +220,7 @@ const createStudent = async (req, res = response) => {
             printAndSendError(res,err)
         }
 }
+
 const updateStudent = async (req, res) => {
     const { id } = req.params;
     const { body } = req;
@@ -308,7 +307,30 @@ const deleteStudent = async (req, res) => {
     }
 }
 
+const moveStudentFromGroup = async(req, res) => {
+    const {id_group,matricula} = req.params
+    const {id_student} = req
 
+    Stu_gro.belongsTo(Group,{foreignKey:'id_group'})
+    Group.hasOne(Stu_gro,{foreignKey:'id_group'})
+    // Find student's current group and major
+    const {groupss:{id_major:id_current_major}} = await Stu_gro.findOne({
+        include:{model:Group,attributes:['id_major']},
+        where:{id_student},order:[['id_stu_gro','desc']]
+    })
+    const {id_major} = await Group.findByPk(id_group)
+    console.log(id_current_major,id_major)
+    if(id_current_major != id_major) return res.status(400).json({
+        ok : false,
+        msg : `Accion denegada, no se puede cambiar al alumno con matricula ${matricula} a otro grupo que no pertence a su carrera.`
+    })
+    const new_stu_gro = new Stu_gro({id_group,id_student})
+    await new_stu_gro.save()
+    return res.json({
+        ok : true,
+        msg : `El estudiante con matricula ${matricula} fue cambiado correctamente.`
+    })
+}
 
 
 
@@ -318,5 +340,6 @@ module.exports = {
     getStudentByMatricula,
     createStudent,
     updateStudent,
+    moveStudentFromGroup,
     deleteStudent
 }

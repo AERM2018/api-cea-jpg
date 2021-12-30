@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { check, param } = require('express-validator');
-const { getAllTeachers,createTeacher,updateTeacher,deleteTeacher, getAllCoursesTeacherGiven} = require('../controllers/teacherController');
+const { getAllTeachers,createTeacher,updateTeacher,deleteTeacher, getAllCoursesATeacherGiven, getAllCoursesTeachersGiven} = require('../controllers/teacherController');
 const { checkTeacherExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -55,6 +55,10 @@ teachersRouter.get('/:id_teacher/courses',[
     checkTeacherExistence,
     validateFields,
     validateJWT
-], getAllCoursesTeacherGiven)
+], getAllCoursesATeacherGiven)
+
+teachersRouter.get('/courses',[
+    validateJWT
+], getAllCoursesTeachersGiven)
 
 module.exports = teachersRouter;
