@@ -98,6 +98,10 @@ const Stu_info = db.define('stu_info',{
         type : DataTypes.STRING,
         allowNull : false
     },
+    general_avg : {
+        type : DataTypes.DOUBLE,
+        allowNull : false
+    }
 },
 {
     freezeTableName : true,

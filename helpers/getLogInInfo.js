@@ -13,7 +13,7 @@ const getLogInInfo = async( id_user, user_type ) => {
             userEntityInfo = await Employees.findOne(_user,{attributes : ['id_employee',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name']]})
         break;
         case 'student':
-            userEntityInfo = await Student.findOne({where:{matricula:id_user},attributes : ['id_student',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name']]})
+            userEntityInfo = await Student.findOne({where:{matricula:id_user},attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name']]})
             break
         default:
             return {}

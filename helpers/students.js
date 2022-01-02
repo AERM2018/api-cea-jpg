@@ -400,11 +400,15 @@ const getCourseStudentIsTaking = async( id_group = 0) => {
 
     if(gro_cou){
         course = {course_name: gro_cou.toJSON().course.course_name}
-        const {id_course} = gro_cou
+        const {id_course,start_date,end_date} = gro_cou
         Cou_tea.belongsTo(Teacher, {foreignKey: 'id_teacher'})
         Teacher.hasMany(Cou_tea, {foreignKey : 'id_teacher'})
         let courseTeacher = await Cou_tea.findOne({
-            where : {id_course},
+            where : {[Op.and]:[
+                {id_course},
+                {start_date},
+                {end_date}
+            ]},
             include : {model : Teacher, attributes: [
                 [fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name'],
             ]}
