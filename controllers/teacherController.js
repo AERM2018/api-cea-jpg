@@ -22,12 +22,28 @@ const Graduation_courses = require('../models/graduation_courses');
 const { getRegularCourseInfo, getExtraCourseInfo, setCourseInactivate, setSectionInactivate, getCoursesGiveTeachersOrTeacher } = require('../helpers/courses');
 
 const getAllTeachers = async (req, res) => {
-    const teachers = await db.query(getTeachers, { type : QueryTypes.SELECT})
-    
-    // const teachers = await Teacher.findAll({
-    //     where: { 'active': 1 }
-    // });
-    
+    Teacher.belongsTo(User,{foreignKey:'id_user'})
+    User.hasOne(Teacher,{foreignKey:'id_user'})
+    Cam_use.belongsTo(User,{foreignKey:'id_user'})
+    User.hasOne(Cam_use,{foreignKey:'id_user'})
+    Cam_use.belongsTo(Campus,{foreignKey:'id_campus'})
+    Campus.hasOne(Cam_use,{foreignKey:'id_campus'})
+    let teachers = await Teacher.findAll({
+        include : {
+            model : User,
+            include : {
+                model : Cam_use,
+                include : {
+                    model : Campus, attributes : ['id_campus','campus_name']
+                }
+            }
+        },
+        attributes : {include:[[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'teacher_name']],exclude:['name','surname_f','surname_m']},
+        where: { 'active': 1 },
+        raw : true,
+        nest : true
+    });
+    teachers  = teachers.map( ({user:{cam_use:{campus}},...restTeacher}) => ({...restTeacher,...campus}))
     return res.status(200).json({
         ok: true,
         teachers
@@ -225,7 +241,7 @@ const getAllCoursesATeacherGiven = async( req, res = response) => {
     const { id_teacher } = req.params
     const {courseName = '',teacherName='' , status='all'} = req.query
     try{
-        const coursesTeachers = await getCoursesGiveTeachersOrTeacher({courseName,teacherName,id_teacher,status})
+        const coursesTeachers = await getCoursesGiveTeachersOrTeacher({courseName,teacherName:undefined,id_teacher,status})
         res.json({
             ok : true,
             courses:coursesTeachers
@@ -238,7 +254,7 @@ const getAllCoursesATeacherGiven = async( req, res = response) => {
 const getAllCoursesTeachersGiven = async( req, res = response) => {
     const {courseName = '',teacherName='' , status='all'} = req.query
     try{
-        const coursesTeachers = await getCoursesGiveTeachersOrTeacher({courseName,id_teacher:undefined,id_teacher:id_teacher,status})
+        const coursesTeachers = await getCoursesGiveTeachersOrTeacher({courseName,teacherName,id_teacher:undefined,status})
         res.json({
             ok : true,
             courses:coursesTeachers

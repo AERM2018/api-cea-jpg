@@ -101,7 +101,7 @@ const getExtraCourseGrades = async(req, res = response) => {
     Stu_extracou.belongsTo(Student,{foreignKey:'id_student'})
     Student.hasOne(Stu_extracou,{foreignKey:'id_student'})
 
-    let courseInfo = await getExtraCourseInfo(id_ext_cou)
+    let courseInfo = await getExtraCourseInfo({id_ext_cou})
     let grades = await Stu_extracou.findAll({
         include : {
             model : Student,
@@ -114,7 +114,7 @@ const getExtraCourseGrades = async(req, res = response) => {
     grades = grades.map( ({grade,student}) => ({grade,...student}))
     res.status(200).json({
         ok: true,
-        ...courseInfo,
+        ...courseInfo[0],
         grades
     })
 }

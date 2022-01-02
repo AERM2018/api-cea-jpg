@@ -10,9 +10,7 @@ const ExtraCurricularCourses =  db.define('extracurricular_courses',{
     },
     id_major: {
         type : DataTypes.INTEGER,
-        validate : {
-            notEmpty : true
-        }
+        allowNull : false
     },
     ext_cou_name: {
         type : DataTypes.STRING(15),
@@ -22,34 +20,28 @@ const ExtraCurricularCourses =  db.define('extracurricular_courses',{
     },
     start_date: {
         type : DataTypes.DATE,
-        validate : {
-            notEmpty : true
-        }
+        allowNull : false
     },
     end_date: {
         type : DataTypes.DATE
     },
     limit_participants: {
         type : DataTypes.TINYINT,
-        validate : {
-            notEmpty : true
-        }
+        allowNull : false
     },
     cost: {
         type : DataTypes.FLOAT,
-        validate : {
-            notEmpty : true
-        }
+        allowNull : false
+
     },
     id_teacher: {
         type : DataTypes.STRING(30),
-        validate : {
-            notEmpty : true
-        }
+        allowNull : false
     },
     status:{
         type : DataTypes.TINYINT,
-        allowNull : false
+        allowNull : false,
+        defaultValue : true
     }
 },{
     timestamps : false,

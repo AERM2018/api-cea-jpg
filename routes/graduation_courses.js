@@ -21,17 +21,20 @@ Graduation_courses_Router.post('/', [
     validateJWT
 ],createGraduationCourses);
 
-Graduation_courses_Router.put('/:id',[
-    param('id','id_graduation_courses es llave primaria de tipo integer').not().isEmpty().isInt(),
-    check('course_grad_name','course_grad_name es campo tipo string de 25 carácteres, es obligatorio').isString().not().isEmpty().isLength( { max: 25 } ),
-    check('start_date','start_date es campo de tipo DATE con fromato YYYY-MM-DD, es obligatorio').isDate().not().isEmpty(),
-    check('end_date','end_date es campo de tipo DATE con fromato YYYY-MM-DD, es obligatorio').isDate().not().isEmpty(),
+Graduation_courses_Router.put('/:id_graduation_course',[
+    param('id_graduation_course','El id del curso de graduación es obligatorio y es un número').not().isEmpty().isInt(),
+    check('course_grad_name','El nombre del curso de graduación es obligatorio y debe de tener máximo 25 caracteres').isString().not().isEmpty().isLength( { max: 25 } ),
+    check('start_date','La fecha de inicio del curso debe de estar fromato YYYY-MM-DD y es obligatoria').isDate().not().isEmpty(),
+    check('end_date','La fecha de fin del curso debe de estar fromato YYYY-MM-DD y es obligatoria').isDate().not().isEmpty(),
+    checkGraduationCourseExistence,
     validateFields,
     validateJWT
 ], updateGraduationCourses);
 
-Graduation_courses_Router.delete('/:id',[
-    param('id_graduation_courses','id_graduation_courses es llave primaria de tipo integer').isInt(),
+Graduation_courses_Router.delete('/:id_graduation_course',[
+    param('id_graduation_course','El id del curso de graduación es obligatorio y es un número').not().isEmpty().isInt(),
+    checkGraduationCourseExistence,
+    validateFields,
     validateJWT
 ], deleteGraduationCourses);
 

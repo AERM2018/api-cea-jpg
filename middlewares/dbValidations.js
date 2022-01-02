@@ -137,18 +137,16 @@ const checkPaymentExistence = async (req, res = response, next) => {
 }
 
 const checkGroupExistence = async (req, res = response, next) => {
-    const { id_group } = req.params
+    const id_group = req.params.id_group || req.body.id_group
     const group = await Group.findOne({
         where: { id_group }
     });
-
     if (!group) {
         return res.status(404).json({
             ok: false,
             msg: `El grupo con id ${id_group} no existe`
         })
     }
-
     next();
 }
 
@@ -259,7 +257,6 @@ const checkGraduationCourseExistence = async (req, res = response, next) => {
             msg: `El curso de graduación con el id ${id_graduation_course} no existe`
         })
     }
-    console.log("gce test");
     next();
 }
 

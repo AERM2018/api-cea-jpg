@@ -12,6 +12,7 @@ const { transporter } = require("../helpers/mailer");
 const Forgot_pass_code = require("../models/forgot_pass_code");
 const Rol_use = require("../models/rol_use");
 const { verify } = require("jsonwebtoken");
+const { printAndSendError } = require("../helpers/responsesOfReq");
 
 const signup = async (req, res = response) => {
     const { id, user_type, email, password } = req.body
@@ -34,26 +35,20 @@ const login = async (req, res = response) => {
         user = await User.findOne({
             where: { 'user_type': 'admin' }
         })
-
         if (!user) {
             return res.status(404).json({
                 ok: false,
                 msg: 'No se encontró a ningun usuario administrador'
             })
         }
-
         user.id_role = 1
         passValidation = bcrypt.compareSync(password, user.password);
-
-
     } else {
         const normalUser = await db.query(getUserById, {
             replacements: { 'id': id },
             type: QueryTypes.SELECT
         });
-
         user = normalUser[0]
-
         if (!user) {
             return res.status(404).json({
                 ok: false,
@@ -62,14 +57,12 @@ const login = async (req, res = response) => {
         }
         passValidation = bcrypt.compareSync(password, user.password)
     }
-
     if (!passValidation) {
         return res.status(400).json({
             ok: false,
             msg: `Datos de acceso erroneos, verifiquelos por favor.`
         })
     }
-
     // get data and create token
     const { id_user, user_type, id_role, email } = user
     let roles = await Rol_use.findAll({where : {id_user},attributes:['id_role']})
@@ -90,7 +83,7 @@ const login = async (req, res = response) => {
 
 const revalidateJWT = async (req, res = response) => {
     try {
-        const { id_user, user_type, id_role, email } = req
+        const { id_user, user_type, roles, email } = req
         const token = await createJWT(id_user, email, user_type, id_role)
         const userEntityInfo = await getLogInInfo(id_user,user_type)
         return res.status(200).json({
@@ -99,19 +92,12 @@ const revalidateJWT = async (req, res = response) => {
             id_user,
             email,
             user_type,
-            id_role,
+            roles,
             user : userEntityInfo
         })
     } catch (err) {
-        console.log(err);
-        return res.status(500).json({
-            ok: false,
-            msg: "Ocurrio un error"
-        })
+        printAndSendError(res,err)
     }
-
-
-
 }
 
 // FIXME:Cambiar mi correo por el de la alejandría

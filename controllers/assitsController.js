@@ -16,6 +16,7 @@ const Gro_cou_ass = require("../models/gro_cou_ass");
 const Student = require("../models/student");
 const Stu_extracou = require("../models/stu_extracou");
 const Stu_gracou = require("../models/stu_gracou");
+const Stu_gro = require("../models/stu_gro");
 const Teacher = require("../models/teacher");
 
 const getAllAssistance = async (req, res)=>{
@@ -271,27 +272,35 @@ const getCourseAssistance =  async(req, res) => {
 }
 
 const takeCourseAssistance = async (req, res = response) => {
-  const { studentsList, id_gro_cou } = req.body;
+  const { studentsList, id_group  } = req.body;
+  const {id_course} = req.params
+  let except = []
   try {
-    
-    studentsList.map(async (student) => {
-      const { id_student, attended } = student;
+    const {id_gro_cou} = await Gro_cou.findOne({where:{[Op.and]:[{id_group},{id_course}]}})
+    let studentsGroup = await Stu_gro.findAll({where:{id_group}})
+    studentsGroup = studentsGroup.map(({id_student})=>id_student)
+    await Promise.all(studentsList.map(async (studentItem) => {
+      const { matricula, attended } = studentItem;
+      const student = await Student.findOne({where:{matricula}})
+      console.log(student)
+      if(!student || !studentsGroup.includes(student.id_student)){
+        except.push(matricula)
+        return
+      }
       const assit = new Assit({ attended });
       const { id_assistance } = await assit.save();
-
       // Guardado en gro_cou_ass
-
       const gro_cou_ass = new Gro_cou_ass({
         id_gro_cou,
         id_assistance,
-        id_student,
+        id_student : student.id_student,
       });
       await gro_cou_ass.save();
-
-    });
+    }))
       res.json({
           ok : true,
-          msg : "Assitencia de curso tomada correctamente"
+          msg : "Assitencia de curso tomada correctamente",
+          except
       })
   } catch (err) {
       printAndSendError( res, err )
@@ -322,45 +331,33 @@ const updateAssitence = async (req, res = response)=>{
 
 const deleteAssistence = async (req, res = response)=>{
 const {id_assistance}=req.params;
-
 try{
   let result ;
-  
-    result = await Gro_cou_ass.findOne({
+  result = await Gro_cou_ass.findOne({
+    where:{ id_assistance}
+  })
+
+  if(!result){
+    result = await Extracurricularcourse_ass.findOne({
       where:{ id_assistance}
     })
-  
     if(!result){
-      result = await Extracurricularcourse_ass.findOne({
+      result = await Gra_sec_ass.findOne({
         where:{ id_assistance}
       })
-      if(!result){
-        result = await Gra_sec_ass.findOne({
-          where:{ id_assistance}
-        })
-      }
     }
-      
-    
-  // console.log(id_assistance)
+  }
   // Delete the record of the course
   await result.destroy();
   await Assit.destroy({
     where:{ id_assistance}
   });
-
-
   res.status(200).json({
       ok : true,
       msg : 'Asistencia eliminada correctamente'
   })
-
 }catch( err ){
-  console.log(err)
-  return res.status(500).json({
-      ok : false,
-      msg : 'Hable con el administrador'
-  })
+  printAndSendError(res,err)
 }
 
 }
@@ -400,7 +397,7 @@ const getExtrCourAssistance= async (req, res = response)=>{
     }
     return res.json({
       ok : true,
-        ...extraCourse,
+        ...extraCourse[0],
         students:studentAssistance
       
     })

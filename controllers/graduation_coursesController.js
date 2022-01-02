@@ -40,16 +40,14 @@ const getAllGraduationCourses = async (req=request, res = response) => {
         });
         graduation_courses = await Promise.all( graduation_courses.map( async(course) => {
             let {teacher,...coursesInfoJSON} = course.toJSON()
-            console.log(course.toJSON())
             coursesInfoJSON.graduation_sections = await Promise.all( course.graduation_sections.map(async(section) => {
                 section = await setSectionInactivate(section)
-                if(status!='all' && !section.in_progress) return
                 const {teacher,...sectionInfo}=section.toJSON()
                 return {...sectionInfo,...teacher}
             }))
             coursesInfoJSON.graduation_sections = coursesInfoJSON.graduation_sections.filter(section => section)
             course = await setCourseInactivate(course)
-            if(!course.status && status!='all') return
+            if(!course.status && status==1) return
             coursesInfoJSON.teacher_name = teacher.teacher_name
             return coursesInfoJSON
         }))
@@ -70,10 +68,9 @@ const getAllGraduationCourses = async (req=request, res = response) => {
 }
 
 const createGraduationCourses = async (req, res = response ) =>{
-    const { sections = [],...rest } = req.body;
+    const { sections = [],...restGraduationCourse } = req.body;
     try {
-        
-        const graduation_course = new Graduation_courses(rest)
+        const graduation_course = new Graduation_courses(restGraduationCourse)
         const {id_graduation_course} = await graduation_course.save();
         while(sections.length > 0){
             let graduation_section = new Graduation_section({...sections[0],id_graduation_course})
@@ -85,65 +82,37 @@ const createGraduationCourses = async (req, res = response ) =>{
             msg: 'Curso de graduación creado correctamente'
         })
     } catch (err) {
-        console.log(err)
-        res.status(500).json({
-            ok: false,
-            msg: 'Hable con el administrador'
-        })
+        printAndSendError(res,err)
     }
-
 }
 
 const updateGraduationCourses = async (req, res = response ) =>{
-    const { id } = req.params
+    const { id_graduation_course } = req.params
     const { body } = req;
 
     try {
         // Check if the record exists before updating
-        const graduation_course = await Graduation_courses.findByPk(id)
-        if (!graduation_course) {
-            return res.status(404).json({
-                ok : false,
-                msg : `El curso de graduación con id ${id} no existe, verifíquelo por favor.`
-            })
-        }
-
+        const graduation_course = await Graduation_courses.findByPk(id_graduation_course)
         // Update record in the database
         await Graduation_courses.update(body, {
-            where: { 'id_graduation_course': id }
+            where: { id_graduation_course }
         })
         return res.status(200).json({
             ok : true,
             msg : 'El curso de graduación ha sido actualizado correctamente'
         })
-
     } catch (err) {
-        console.log(err)
-        return res.status(500).json({
-            ok : false,
-            msg : 'Hable con el administrador'
-        })
+        printAndSendError(res,err)
     }
     
 }
 
 const deleteGraduationCourses = async (req, res = response ) =>{
     //TODO: Revisar si es baja física o lógica
-
-    const {id}= req.params;
-    const {body}=req;
-
+    const {id_graduation_course}= req.params;
     try{
-        const graduation_course= await Graduation_courses.findOne({
-            where: { id_graduation_course:id }
-        });
-        if(!graduation_course){
-            return res.status(404).json({
-                ok:false,
-                msg: "No existe un curso de graduación el id " +id,
-            });
-        }
-        await graduation_course.destroy();
+        await Graduation_section.destroy({where:{id_graduation_course}})
+        await Graduation_courses.destroy({where:{id_graduation_course}});
         res.status(200).json({
             ok: true,
             msg: "El curso de graduación se eliminó correctamente"

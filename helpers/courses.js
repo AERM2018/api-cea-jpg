@@ -59,7 +59,7 @@ const getRegularCourseInfo = async(opts={id_gro_cou:0,addTeacher : false}) => {
     return {id_course,course_name,id_group,...restGroup,major_name,...restCourse,...(addTeacher)&&cou_tea.teacher}
 }
 
-const getExtraCourseInfo = async(opts={id_ext_cou,addTeacher:false}) => {
+const getExtraCourseInfo = async(opts={id_ext_cou:undefined,addTeacher:false,teacherName:'',id_teacher:undefined,courseName:'',status:undefined}) => {
     ExtraCurricularCourses.belongsTo(Major,{foreignKey:'id_major'})
     Major.hasOne(ExtraCurricularCourses,{foreignKey:'id_major'})
     ExtraCurricularCourses.belongsTo(Teacher,{foreignKey:'id_teacher'})
@@ -67,7 +67,7 @@ const getExtraCourseInfo = async(opts={id_ext_cou,addTeacher:false}) => {
     Major.belongsTo(Educational_level,{foreignKey:'id_edu_lev'})
     Educational_level.hasOne(Major,{foreignKey:'id_edu_lev'})
 
-    const {id_ext_cou,addTeacher} = opts
+    const {id_ext_cou,addTeacher,teacherName,id_teacher,courseName,status} = opts
     let includeOpts={include:[{
       model:Major,
       attributes : [[fn('concat',col('major->educational_level.educational_level')," en ",col('major.major_name')),'major_name']],
@@ -77,16 +77,26 @@ const getExtraCourseInfo = async(opts={id_ext_cou,addTeacher:false}) => {
     }]}
     if(addTeacher) includeOpts.include.push({
       model : Teacher,
-      attributes : ['id_teacher',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'teacher_name']]
+      attributes : ['id_teacher',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'teacher_name']],
+      where: (teacherName)
+        ?where(literal(`(CONCAT(LOWER(name),' ',LOWER(surname_f),' ',LOWER(surname_m)))`),{[Op.like]:`%${teacherName}%`})
+        :undefined
     })
-    let extraCourse = await ExtraCurricularCourses.findOne({
+    let extraCourses = await ExtraCurricularCourses.findAll({
       ...includeOpts,
-      where: { id_ext_cou }
+      where: { [Op.and] : [
+        ...(courseName)?[{ext_cou_name:{[Op.like]:`%${courseName}%`}}]:[],
+        ...(status!=undefined)?[{status}]:[],
+        ...(id_ext_cou)?[{id_ext_cou}]:[],
+        ...(id_teacher)?[{id_teacher}]:[],
+      ]}
     })
-    const isInactivate = setCourseInactivate(extraCourse)
-    if(isInactivate) extraCourse.status = 0
-    let {teacher,major:{major_name},...restExtraCourse} =  extraCourse.toJSON()
-    return {...restExtraCourse,major_name,...(addTeacher)&&teacher}
+    extraCourses = Promise.all(extraCourses.map( async(extraCourse)=>{
+      extraCourse = await setCourseInactivate(extraCourse)
+      let {teacher,major:{major_name},...restExtraCourse} =  extraCourse.toJSON()
+      return {...restExtraCourse,major_name,...(addTeacher)&&teacher}
+    }))
+    return extraCourses
 }
 
 const getGraduationSectionInfo = async(id_graduation_section) => {
@@ -162,7 +172,7 @@ const setSectionInactivate = async(section) =>{
 }
 
 const getCoursesGiveTeachersOrTeacher = async(query={courseName,teacherName,id_teacher,status:''}) => {
-  const {courseName,teacherName,id_teacher,status} = query
+  const {courseName,teacherName='',id_teacher,status} = query
   const statusCondition = (status == 'all')  ? {} : {status}
   const withTeacher = (id_teacher==undefined) ? true : false
   const teacherAssosiation = {
@@ -205,20 +215,8 @@ const getCoursesGiveTeachersOrTeacher = async(query={courseName,teacherName,id_t
   }))
   coursesTeacherGiven = coursesTeacherGiven.filter( course => course )
   // Extracurricular courses
-  ExtraCurricularCourses.belongsTo(Teacher,{foreignKey:'id_teacher'})
-  Teacher.hasOne(ExtraCurricularCourses,{foreignKey:'id_teacher'})
-  let extCoursesTeacherGiven = await ExtraCurricularCourses.findAll({
-      ...(withTeacher)?{include:teacherAssosiation}:{},
-      where : { ...(id_teacher)?{id_teacher}:{}, ext_cou_name:{[Op.like]:`%${courseName}%`},...statusCondition }, attributes : ['id_ext_cou'],
-      raw : true,
-      nest : true
-  })
-  extCoursesTeacherGiven = await Promise.all(extCoursesTeacherGiven.map( async(extra_course) => {
-      const {id_ext_cou,teacher} = extra_course
-      let extraCourseInfo = await getExtraCourseInfo({id_ext_cou})
-      if(withTeacher) extraCourseInfo = {...extraCourseInfo,...teacher}
-      return {id_ext_cou,...extraCourseInfo,type:'extra'}
-  }))
+    let extraCoursesInfo = await getExtraCourseInfo({id_teacher,courseName,status:statusCondition.status})
+    extraCoursesInfo = extraCoursesInfo.map( extraCourse => ({...extraCourse,type:'extra'}))
   // // Graduation courses
   Graduation_section.belongsTo(Graduation_courses, {foreignKey : 'id_graduation_course'})
   Graduation_courses.hasMany(Graduation_section, {foreignKey : 'id_graduation_course'})
@@ -230,7 +228,11 @@ const getCoursesGiveTeachersOrTeacher = async(query={courseName,teacherName,id_t
       include : [{
         model : Graduation_section,
         attributes :{ exclude : [ 'id_graduation_course']},
-        where :{  ...(id_teacher)?{id_teacher}:{}, ...(statusCondition=={})&&{in_progress:statusCondition.status} },
+        where :{[Op.and]:[
+          ...(id_teacher)?[{id_teacher}]:[], 
+          ...(statusCondition=={})?[{in_progress:statusCondition.status}]:[],
+        ]
+         },
         required : false,
         ...(withTeacher)?[{include : teacherAssosiation}]:[],
         include : {
@@ -240,26 +242,32 @@ const getCoursesGiveTeachersOrTeacher = async(query={courseName,teacherName,id_t
       },
       ...[teacherAssosiation]
   ],
-      where : where(literal(`(((SELECT COUNT(id_graduation_section) FROM graduation_sections WHERE ${(id_teacher)?`id_teacher ='${id_teacher}'`:true} AND ${col('graduation_section.id_graduation_course') == col('graduation_course.id_graduation_course')}) > 0) or (${(id_teacher)?`(graduation_courses.id_teacher = '${id_teacher}')`:true}) AND ${col('course_grad_name').col} LIKE '%${courseName}%' ${(status!='all')?` AND status = ${status}`:''})`),true)
-  })
+  where: {[Op.and]:[
+    ...(courseName)?[{course_grad_name:{[Op.like]:`%${courseName}%`}}]:[],
+    ...(status!='all')?[{status}]:[]
+  ]}
+})
   gradCoursesTeacherGiven = await Promise.all( gradCoursesTeacherGiven.map( async(course) => {
       let {teacher,...coursesInfoJSON} = course.toJSON()
       coursesInfoJSON.graduation_sections = await Promise.all( course.graduation_sections.map(async(section) => {
           section = await setSectionInactivate(section)
-          if(status!='all' && !section.in_progress) return
+          if(status==1 && !section.in_progress) return
           const {teacher,...sectionInfo}=section.toJSON()
           return {...sectionInfo,...teacher}
       }))
+      if(id_teacher){
+        if(teacher.id_teacher != id_teacher && !coursesInfoJSON.graduation_sections.some(section=> section.id_teacher == id_teacher)) return
+      }
       coursesInfoJSON.graduation_sections = coursesInfoJSON.graduation_sections.filter(section => section)
       course = await setCourseInactivate(course)
-      if(!course.status && status!='all') return
+      if(!course.status && status==1) return
       coursesInfoJSON.teacher_name = teacher.teacher_name
       coursesInfoJSON.isTeacherTitular = (coursesInfoJSON.id_teacher == id_teacher) ? 1 : 0
       coursesInfoJSON.type = 'graduation_course'
       return coursesInfoJSON
   }))
   gradCoursesTeacherGiven = gradCoursesTeacherGiven.filter( graduation_course => graduation_course)
-  return [...coursesTeacherGiven,...extCoursesTeacherGiven,...gradCoursesTeacherGiven]
+  return [...coursesTeacherGiven,...extraCoursesInfo,...gradCoursesTeacherGiven]
 }
 
 module.exports = {

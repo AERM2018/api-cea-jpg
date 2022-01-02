@@ -33,7 +33,8 @@ const Graduation_courses =  db.define('graduation_courses',{
     },
     status:{
         type : DataTypes.TINYINT,
-        allowNull : false
+        allowNull : false,
+        defaultValue : true
     }
 },
 {

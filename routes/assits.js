@@ -56,6 +56,7 @@ assitsRouter.get('/grasec/:id_graduation_section',[
 // ] ,getAllGraSecAssistance);
 
 // // CREATES
+// TODO: Solo tomar asistencia de los alumnos que pertenezcan al grupo
 
 assitsRouter.post('/courses/:id_course',[
     check('id_course','id_course de tipo integer, campo obligatorio').isInt().notEmpty(),
@@ -79,7 +80,6 @@ assitsRouter.post('/grasec/:id_graduation_section',[
 ] ,takeGraSecAssistance);
 
 // // UPDATES
-
 assitsRouter.put( '/:id_assistance', [
     param('id_assistance','Campo de tipo integer, obligatorio').not().isEmpty().isInt(),
     check('attended','Campo de tipo tinyint, obligatorio. 0=Falta, 1=Asistencia, 2=Falta justificada').isNumeric().notEmpty(),

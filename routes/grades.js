@@ -61,6 +61,7 @@ gradesRouter.post('/regular/:id_course', [
     check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
     check('students',"Las calificaciones de los estudiantes son obligatorias").isArray({ min:1 }),
     validateFields,
+    checkGroupCourseExistence,
     isAllowedToUploadGrades,
     checkGrades,
 ], uploadCourseGrades);

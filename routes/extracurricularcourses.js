@@ -12,17 +12,19 @@ extraCurricularCoursesRouter.get('/',[
 ], getAllExtraCurricularCourses);
 
 extraCurricularCoursesRouter.get('/:id_ext_cou/students',[
-
+    validateJWT,
+    check('id_ext_cou','El id del curso extracurricular es obligatorio y es número').notEmpty().isNumeric(),
+    validateFields,
+    checkExtraCurCourExistence,
 ],getStudentsFromExtraCourse);
 
 extraCurricularCoursesRouter.post('/', [
-    check('id_major','id_major es campo tipo integer, obligatorio').isInt().not().isEmpty(),
-    check('ext_cou_name','ext_cou_name es campo de tipo string máximo de 15 carácteres, obligatorio').isString().not().isEmpty().isLength( { max: 15 } ),
-    check('start_date','start_date es campo de tipo DATE con fromato YYYY-MM-DD, es obligatorio').isDate().not().isEmpty(),
-    check('finish_date','finish_date es campo de tipo DATE con fromato YYYY-MM-DD, puede ser nulo').isDate(),
-    check('limit_participants','limit_participants es campo de tipo tinyint, obligatorio').isNumeric().not().isEmpty(),
-    check('cost','cost requiere tipo de dato float, es obligatorio').isFloat().not().isEmpty(),
-    check('id_teacher','id_teacher es tipo string máximo de 30 carácteres, es obligatorio').isString().not().isEmpty().isLength( { max: 30 } ),
+    check('id_major','El id de la carrera es obligatorio y es un número.').isInt().not().isEmpty(),
+    check('ext_cou_name','El nombre de curso extracurricular es obligatorio y tiene como máximo de 15 carácteres.').isString().not().isEmpty().isLength( { max: 15 } ),
+    check('start_date','La fecha de inicio del curso debe de ser en fromato YYYY-MM-DD y es obligatoria.').isDate().not().isEmpty(),
+    check('limit_participants','El limíte de participantes es obligatorios').isNumeric().not().isEmpty(),
+    check('cost','El costo del curso es obligatorio.').isFloat().not().isEmpty(),
+    check('id_teacher','El id del maestro es obligatorio.').isString().not().isEmpty().isLength( { max: 30 } ),
     checkMajorExistence,
     checkTeacherExistence,
     validateFields,
@@ -30,16 +32,19 @@ extraCurricularCoursesRouter.post('/', [
 ],createExtraCurricularCourse);
 
 extraCurricularCoursesRouter.put('/:id_ext_cou',[
-    param('id_ext_cou','id_ext_cou es llave primaria de tipo integer').not().isEmpty().isInt(),
-    check('id_major','id_major es campo tipo integer, obligatorio').isInt().not().isEmpty(),
-    check('ext_cou_name','ext_cou_name es campo de tipo string máximo de 15 carácteres, obligatorio').isString().not().isEmpty().isLength( { max: 15 } ),
-    check('start_date','start_date es campo de tipo DATE con fromato YYYY-MM-DD, es obligatorio').isDate().not().isEmpty(),
-    check('finish_date','finish_date es campo de tipo DATE con fromato YYYY-MM-DD, puede ser nulo').isDate(),
-    check('limit_participants','limit_participants es campo de tipo tinyint, obligatorio').isNumeric().not().isEmpty(),
-    check('cost','cost requiere tipo de dato float, es obligatorio').isFloat().not().isEmpty(),
-    check('id_teacher','id_teacher es tipo string máximo de 30 carácteres, es obligatorio').isString().not().isEmpty().isLength( { max: 30 } ),
+    validateJWT,
+    param('id_ext_cou','El id del curso extracurricular es obligatorio y es un número.').not().isEmpty().isInt(),
+    check('id_major','El id de la carrera es obligatorio y es un número.').isInt().not().isEmpty(),
+    check('ext_cou_name','El nombre de curso extracurricular es obligatorio y tiene como máximo de 15 carácteres.').isString().not().isEmpty().isLength( { max: 15 } ),
+    check('start_date','La fecha de inicio del curso debe de ser en fromato YYYY-MM-DD y es obligatoria.').isDate().not().isEmpty(),
+    check('end_date','La fecha de fin del curso debe de ser en fromato YYYY-MM-DD y es obligatoria.').isDate().not().isEmpty(),
+    check('limit_participants','El limíte de participantes es obligatorios').isNumeric().not().isEmpty(),
+    check('cost','El costo del curso es obligatorio.').isFloat().not().isEmpty(),
+    check('id_teacher','El id del maestro es obligatorio.').isString().not().isEmpty().isLength( { max: 30 } ),
     validateFields,
-    validateJWT
+    checkExtraCurCourExistence,
+    checkMajorExistence,
+    checkTeacherExistence,
 ], updateExtraCurricularCourse);
 
 extraCurricularCoursesRouter.delete('/:id_ext_cou',[

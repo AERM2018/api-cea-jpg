@@ -3,9 +3,7 @@ const Group = require('../models/group');
 const Time_tables = require('../models/time_tables');
 const Major = require('../models/major');
 const Stu_gro = require('../models/stu_gro');
-const { Op, QueryTypes, fn, col, literal } = require('sequelize');
-const { db } = require('../database/connection');
-const { getGroups } = require('../queries/queries');
+const { Op, fn, col } = require('sequelize');
 const Courses = require('../models/courses')
 const Gro_cou = require('../models/gro_cou');
 const { response } = require('express');
@@ -14,8 +12,9 @@ const { printAndSendError } = require('../helpers/responsesOfReq');
 const Cou_tea = require('../models/cou_tea');
 const { getGroupInfo, getTitularTeacherOfCourse } = require('../helpers/groups');
 const { getGroupDaysAndOverdue } = require('../helpers/dates');
-const moment = require('moment');
 const { setCourseInactivate } = require('../helpers/courses');
+const Cam_gro = require('../models/cam_gro');
+const Campus = require('../models/campus');
 
 const getAllGroups = async (req, res) => {
     const {timeTable = false} = req.query
@@ -46,48 +45,27 @@ const getAllGroups = async (req, res) => {
 }
 
 const createGroup = async (req, res) => {
-    const { body } = req;
-    const { id_major, name_group, entry_year, end_year } = body;
-    const { time_tables } = body;
+    const { id_major, name_group, entry_year, end_year,time_tables,id_campus } = req.body;
     let id_group, id_time_table
     let ids_emp_tim
     try {
-
         const major = await Major.findByPk(id_major);
-        if (!major) {
-            return res.status(404).json({
-                ok: false,
-                msg: "No existe una carrera con el id " + id_major,
-            });
-        }
-        const groupName = await Group.findOne({
+        const groupCoincidence = await Group.findOne({
             where: { name_group }
         })
-        if (!groupName) {
-            const group = new Group({ id_major, name_group, entry_year, end_year });
-            const newGroup = await group.save()
-            const groupJson = newGroup.toJSON();
-            id_group = groupJson['id_group']
-        }
-        else {
+        if (groupCoincidence) {
             return res.status(404).json({
                 ok: false,
                 msg: "Ya existe una un grupo con el nombre " + name_group,
             });
         }
-
-
-
-
-
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador",
-        })
-    }
-    try {
+        const group = new Group({ id_major:major.id_major, name_group, entry_year, end_year });
+        const newGroup = await group.save()
+        const groupJson = newGroup.toJSON();
+        id_group = groupJson['id_group']
+        const cam_gro = new Cam_gro({id_campus,id_group})
+        await cam_gro.save()
+    
         ids_emp_tim = time_tables.map(async (x) => {
             let { day, start_hour, finish_hour } = x;
             const time = await Time_tables.findAll({
@@ -105,15 +83,6 @@ const createGroup = async (req, res) => {
 
         })
 
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador",
-        })
-    }
-
-    try {
         ids_emp_tim.forEach(async (x) => {
             id_time_table = await x
             const gro_tim = new Gro_tim({ id_group, id_time_table });
@@ -121,121 +90,78 @@ const createGroup = async (req, res) => {
 
         });
 
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador",
+        res.status(201).json({
+            ok: true,
+            msg: "Grupo creado correctamente"
         })
+    } catch (error) {
+        printAndSendError(res,error)
     }
-
-    res.status(201).json({
-        ok: true,
-        msg: "Grupo creado correctamente"
-    })
-
-
-
-
 }
 
 const updateGroup = async (req, res) => {
-    const { id } = req.params;
-    const { body } = req;
-    const { id_major, name_group } = body;
+    const { id_group } = req.params;
+    const { name_group = '', id_campus } = req.body;
     try {
-        const group = await Group.findByPk(id);
-        if (!group) {
-            return res.status(404).json({
-                ok: false,
-                msg: "No existe un grupo con el id " + id,
+        const group = await Group.findByPk(id_group);
+        if(name_group!=''){
+            const groupCoincidence = await Group.findOne({
+                where: {
+                    name_group,
+                    id_group: { [Op.ne]: id_group }
+                }
             });
+            if (groupCoincidence) 
+                return res.status(400).json({
+                    ok: false,
+                    msg: `Ya existe un grupo con el nombre ${name_group}`
+                })
+            await group.update({name_group});
         }
-        const major = await Major.findByPk(id_major);
-        if (!major) {
-            return res.status(404).json({
-                ok: false,
-                msg: "No existe una carrera con el id " + id_major
-            });
-        }
-
-        const groupName = await Group.findOne({
-            where: {
-                name_group,
-                id_group: { [Op.ne]: id }
-            }
-        });
-
-        if (groupName) {
-            return res.status(400).json({
-                ok: false,
-                msg: `Ya existe un grupo con el nombre ${name_group}`
+        if(id_campus){
+            const campus = await  Campus.findByPk(id_campus)
+            if(!campus) return res.status(404).json({
+                ok : false,
+                msg : `Campus con id ${id_campus} no encontrado.`
             })
+            await Cam_gro.update({id_campus},{where:{id_group}})
         }
-
-
-
-        await group.update(body);
-
         res.status(200).json({
             ok: true,
             msg: "El grupo se actualizo correctamente",
 
         })
-
-
     } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador"
-        })
+        printAndSendError(res,error)
     }
 }
 
 const deleteGroup = async (req, res) => {
-    const { id } = req.params;
-    const { body } = req;
-
+    const { id_group } = req.params;
     try {
-
-        const group = await Group.findByPk(id);
-        if (!group) {
-            return res.status(404).json({
-                ok: false,
-                msg: "No existe un grupo con el id " + id,
-            });
-        }
-
+        const group = await Group.findByPk(id_group);
         const stu_gro = await Stu_gro.findAll({
-            where: { id_group: id }
+            where: { id_group }
         })
         stu_gro.forEach(async (grupo) => {
             await grupo.destroy()
         })
-
         const gro_tim = await Gro_tim.findAll({
-            where: { id_group: id }
+            where: { id_group }
         })
         gro_tim.forEach(async (grupo) => {
             await grupo.destroy()
         })
-
-        await group.destroy(body);
-
+        await Cam_gro.destroy({where : {id_group}})  
+        await group.destroy();
         res.status(200).json({
             ok: true,
             msg: "El grupo se elimino correctamente",
 
         })
     } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador"
-        })
+        printAndSendError(res,error)
     }
-
 }
 
 const addCourseGroup = async (req, res) => {
@@ -244,20 +170,6 @@ const addCourseGroup = async (req, res) => {
 
 
     try {
-        // const group = await Group.findByPk(id_group);
-        // if (!group) {
-        //     return res.status(404).json({
-        //         ok: false,
-        //         msg: "No existe un grupo con el id " + id_group,
-        //     });
-        // }
-        // const course = await Courses.findByPk(id_course);
-        // if (!course) {
-        //     return res.status(404).json({
-        //         ok: false,
-        //         msg: `No existe una materia con el id ${ id_course }`
-        //     })
-        // }
         const groupCourse = await Gro_cou.findOne({
             where: {
                 id_course,
@@ -279,19 +191,9 @@ const addCourseGroup = async (req, res) => {
             ok: true,
             msg: "La materia se añadio al grupo correctamente"
         })
-
-
-        
     } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador"
-        })
+        printAndSendError(res,error)
     }
-
-
-
 }
 
 const removeCourseGroup = async(req, res) =>{
