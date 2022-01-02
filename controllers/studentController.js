@@ -66,7 +66,8 @@ const getAllStudents = async (req, res) => {
                     model : Group,
                     attributes : ['name_group']
                 }
-            }]
+            }],
+            attributes : {include : [[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']],}
         })
 
         students = students.map( student => {
