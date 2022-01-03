@@ -23,6 +23,7 @@ const Stu_info = require("../models/stu_info");
 const Test = require("../models/test");
 const { raw } = require("mysql");
 const { getTitularTeacherOfCourse } = require("./groups");
+const Req_pay = require("../models/req_pay");
 
 const getStudentInfo = async (matricula = '') => {
     let student = await Stu_info.findAll({
@@ -64,12 +65,13 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
         const last_payment_date = partial_pays_payment[partial_pays_payment.length - 1].toJSON()['date_p']
         switch (payment_type) {
             case 'Documento':
-                let req_pay = await db.query(getReqPay, { replacements: { id: id_payment }, type: QueryTypes.SELECT })
+                // let req_pay = await db.query(getReqPay, { replacements: { id: id_payment }, type: QueryTypes.SELECT })
+                let req_pay = await Req_pay.findOne({where:{id_payment},attributes:{exclude:['id'],raw:true}})
                 if (details) {
                     // Find the name of the document that is related with the payment
-                    const doc_type = req_pay[0].name 
-                    req_pay[0].name = document_types[doc_type]['name']
-                    const { name } = req_pay[0]
+                    const doc_type = req_pay.name 
+                    req_pay.name = document_types[doc_type]['name']
+                    const { name } = req_pay
                     extra = { name }
                 }
                 break;

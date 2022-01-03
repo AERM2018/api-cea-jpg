@@ -1,7 +1,7 @@
 const { Router, request } = require('express');
 const { check, param } = require('express-validator');
-const { createRequest, getAllTheRequests, completeARequest , deleteRequest } = require('../controllers/requestController');
-const { checkDepartmentExistence, checkStudentExistence } = require('../middlewares/dbValidations');
+const { createRequest, getAllTheRequests, completeARequest , deleteRequest, getRequestsFromStudent } = require('../controllers/requestController');
+const { checkDepartmentExistence, checkStudentExistence, checkRequestExistance } = require('../middlewares/dbValidations');
 const { getIdStudent } = require('../middlewares/getIds');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -11,6 +11,13 @@ requestRouter.get('/',[
     validateJWT
 ], getAllTheRequests)
 
+requestRouter.get('/students/:matricula',[
+    validateJWT,
+    check('matricula','La matricula del estudiante es obligatoria').notEmpty(),
+    validateFields,
+    checkStudentExistence,
+],getRequestsFromStudent)
+
 requestRouter.post('/',[
     validateJWT,
     check('matricula','La matricula del estudiante es obligatoria').isString().notEmpty(),
@@ -19,16 +26,18 @@ requestRouter.post('/',[
     checkStudentExistence,
 ], createRequest)
 
-requestRouter.post('/:id',[
-    param('id','El id de la solicitud es obligatorio y debe de ser un numero entero').isNumeric(),
+requestRouter.post('/:id_request',[
     validateJWT,
-    validateFields
+    param('id_request','El id de la solicitud es obligatorio y debe de ser un numero entero').isNumeric(),
+    validateFields,
+    checkRequestExistance
 ], completeARequest)
 
-requestRouter.delete('/:id', [
-    param('id','El id de la solicitud es obligatorio y debe de ser un numero entero').isNumeric(),
+requestRouter.delete('/:id_request', [
+    validateJWT,
+    param('id_request','El id de la solicitud es obligatorio y debe de ser un numero entero').isNumeric(),
     validateFields,
-    validateJWT
+    checkRequestExistance,
 ], deleteRequest)
 
 

@@ -24,6 +24,7 @@ const Teacher = require('../models/teacher');
 const Tesine = require('../models/tesine');
 const Test = require('../models/test');
 const User = require('../models/user');
+const Request = require('../models/request');
 const { document_types } = require('../types/dictionaries');
 
 const checkCampusExistence = async (id_campus = 0) => {
@@ -409,6 +410,18 @@ const checkRoles = ( rolesWithPermission = []) => {
     }
 
 }
+
+const checkRequestExistance = async( req, res, next ) =>{
+    const id_request = req.params.id_request || req.body.id_request
+    const request = await Request.findByPk(id_request);
+    if (!request){
+        return res.status(400).json({
+            ok: false,
+            msg: `No existe la peticion con el id ${id_request}`
+        })
+    }
+    next()
+}
 module.exports = {
     checkCampusExistence,
     checkStudentExistence,
@@ -440,5 +453,6 @@ module.exports = {
     checkUserExistance,
     isAllowedToUploadGrades,
     checkRoles,
-    hasStudentTakenCourse
+    hasStudentTakenCourse,
+    checkRequestExistance
 }

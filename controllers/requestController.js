@@ -12,109 +12,26 @@ const { document_types } = require("../types/dictionaries")
 const Partial_pay = require('../models/partial_pay')
 const Emp_par_pay = require('../models/emp_pay')
 const { response } = require('express')
+const { getRequests } = require('../helpers/requests')
+const { printAndSendError } = require('../helpers/responsesOfReq')
 moment().locale('es')
 const getAllTheRequests = async (req, res) => {
     try {
-        let { date = moment().local().format("YYYY-MM-DD"), status = 0} = req.query;
-        let requests;
-        const estado = status ? 'finalizado' : 'no finalizada'
-        let condition;
-        condition = (date === 'all') 
-            ? {
-                status_request: status
-            }
-            :{
-                creation_date: date,
-                status_request: status
-            }
-
-            Request.belongsTo(Payment,{ foreignKey : 'id_payment'})
-            Payment.hasOne(Request,{ foreignKey : 'id_payment'})
-
-            Request.belongsTo(Document,{ foreignKey : 'id_document'})
-            Document.hasOne(Request,{ foreignKey : 'id_document'})
-
-            Stu_pay.belongsTo(Payment,{ foreignKey : 'id_payment'})
-            Payment.hasOne(Stu_pay,{ foreignKey : 'id_payment'})
-
-            Stu_pay.belongsTo(Student,{ foreignKey : 'id_student'})
-            Student.hasMany(Stu_pay,{ foreignKey : 'id_student'})
-
-            requests = await Request.findAll({
-                include : [{
-                   model : Payment,
-                   include : {
-                       model : Stu_pay,
-                       include : {
-                           model : Student,
-                           attributes : [[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'student_name'],'matricula','id_student']
-                       }
-                   }
-                },{
-                    model : Document,
-                    attributes : ['document_type']
-                }],
-                where : condition,
-                attributes : {
-                    exclude : ['id_document','id_payment','id_department']
-                }
-            })
-
-
-        if (!requests) {
+        let { date = moment().local().format("YYYY-MM-DD"), status = 'all'} = req.query;
+        const requestsFound = await getRequests({status,date})
+        if (!requestsFound) {
             return res.status(400).json({
                 ok: false,
                 msg: "No existen peticiones de la fecha " + date + 'con el estado ' + estado
             })
         }
-
-        requests = requests.map( request => {
-            const {payment,document,...restoRequest} = request.toJSON();
-            return {
-                ...restoRequest,
-                creation_date : moment(restoRequest.creation_date).format('D,MMMM,YYYY'),
-                ...payment.stu_pay.student,
-                document_type : document.document_type,
-                document_name : document_types[document.document_type].name
-            }
-        })
-      
-        // const responseRequest = await Promise.all(requests.map(async (request) => {
-            
-        //     const { id_payment, id_document, id_department, id_request, creation_date } = request
-           
-
-        //    //const {id_student} = await Stu_pay.findOne({
-        //    //    where: { id_payment }
-        //    //})
-
-        //     //const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-        //     const {status_payment,name,cost} = await Req_pay.findOne({
-        //         where: { id_request }
-        //     })
-
-        //     return {
-        //             request,
-        //             //student,
-        //             //id_department,
-        //             status_payment,
-        //             name:document_types[name]['name'],
-        //             cost
-        //             //id_document
-        //     }
-        // }))
-
         return res.status(200).json({
             ok: true,
-            requests
+            requests:requestsFound
         })
 
     } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador"
-        })
+        printAndSendError(res,error)
     }
 }
 
@@ -172,6 +89,7 @@ const createRequest = async (req, res) => {
         })
     }
 }
+
 const completeARequest = async (req, res = response)=>{
     const { id } = req.params;
     Request.belongsTo(Document,{foreignKey:'id_document'});
@@ -218,10 +136,10 @@ const completeARequest = async (req, res = response)=>{
 }
 
 const deleteRequest = async  (req, res) => {
-    const {id} = req.params;
+    const {id_request} = req.params;
     
     try {
-        const request = await Request.findByPk(id);
+        const request = await Request.findByPk(id_request);
         if (!request){
             return res.status(400).json({
                 ok: false,
@@ -255,10 +173,24 @@ const deleteRequest = async  (req, res) => {
     }
 }
 
+const getRequestsFromStudent = async (req, res) => {
+    const {matricula} = req.params
+    try {
+        const requestsStudent = await getRequests({matricula})
+        return res.json({
+            ok : true,
+            requests : requestsStudent
+        })
+    } catch (error) {
+        printAndSendError(res,error)
+    }
+
+}
 
 module.exports = {
     createRequest,
     getAllTheRequests,
     completeARequest,
-    deleteRequest
+    deleteRequest,
+    getRequestsFromStudent
 }

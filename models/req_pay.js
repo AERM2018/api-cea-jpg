@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const { db } = require("../database/connection");
 
-const Req_pay = db.define('Req_pay',{
+const Req_pay = db.define('req_pay',{
     id_request : {
         type : DataTypes.INTEGER,
         autoIncrement : true,
