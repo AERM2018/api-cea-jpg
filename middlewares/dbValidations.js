@@ -217,7 +217,7 @@ const isValidPaymentMethod = ( payment_method= ' ' ) => {
     }
 }
 const isValidPaymentType = ( payment_type = ' ' ) => {
-    if(!['documento','inscripción','materia'].includes(payment_type.toLowerCase())){
+    if(!['documento','inscripción','materia','curso extracurricular'].includes(payment_type.toLowerCase())){
         throw Error('Tipo de pago invalido.')
     }else{
         return true

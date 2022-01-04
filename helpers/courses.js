@@ -89,7 +89,8 @@ const getExtraCourseInfo = async(opts={id_ext_cou:undefined,addTeacher:false,tea
         ...(status!=undefined)?[{status}]:[],
         ...(id_ext_cou)?[{id_ext_cou}]:[],
         ...(id_teacher)?[{id_teacher}]:[],
-      ]}
+      ]},
+      attributes : { include : [[literal(`(limit_participants - (SELECT COUNT(*) FROM stu_extracou WHERE stu_extracou.id_ext_cou = id_ext_cou))`),'spot_left']]}
     })
     extraCourses = Promise.all(extraCourses.map( async(extraCourse)=>{
       extraCourse = await setCourseInactivate(extraCourse)

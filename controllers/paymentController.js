@@ -30,6 +30,9 @@ const Emp_par_pay = require("../models/emp_pay");
 const Partial_pay = require("../models/partial_pay");
 const { getGroupDaysAndOverdue } = require("../helpers/dates");
 const Educational_level = require("../models/educational_level");
+const ExtraCurricularCourses = require("../models/extracurricularcourses");
+const { getExtraCourseInfo } = require("../helpers/courses");
+const Stu_extracou = require("../models/stu_extracou");
 
 const getAllPayments = async (req, res = response) => {
   const { major_name = "", name_group = "", order_money = 'asc',order_money_exp = 'asc' } = req.query;
@@ -118,6 +121,7 @@ const createPayment = async (req, res = response) => {
     id_card,
     amount,
     payment_type,
+    id_ext_cou
   } = req.body;
   let { start_date } = req.body;
   const { id_employee, id_student, enroll } = req;
@@ -326,6 +330,29 @@ const createPayment = async (req, res = response) => {
             msg: "Pago de materia denegado, no se pueden pagar materias de meses anteriores al actual con diferencia de mas de 15 días.",
           });
         }
+
+      case 'curso extracurricular':
+        if(!id_ext_cou)  return res.status(400).json({
+          ok : false,
+          msg:`El id del curso extracurrcular es obligatorio`
+        })
+        const [extraCourse] = await getExtraCourseInfo({id_ext_cou})
+        if(!extraCourse) return res.status(404).json({
+          ok : false,
+          msg:`El curso extra curricular con id ${id_ext_cou} no existe.`
+        })
+        if(extraCourse.spot_left < 1) return res.status(400).json({
+          ok : false,
+          msg:`No hay espacios disponibles para inscribir al curso extra curricular con id ${id_ext_cou}.`
+        })
+        const timesStudentInCourse = await Stu_extracou.count({where:{[Op.and]:[{id_ext_cou},{id_student}]}})
+        if(timesStudentInCourse > 1) return res.status(400).json({
+          ok : false,
+          msg:`El alumno ya se encuentra inscrito al curso extra curricular con id ${id_ext_cou}.`
+        })
+        total_to_pay = extraCourse.cost
+        cutoff_date = moment().local().endOf("month").format().substr(0, 10);
+        break
     }
 
     const payment_date =
@@ -342,7 +369,12 @@ const createPayment = async (req, res = response) => {
     const payment = await new_payment.save();
     const { id_payment } = payment.toJSON();
     const stu_pay = new Stu_pay({ id_payment, id_student });
-    await stu_pay.save();
+    const {id_stu_pay} = await stu_pay.save();
+    if(payment_type.toLowerCase() == 'curso extracurricular'){
+      msg = ''
+      const student_extra = new Stu_extracou({id_student,id_ext_cou,grade:0,id_stu_pay})
+      await student_extra.save()
+    }
 
     const partial_pay = new Partial_pay({
       id_payment,
@@ -457,9 +489,13 @@ const deletePayment = async (req, res = response) => {
     });
 
     const { payment_type, payment_method } = payment.toJSON();
-    await Stu_pay.destroy({
+    const stu_pay = await Stu_pay.findOne({
       where: { id_payment },
     });
+    if (payment_type == "Curso extracurricular"){
+      await Stu_extracou.destroy({where:{id_stu_pay:stu_pay.id_stu_pay}})
+    }
+    await stu_pay.destroy()
 
     const partial_pays = await Partial_pay.findAll({
       where: { id_payment },

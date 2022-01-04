@@ -18,7 +18,11 @@ const Stu_extracou = db.define('stu_extracou',{
     grade : {
         type : DataTypes.FLOAT(4),
         allowNull : false
-    }
+    },
+    id_stu_pay : {
+        type : DataTypes.INTEGER,
+        allowNull : false
+    },
 },{
     timestamps : false,
     freezeTableName : true
