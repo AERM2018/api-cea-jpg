@@ -56,7 +56,7 @@ const getRequests = async(opts={matricula:'',status:0,date:''}) => {
                 creation_date : moment(restoRequest.creation_date).format('D,MMMM,YYYY'),
                 ...student,
                 document_type : document.document_type,
-                document_name : document_types[document.document_type].name
+                document_name : document_types.find( documentType => documentType.id === document.document_type)
             }
         }) : []
 }

@@ -70,7 +70,7 @@ const getPaymentStudent = async (id_student = '', details = false, status_paymen
                 if (details) {
                     // Find the name of the document that is related with the payment
                     const doc_type = req_pay.name 
-                    req_pay.name = document_types[doc_type]['name']
+                    req_pay.name = document_types.find( document => document.id === doc_type).name
                     const { name } = req_pay
                     extra = { name }
                 }
