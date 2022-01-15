@@ -18,7 +18,7 @@ documentsRouter.get( '/students/:matricula/check', [
 ] ,getDocsTypesAvailableToStudent);
  
 documentsRouter.post('/:document_type/students/:matricula',[
-    check('document_type','El tipo de documento es obligatorio y es un numero entero').isInt().notEmpty().custom(isValidDocumentType),
+    check('document_type','El tipo de documento es obligatorio y es un numero entero').isInt().notEmpty(),
     check('matricula','La matricula del estudiante es obligatoria').notEmpty(),
     validateFields,
     checkStudentExistence,

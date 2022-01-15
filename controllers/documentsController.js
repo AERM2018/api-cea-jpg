@@ -16,37 +16,9 @@ const { response } = require("express");
 const Stu_info = require("../models/stu_info");
 const getTestInfo = require("../helpers/tests");
 const getDocsTypesAvailableToStudent = async (req, res) => {
-    // const { document_type } = req.body;
     const { id_student } = req
     try {
         const {educational_level} = await Stu_info.findOne({where:{id_student},attributes:{exclude:['id']},raw:true})
-        // console.log(educational_level)
-        // console.log(document_types.filter(({name}) => name.toLowerCase().includes(`certificado de ${educational_level.toLowerCase()}`) || name.toLowerCase().includes(`titulo de ${educational_level.toLowerCase()}`)))
-        // const [student] = await db.query(getStuInfo, { replacements: { id: id_student }, type: QueryTypes.SELECT })
-        // const student = await Stu_info.findOne({
-        //     where:{id_student},
-        //     attributes : {
-        //         exclude:['id','name','surname_f','surname_m',],
-        //         include : [[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
-        //     },
-        //     raw : true
-        // })
-        // // const [grades] = await db.query(getGradesByStudent, { replacements: { id_student, id_group: student.id_group }, type: QueryTypes.SELECT })
-        // grades = await getGradesStudent(id_student)
-        // course = await getCourseStudentIsTaking(student.id_group)
-        // let info = {}
-        // info = (document_type != 0)
-        // ? {
-        //     ...student,
-        //     ...course,
-        //     document_name:document_types[document_type]['name']
-        // }
-        // : {
-        //         ...student,
-        //         ...course,
-        //         document_name:document_types[document_type]['name'],
-        //         grades
-        // }
         const documents = [
             ...document_types.filter(({name}) => (
                 (!name.toLowerCase().includes('certificado de') && !name.toLowerCase().includes('titulo de')) || 
@@ -57,31 +29,6 @@ const getDocsTypesAvailableToStudent = async (req, res) => {
             ok :true,
             document_types:documents
         })
-        // if (document_type != 0) {
-
-        //     return res.status(200).json({
-        //         ok: true,
-        //         ...student,
-        //         document_name:document_types[document_type]['name']
-
-        //     })
-        // }
-        // else {
-
-        //     return res.status(200).json({
-        //         ok: true,
-        //         ...student,
-        //         document_name:document_types[document_type]['name'],
-        //         grades
-
-
-        //     })
-
-        // }
-
-
-
-
     } catch (error) {
         printAndSendError(res, error);
     }
@@ -93,23 +40,27 @@ const createDocument = async(req, res = response) => {
     const {id_group,id_course} = req.body
     document_type = parseInt(document_type)
     let toolsForMakingDoc = {};
-    
-    if(![11].includes(document_type)){
-        toolsForMakingDoc.student = await getStudentInfo(matricula)
-        if([0,1,5,6,10].includes(document_type)){
-            let { grades, generalAvg }= await getGradesStudent(toolsForMakingDoc.student.id_student,{ withAvg : true, forKardex:true }) || []
-            toolsForMakingDoc.student.grades = grades
-            toolsForMakingDoc.student.generalAvg = generalAvg
-        }
-        if([2,3].includes(document_type)){
-            toolsForMakingDoc.student.worksFor = {person_name, person_workstation}
+    if(document_types.map( type => type.id).includes(document_type)){
+        if(![11].includes(document_type)){
+            toolsForMakingDoc.student = await getStudentInfo(matricula)
+            if([0,1,5,6,10].includes(document_type)){
+                let { grades, generalAvg }= await getGradesStudent(toolsForMakingDoc.student.id_student,{ withAvg : true, forKardex:true }) || []
+                if(grades.length === 0) return res.status(400).json({ok:false, msg: `No se ha podido generar un documento con id ${document_type} debido a que el estudiante con matricula ${matricula} no tiene calificiaciones cargadas.`})
+                toolsForMakingDoc.student.grades = grades
+                toolsForMakingDoc.student.generalAvg = generalAvg
+            }
+            if([2,3].includes(document_type)){
+                toolsForMakingDoc.student.worksFor = {person_name, person_workstation}
+            }
+        }else{
+            toolsForMakingDoc.tests = await getTestInfo(true,{id_group,id_course})
+            if (toolsForMakingDoc.tests == null) return res.status(404).json({
+                ok :false,
+                msg : 'No existen exámenes asignados para generar la acta de exámen.'
+            })
         }
     }else{
-        toolsForMakingDoc.tests = await getTestInfo(true,{id_group,id_course})
-        if (toolsForMakingDoc.tests == null) return res.status(404).json({
-            ok :false,
-            msg : 'No existen exámenes asignados para generar la acta de exámen.'
-        })
+        return res.status(400).json({ok:false, msg: `No se ha podido generar un documento con id ${document_type} debido a que no se encuentra registrado en el sistema.`})
     }
     const stream = res.writeHead(200,{
         'Content-Type':'application/pdf',
@@ -118,7 +69,7 @@ const createDocument = async(req, res = response) => {
     generateNewDoc(
         toolsForMakingDoc,
         document_type,
-        (chunk) => { stream.write(chunk)},
+        (chunk) => {stream.write(chunk)},
         () => stream.end()
     )
 }

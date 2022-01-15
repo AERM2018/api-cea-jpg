@@ -49,6 +49,7 @@ const login = async (req, res = response) => {
             type: QueryTypes.SELECT
         });
         user = normalUser[0]
+        console.log(user)
         if (!user) {
             return res.status(404).json({
                 ok: false,
@@ -84,7 +85,7 @@ const login = async (req, res = response) => {
 const revalidateJWT = async (req, res = response) => {
     try {
         const { id_user, user_type, roles, email } = req
-        const token = await createJWT(id_user, email, user_type, id_role)
+        const token = await createJWT(id_user, email, user_type, roles)
         const userEntityInfo = await getLogInInfo(id_user,user_type)
         return res.status(200).json({
             ok: true,
@@ -159,6 +160,7 @@ const changePassword = async(req, res = response) => {
             payload = verify(token,process.env.PASSWORD_JWT)
         }
         const salt = bcrypt.genSaltSync()
+        console.log(newPassword)
         const passEncrypted = bcrypt.hashSync(newPassword,salt)
         await User.update({password:passEncrypted},{where:{id_user}})
         return res.json({

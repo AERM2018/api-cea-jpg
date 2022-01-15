@@ -28,7 +28,6 @@ const getTestInfo = async(forMakingActa = false, findOpts = {applied : false},or
     Major.hasOne(Group,{foreignKey:'id_major'}) //Group - major
     Major.belongsTo(Educational_level,{foreignKey:'id_edu_lev'})
     Educational_level.hasOne(Major,{foreignKey:'id_edu_lev'}) //Group - major
-    console.log((Object.keys(findOpts),this.length!=0) ? findOpts : undefined)
     let tests = await Test.findAll({
         include : [
             {
