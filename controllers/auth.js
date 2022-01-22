@@ -69,7 +69,7 @@ const login = async (req, res = response) => {
     let roles = await Rol_use.findAll({where : {id_user},attributes:['id_role']})
     roles = roles.map(({id_role}) => id_role)
     const token = await createJWT(id_user, email, user_type, roles)
-    const userEntityInfo = await getLogInInfo(id,user_type)
+    const userEntityInfo = await getLogInInfo(id_user,user_type)
     res.status(200).json({
         ok: true,
         token,
