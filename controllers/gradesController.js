@@ -1,7 +1,7 @@
-const moment = require('moment');
-const Grades = require("../models/grades")
-const { db } = require('../database/connection');
-const { QueryTypes, Op, where, fn, col, literal } = require('sequelize');
+const moment = require("moment");
+const Grades = require("../models/grades");
+const { db } = require("../database/connection");
+const { QueryTypes, Op, where, fn, col, literal } = require("sequelize");
 const { response, request } = require("express");
 const Course = require("../models/courses");
 const Group = require("../models/group");
@@ -9,142 +9,210 @@ const { getGrades } = require("../queries/queries");
 const Stu_gro = require("../models/stu_gro");
 const Student = require("../models/student");
 const { printAndSendError } = require("../helpers/responsesOfReq");
-const { getGradesStudent, getExtraCoursesGradesStudent, getTesineGradeStudent } = require("../helpers/students");
+const {
+  getGradesStudent,
+  getExtraCoursesGradesStudent,
+  getTesineGradeStudent,
+} = require("../helpers/students");
 const { getGroupDaysAndOverdue } = require("../helpers/dates");
 const Payment = require("../models/payment");
 const Stu_pay = require("../models/stu_pay");
-const Stu_extracou = require('../models/stu_extracou');
-const Gro_cou = require('../models/gro_cou');
-const Tesine = require('../models/tesine');
-const Teacher = require('../models/teacher');
-const { filterGradesStudent } = require('../helpers/students');
-const Stu_gracou = require('../models/stu_gracou');
-const Major = require('../models/major');
-const Educational_level = require('../models/educational_level');
-const { getRegularCourseInfo, getExtraCourseInfo, getGraduationSectionInfo, getGraduationCourseInfo } = require('../helpers/courses');
-const ExtraCurricularCourses = require('../models/extracurricularcourses');
-const Test = require('../models/test');
-const Stu_info = require('../models/stu_info');
+const Stu_extracou = require("../models/stu_extracou");
+const Gro_cou = require("../models/gro_cou");
+const Tesine = require("../models/tesine");
+const Teacher = require("../models/teacher");
+const { filterGradesStudent } = require("../helpers/students");
+const Stu_gracou = require("../models/stu_gracou");
+const Major = require("../models/major");
+const Educational_level = require("../models/educational_level");
+const {
+  getRegularCourseInfo,
+  getExtraCourseInfo,
+  getGraduationSectionInfo,
+  getGraduationCourseInfo,
+} = require("../helpers/courses");
+const ExtraCurricularCourses = require("../models/extracurricularcourses");
+const Test = require("../models/test");
+const Stu_info = require("../models/stu_info");
 
-const getAllGrades = async( req, res = response) => {
-    let grades;
-    let {q = '', page = 1}=req.query
-    q = q.toLowerCase().split(' ').join('');
-    let students = await Stu_info.findAll({
-        where : {id_student : {[Op.in] : literal('(SELECT id_student FROM grades)')}},
-        attributes : {exclude:['id']}
-    })
-    students = students.map( (student) => {
-        return {
-            id_student  : student.id_student,
-            matricula : student.matricula,
-            student_name : `${student.name} ${student.surname_f} ${student.surname_m}`,
-            campus_name : student.campus_name,
-            group_name : student.name_group,
-            major_name : `${student.educational_level} en ${student.major_name}`,
-            q
-        }
-    })
-    students = await Promise.all(students)
-    students = filterGradesStudent(students,q)
-    students = students.filter((student,i) => i >= (9*page)-9 && i <= 9*page)
-    grades = [...students]
-    res.json({
-        ok : true,
-        grades
-    })
-}
+const getAllGrades = async (req, res = response) => {
+  let grades;
+  let { q = "", page = 1 } = req.query;
+  q = q.toLowerCase().split(" ").join("");
+  let students = await Stu_info.findAll({
+    where: {
+      id_student: { [Op.in]: literal("(SELECT id_student FROM grades)") },
+    },
+    attributes: { exclude: ["id"] },
+  });
+  students = students.map((student) => {
+    return {
+      id_student: student.id_student,
+      matricula: student.matricula,
+      student_name: `${student.name} ${student.surname_f} ${student.surname_m}`,
+      campus_name: student.campus_name,
+      group_name: student.name_group,
+      major_name: `${student.educational_level} en ${student.major_name}`,
+      q,
+    };
+  });
+  students = await Promise.all(students);
+  students = filterGradesStudent(students, q);
+  students = students.filter(
+    (student, i) => i >= 9 * page - 9 && i <= 9 * page
+  );
+  grades = [...students];
+  res.json({
+    ok: true,
+    grades,
+  });
+};
 
 const getAllGradesByCourse = async (req, res = response) => {
-    const { id_course,id_group } = req.params
+  const { id_course, id_group } = req.params;
 
-    try {
-        Grades.belongsTo(Course,{ foreignKey: 'id_course'})
-        Course.hasMany(Grades,{ foreignKey: 'id_course'})
+  try {
+    Grades.belongsTo(Course, { foreignKey: "id_course" });
+    Course.hasMany(Grades, { foreignKey: "id_course" });
 
-        Grades.belongsTo(Student, { foreignKey : 'id_student'})
-        Student.hasMany(Grades, { foreignKey : 'id_student'})
+    Grades.belongsTo(Student, { foreignKey: "id_student" });
+    Student.hasMany(Grades, { foreignKey: "id_student" });
 
-        const gro_cou = await Gro_cou.findOne({where:{[Op.and] : [{id_course},{id_group}]},raw:true})
-        let courseInfo = await getRegularCourseInfo({id_gro_cou:gro_cou.id_gro_cou})
-        let grades = await Grades.findAll({
-            include : [
-            {
-                model : Student,
-                attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
-            }],
-            attributes:{exclude:['id_course']},
-            where : { 
-                id_course,
-                id_student : { [Op.in] : literal(`(SELECT id_student FROM stu_gro WHERE id_group = ${id_group})`)}
-            }
-        })
-        grades = grades.map( grade => {
-            const {student, ...restoGrade} = grade.toJSON();
-            return {
-                ...restoGrade,
-                ...student,
-            }
-        })
-        res.status(200).json({
-            ok: true,
-            ...courseInfo,
-            grades
-        })
-    } catch (err) {
-        printAndSendError(res,err);
-    }
-}
-
-const getExtraCourseGrades = async(req, res = response) => {
-    const { id_ext_cou } = req.params
-    Stu_extracou.belongsTo(Student,{foreignKey:'id_student'})
-    Student.hasOne(Stu_extracou,{foreignKey:'id_student'})
-
-    let courseInfo = await getExtraCourseInfo({id_ext_cou})
-    let grades = await Stu_extracou.findAll({
-        include : {
-            model : Student,
-            attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
+    const gro_cou = await Gro_cou.findOne({
+      where: { [Op.and]: [{ id_course }, { id_group }] },
+      raw: true,
+    });
+    let courseInfo = await getRegularCourseInfo({
+      id_gro_cou: gro_cou.id_gro_cou,
+    });
+    let grades = await Grades.findAll({
+      include: [
+        {
+          model: Student,
+          attributes: [
+            "id_student",
+            "matricula",
+            [
+              fn(
+                "concat",
+                col("name"),
+                " ",
+                col("surname_f"),
+                " ",
+                col("surname_m")
+              ),
+              "student_name",
+            ],
+          ],
         },
-        where : {id_ext_cou},
-        raw : true,
-        nest : true
-    })
-    grades = grades.map( ({grade,student}) => ({grade,...student}))
+      ],
+      attributes: { exclude: ["id_course"] },
+      where: {
+        id_course,
+        id_student: {
+          [Op.in]: literal(
+            `(SELECT id_student FROM stu_gro WHERE id_group = ${id_group})`
+          ),
+        },
+      },
+    });
+    grades = grades.map((grade) => {
+      const { student, ...restoGrade } = grade.toJSON();
+      return {
+        ...restoGrade,
+        ...student,
+      };
+    });
     res.status(200).json({
-        ok: true,
-        ...courseInfo[0],
-        grades
-    })
-}
+      ok: true,
+      ...courseInfo,
+      grades,
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 
-const getGraduationCourseGrades = async(req, res = response) => {
-    const {id_graduation_course} = req.params
-    let graduationCourse = await getGraduationCourseInfo(id_graduation_course)
+const getExtraCourseGrades = async (req, res = response) => {
+  const { id_ext_cou } = req.params;
+  Stu_extracou.belongsTo(Student, { foreignKey: "id_student" });
+  Student.hasOne(Stu_extracou, { foreignKey: "id_student" });
 
-    Stu_gracou.belongsTo(Student,{foreignKey:'id_student'})
-    Student.hasOne(Stu_gracou,{foreignKey:'id_student'})
-    Stu_gracou.belongsTo(Tesine,{foreignKey:'id_tesine'})
-    Tesine.hasOne(Stu_gracou,{foreignKey:'id_tesine'})
-    let grades = await Stu_gracou.findAll({
-        include:[{
-            model:Student,
-            attributes : ['id_student','matricula',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'student_name']]
-        },{
-            model : Tesine
-        }],
-        where : {id_graduation_course},
-        raw : true,
-        nest : true
-    })
-    grades = grades.map( ({student,tesine}) => ({...student,...tesine}))
-    return res.json({
-        ok : true,
-        ...graduationCourse,
-        grades
-    })
-}
+  let courseInfo = await getExtraCourseInfo({ id_ext_cou });
+  let grades = await Stu_extracou.findAll({
+    include: {
+      model: Student,
+      attributes: [
+        "id_student",
+        "matricula",
+        [
+          fn(
+            "concat",
+            col("name"),
+            " ",
+            col("surname_f"),
+            " ",
+            col("surname_m")
+          ),
+          "student_name",
+        ],
+      ],
+    },
+    where: { id_ext_cou },
+    raw: true,
+    nest: true,
+  });
+  grades = grades.map(({ grade, student }) => ({ grade, ...student }));
+  res.status(200).json({
+    ok: true,
+    ...courseInfo[0],
+    grades,
+  });
+};
+
+const getGraduationCourseGrades = async (req, res = response) => {
+  const { id_graduation_course } = req.params;
+  let graduationCourse = await getGraduationCourseInfo(id_graduation_course);
+
+  Stu_gracou.belongsTo(Student, { foreignKey: "id_student" });
+  Student.hasOne(Stu_gracou, { foreignKey: "id_student" });
+  Stu_gracou.belongsTo(Tesine, { foreignKey: "id_tesine" });
+  Tesine.hasOne(Stu_gracou, { foreignKey: "id_tesine" });
+  let grades = await Stu_gracou.findAll({
+    include: [
+      {
+        model: Student,
+        attributes: [
+          "id_student",
+          "matricula",
+          [
+            fn(
+              "concat",
+              col("name"),
+              " ",
+              col("surname_f"),
+              " ",
+              col("surname_m")
+            ),
+            "student_name",
+          ],
+        ],
+      },
+      {
+        model: Tesine,
+      },
+    ],
+    where: { id_graduation_course },
+    raw: true,
+    nest: true,
+  });
+  grades = grades.map(({ student, tesine }) => ({ ...student, ...tesine }));
+  return res.json({
+    ok: true,
+    ...graduationCourse,
+    grades,
+  });
+};
 // // It's not working
 // const getAllGroupsGrades = async ( req, res =  response)=>{
 //     const { edu_level, major, group_name = '',id_group = 0} = req.query
@@ -169,8 +237,8 @@ const getGraduationCourseGrades = async(req, res = response) => {
 //         studentsGroup = studentsGroup.map( async(id_student) => {
 //             const avgStudent = await getGradesStudent( id_student, true)
 //             return {id_student, avg: avgStudent}
-//         })        
-        
+//         })
+
 //         const studentsAvgs = await Promise.all(studentsGroup)
 
 //         studentsAvgs.forEach( ({avg}) => {
@@ -181,7 +249,7 @@ const getGraduationCourseGrades = async(req, res = response) => {
 //             id_group,
 //             name_group,
 //             avg : avgGroup
-//         }      
+//         }
 //     })
 
 //     Promise.all(groupsGrades).then( grades => {
@@ -232,169 +300,199 @@ const getGraduationCourseGrades = async(req, res = response) => {
 //         })
 //     })
 // }
-const searchAverageByStudent = async ( req, res = response ) => { 
-    const {  name = ''} = req.query
+const searchAverageByStudent = async (req, res = response) => {
+  const { name = "" } = req.query;
 
-    try{
-        let coincidencesStudents = await Student.findAll({
-            attributes : ['id_student','matricula',[fn('concat',col('name')," ",col('surname_f')," ",col('surname_m')),'name']],
-            where : {
-                [Op.or] : [
-                    where(fn('concat',col('name'),col('surname_f'),col('surname_m')),{[Op.like] : `%${name}%`})
-                ]
-            }
-        })
-        if(coincidencesStudents.length > 0){
-            coincidencesStudents =  coincidencesStudents.map( async(student) => {
-                const avgStudent = await getGradesStudent(student.toJSON().id_student,{onlyAvg:true})
-                return {...student.toJSON(),avgStudent}
-    
-            })
-            coincidencesStudents = await Promise.all(coincidencesStudents)
-        }
-        
-        res.json({
-            ok: true,
-            students : coincidencesStudents
-        })
-    }catch( err ){
-        printAndSendError(res, err)
+  try {
+    let coincidencesStudents = await Student.findAll({
+      attributes: [
+        "id_student",
+        "matricula",
+        [
+          fn(
+            "concat",
+            col("name"),
+            " ",
+            col("surname_f"),
+            " ",
+            col("surname_m")
+          ),
+          "name",
+        ],
+      ],
+      where: {
+        [Op.or]: [
+          where(fn("concat", col("name"), col("surname_f"), col("surname_m")), {
+            [Op.like]: `%${name}%`,
+          }),
+        ],
+      },
+    });
+    if (coincidencesStudents.length > 0) {
+      coincidencesStudents = coincidencesStudents.map(async (student) => {
+        const avgStudent = await getGradesStudent(student.toJSON().id_student, {
+          onlyAvg: true,
+        });
+        return { ...student.toJSON(), avgStudent };
+      });
+      coincidencesStudents = await Promise.all(coincidencesStudents);
     }
-}
 
-const getAllGradesByMatricula = async( req, res = response) => {
-    const { id_student } = req;
-    const { page = 1 } = req.query
-    try {
-        let grades   
-        const {grades:coursesGrades,generalAvg} = await getGradesStudent( id_student, { withAvg : true} )
-        const extraCoursesGrades = await getExtraCoursesGradesStudent(id_student)
-        const tesineGrade = await getTesineGradeStudent( id_student )
-        grades = [...coursesGrades,...extraCoursesGrades]
-        if(tesineGrade) grades.push(tesineGrade)
-        console.log(grades)
-        grades = grades.filter((grade,i) => i >= (9*page)-9 && i <= 9*page)
-        res.json({
-            ok : true,
-            grades,
-            generalAvg
-        })
-    } catch ( err ) {
-        printAndSendError( res, err)
-    }
-}
+    res.json({
+      ok: true,
+      students: coincidencesStudents,
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
+
+const getAllGradesByMatricula = async (req, res = response) => {
+  const { id_student } = req;
+  const { page = 1 } = req.query;
+  try {
+    let grades;
+    const { grades: coursesGrades, generalAvg } = await getGradesStudent(
+      id_student,
+      { withAvg: true }
+    );
+    const extraCoursesGrades = await getExtraCoursesGradesStudent(id_student);
+    const tesineGrade = await getTesineGradeStudent(id_student);
+    grades = [...coursesGrades, ...extraCoursesGrades];
+    if (tesineGrade) grades.push(tesineGrade);
+    grades = grades.filter((grade, i) => i >= 9 * page - 9 && i <= 9 * page);
+    res.json({
+      ok: true,
+      grades,
+      generalAvg,
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 
 const uploadCourseGrades = async (req, res = response) => {
+  const { id_course } = req.params;
+  const { id_group } = req.body;
+  let students = req.body.students;
+  let except = [];
 
-    const { id_course } = req.params;
-    const {id_group } = req.body;
-    let  students  = req.body.students;
-    let except = [];
-
-    try {
-        // Check if the course exists
-        const course = await Course.findByPk(id_course);
-        if (!course) {
-            return res.status(404).json({
-                ok: false,
-                msg: `El curso con id ${id_course} no existe, verifiquelo por favor.`
-            })
-        }
-
-        // Check if the group exists
-        const group = await Group.findOne({
-            where: { 'id_group': id_group }
-        })
-        if (!group) {
-            return res.status(404).json({
-                ok: false,
-                msg: `El grupo con id ${id_group} no existe, verifiquelo por favor.`
-            })
-        }
-        // get ids' of the students which belong to the group
-        const stu_gro = await Stu_gro.findAll({
-            where: { 'id_group': id_group },
-            
-        })
-        const idstudents_group = stu_gro.map(e => e['id_student'])
-        let students_grades = students.map( async(student) => {
-            const {id_student} = await Student.findOne( {where : { matricula : student.matricula }, attributes : ['id_student']} )
-            if(!idstudents_group.includes(id_student)){
-                except.push(id_student)
-                return {}
-            }
-            return {...student, id_student}
-            
-        })
-        // Check if there are grades for the course already to avoid duplicates
-        const gradesCourse = await Grades.findAll({
-            where: {
-                'id_course': id_course,
-                'id_student': { [Op.in]: idstudents_group }
-            }
-        })
-
-        if (gradesCourse.length > 0) {
-            return res.status(500).json({
-                ok: false,
-                msg: `No se ha podido cargar las calificaciones para el grupo con id ${id_group} debido a que ya existen. Si desea modificarlas, actualize las calificaciones`
-            })
-        }
-
-        // Check if all the students given belong to the group given
-
-        if (except.length > 0) {
-            return res.status(404).json({
-                ok: false,
-                msg: `No se ha podido subir caliicaciones debido a id(s) no registrados con el grupo con id ${id_group} `,
-                "id´s": except
-            })
-        }
-
-        
-        // // iterate array to get every student and create his grade voiding dupliactes
-        Promise.all(students_grades).then((grades) => {
-            grades.map( async(grade) => {
-                try {
-                        const studentGrade = new Grades({ id_course, id_student : grade.id_student, grade : grade.grade })
-                        await studentGrade.save();
-                        const {id_gro_cou} = await Gro_cou.findOne({where : {[Op.and]:[{id_group},{id_course}]}})
-                        const testGrade = new Test({id_student : grade.id_student,id_gro_cou, folio : 3,type:'Ordinario',application_date : moment().format('YYYY-MM-DD'),assigned_test_date : null,applied : true,id_grade : studentGrade.id_grade})
-                        await testGrade.save()
-                } catch (err) {
-                    console.log(err)
-                }
-            })
-        })
-
-
-        res.status(200).json({
-            ok: true,
-            msg: "Calificaciones cargadas correctamente.",
-            except
-        })
-    } catch (err) {
-        printAndSendError(err);
-    }
-}
-
-const uploadExtraCurCourGrades = async (req, res) =>{
-
-    const {id_ext_cou}=req.params;
-    let  {students}  = req.body;
-
-    try {
-        students=students.map( async({id_student, grade})=>{
-          
-            await Stu_extracou.update({grade}, {where: {[Op.and]:[{id_student},{id_ext_cou}]}})
-        })
-        
-    } catch (err) {
-        printAndSendError(res, err)
+  try {
+    // Check if the course exists
+    const course = await Course.findByPk(id_course);
+    if (!course) {
+      return res.status(404).json({
+        ok: false,
+        msg: `El curso con id ${id_course} no existe, verifiquelo por favor.`,
+      });
     }
 
+    // Check if the group exists
+    const group = await Group.findOne({
+      where: { id_group: id_group },
+    });
+    if (!group) {
+      return res.status(404).json({
+        ok: false,
+        msg: `El grupo con id ${id_group} no existe, verifiquelo por favor.`,
+      });
+    }
+    // get ids' of the students which belong to the group
+    const stu_gro = await Stu_gro.findAll({
+      where: { id_group: id_group },
+    });
+    const idstudents_group = stu_gro.map((e) => e["id_student"]);
+    let students_grades = students.map(async (student) => {
+      const { id_student } = await Student.findOne({
+        where: { matricula: student.matricula },
+        attributes: ["id_student"],
+      });
+      if (!idstudents_group.includes(id_student)) {
+        except.push(id_student);
+        return {};
+      }
+      return { ...student, id_student };
+    });
+    // Check if there are grades for the course already to avoid duplicates
+    const gradesCourse = await Grades.findAll({
+      where: {
+        id_course: id_course,
+        id_student: { [Op.in]: idstudents_group },
+      },
+    });
 
-}
+    if (gradesCourse.length > 0) {
+      return res.status(500).json({
+        ok: false,
+        msg: `No se ha podido cargar las calificaciones para el grupo con id ${id_group} debido a que ya existen. Si desea modificarlas, actualize las calificaciones`,
+      });
+    }
+
+    // Check if all the students given belong to the group given
+
+    if (except.length > 0) {
+      return res.status(404).json({
+        ok: false,
+        msg: `No se ha podido subir caliicaciones debido a id(s) no registrados con el grupo con id ${id_group} `,
+        "id´s": except,
+      });
+    }
+
+    // // iterate array to get every student and create his grade voiding dupliactes
+    Promise.all(students_grades).then((grades) => {
+      grades.map(async (grade) => {
+        try {
+          const studentGrade = new Grades({
+            id_course,
+            id_student: grade.id_student,
+            grade: grade.grade,
+          });
+          await studentGrade.save();
+          const { id_gro_cou } = await Gro_cou.findOne({
+            where: { [Op.and]: [{ id_group }, { id_course }] },
+          });
+          const testGrade = new Test({
+            id_student: grade.id_student,
+            id_gro_cou,
+            folio: 3,
+            type: "Ordinario",
+            application_date: moment().format("YYYY-MM-DD"),
+            assigned_test_date: null,
+            applied: true,
+            id_grade: studentGrade.id_grade,
+          });
+          await testGrade.save();
+        } catch (err) {
+          console.log(err);
+        }
+      });
+    });
+
+    res.status(200).json({
+      ok: true,
+      msg: "Calificaciones cargadas correctamente.",
+      except,
+    });
+  } catch (err) {
+    printAndSendError(err);
+  }
+};
+
+const uploadExtraCurCourGrades = async (req, res) => {
+  const { id_ext_cou } = req.params;
+  let { students } = req.body;
+
+  try {
+    students = students.map(async ({ id_student, grade }) => {
+      await Stu_extracou.update(
+        { grade },
+        { where: { [Op.and]: [{ id_student }, { id_ext_cou }] } }
+      );
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 
 // const uploadTesineGrade = async (req, res) =>{
 
@@ -403,153 +501,161 @@ const uploadExtraCurCourGrades = async (req, res) =>{
 
 //     try {
 //         students=students.map( async({id_student, grade})=>{
-          
+
 //             await Stu_gracou.update({grade}, {where: {[Op.and]:[{id_student},{id_tesine}]}})
 //         })
-        
+
 //     } catch (err) {
 //         printAndSendError(res, err)
 //     }
 
-
 // }
 
 const updateGrades = async (req, res = response) => {
-    const { id_grade  } = req.params;
-    const { grade }= req.body;
+  const { id_grade } = req.params;
+  const { grade } = req.body;
 
-    try {
-        await Grades.update({grade},{where: {id_grade} });
+  try {
+    await Grades.update({ grade }, { where: { id_grade } });
 
-        res.json({
-            ok:true,
-            msg: 'Calificación de materia corregida correctamente.'
-        })
-        
-    } catch (err) {
-        printAndSendError(res,err)
+    res.json({
+      ok: true,
+      msg: "Calificación de materia corregida correctamente.",
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
+
+const updateGradeByTest = async (req, res = response) => {
+  const { id_grade } = req.params;
+  const { grade } = req.body;
+
+  try {
+    const testGrade = await Test.findOne({
+      where: where(
+        literal(
+          `(id_grade = ${id_grade} AND (${moment().format(
+            "YYYY-MM-DD"
+          )} = ${moment(col("application_date")).format(
+            "YYYY-MM-DD"
+          )} OR ${moment().format("YYYY-MM-DD")} <= ${moment(
+            col("application_date")
+          )
+            .add(5, "days")
+            .format("YYYY-MM-DD")}) AND ${col("applied").col} = 0)`
+        ),
+        true
+      ),
+    });
+    if (!testGrade) {
+      return res.status(403).json({
+        ok: false,
+        msg: "Acutilización de calificación denegada, primero necesita asignar un exámen.",
+      });
     }
-}
+    await testGrade.update({ applied: true });
+    await Grades.update({ grade }, { where: { id_grade } });
 
-const updateGradeByTest = async(req, res = response) => {
-    const { id_grade  } = req.params;
-    const { grade }= req.body;
+    res.json({
+      ok: true,
+      msg: "Calificación de materia actualizada correctamente.",
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 
-    try {
-        const testGrade = await Test.findOne({
-            where : where(literal(`(id_grade = ${id_grade} AND (${moment().format('YYYY-MM-DD')} = ${moment(col('application_date')).format('YYYY-MM-DD')} OR ${moment().format('YYYY-MM-DD')} <= ${moment(col('application_date')).add(5,'days').format('YYYY-MM-DD')}) AND ${col('applied').col} = 0)`),true)
-        })
-        if(!testGrade){
-            return res.status(403).json({
-                ok : false,
-                msg : 'Acutilización de calificación denegada, primero necesita asignar un exámen.'
-            })
-        }
-        await testGrade.update({applied : true})
-         await Grades.update({grade},{where: {id_grade} });
+const updateExtraCurCourGrades = async (req, res) => {
+  const { id_stu_extracou } = req.params;
+  const { grade } = req.body;
 
-        res.json({
-            ok:true,
-            msg: 'Calificación de materia actualizada correctamente.'
-        })
-        
-    } catch (err) {
-        printAndSendError(res,err)
-    }
-}
+  try {
+    await Stu_extracou.update({ grade }, { where: { id_stu_extracou } });
 
-const updateExtraCurCourGrades =async (req, res)=>{
-    const {id_stu_extracou}= req.params;
-    const {grade}=req.body;
+    res.json({
+      ok: true,
+      msg: "Calificación de curso extra curricular actualizada correctamente.",
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 
-    try{
-        await Stu_extracou.update({grade},{where:{id_stu_extracou}});
+const updateTesineGrades = async (req, res) => {
+  const { id_tesine } = req.params;
+  const { grade } = req.body;
 
-        res.json({
-            ok:true,
-            msg: 'Calificación de curso extra curricular actualizada correctamente.'
-        })
-    }catch(err){
-        printAndSendError(res, err)
-    }
+  try {
+    await Tesine.update({ grade }, { where: { id_tesine } });
 
-}
-
-const updateTesineGrades =async (req, res)=>{
-    const {id_tesine}= req.params;
-    const {grade}=req.body;
-
-    try{
-        await Tesine.update({grade},{where:{id_tesine}});
-
-        res.json({
-            ok:true,
-            msg: 'Calificación de tesina actualizada correctamente.'
-        })
-    }catch(err){
-        printAndSendError(res, err)
-    }
-
-}
+    res.json({
+      ok: true,
+      msg: "Calificación de tesina actualizada correctamente.",
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 
 const deleteGradeByStudentId = async (req, res = response) => {
-    const { id_course } = req.params;
-    const { id_student } = req;
+  const { id_course } = req.params;
+  const { id_student } = req;
 
-    try {
-        // Check if the course exists
-        const course = await Course.findByPk(id_course);
-        if (!course) {
-            return res.status(404).json({
-                ok: false,
-                msg: `El curso con id ${id_course} no existe, verifiquelo por favor.`
-            })
-        }
-
-        //check if the student has the grade which wants to be deleted
-        const grade = await Grades.findOne({
-            where: {
-                'id_course': id_course,
-                'id_student': id_student,
-            }
-        })
-        if (!grade) {
-            return res.status(404).json({
-                ok: false,
-                msg: `El estudiante con id ${id_student} no cuenta con una calificación para el curso con id ${id_course}, verifiquelo por favor.`
-            })
-        }
-
-        await grade.destroy();
-
-        res.status(200).json({
-            ok: true,
-            msg: `Calificación del estudiante con id ${id_student} eliminada correctamente`
-        })
-    } catch (err) {
-        console.log(err)
-        res.status(500).json({
-            ok: false,
-            msg: "Hable con el administrador."
-        })
+  try {
+    // Check if the course exists
+    const course = await Course.findByPk(id_course);
+    if (!course) {
+      return res.status(404).json({
+        ok: false,
+        msg: `El curso con id ${id_course} no existe, verifiquelo por favor.`,
+      });
     }
-}
+
+    //check if the student has the grade which wants to be deleted
+    const grade = await Grades.findOne({
+      where: {
+        id_course: id_course,
+        id_student: id_student,
+      },
+    });
+    if (!grade) {
+      return res.status(404).json({
+        ok: false,
+        msg: `El estudiante con id ${id_student} no cuenta con una calificación para el curso con id ${id_course}, verifiquelo por favor.`,
+      });
+    }
+
+    await grade.destroy();
+
+    res.status(200).json({
+      ok: true,
+      msg: `Calificación del estudiante con id ${id_student} eliminada correctamente`,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      ok: false,
+      msg: "Hable con el administrador.",
+    });
+  }
+};
 
 module.exports = {
-    getAllGradesByCourse,
-    getExtraCourseGrades,
-    getGraduationCourseGrades,
-    uploadCourseGrades,
-    updateGrades,
-    updateGradeByTest,
-    deleteGradeByStudentId,
-    searchAverageByStudent,
-    // getAllGroupsGrades,
-    // getAllGradesByGroup,
-    getAllGrades,
-    getAllGradesByMatricula,
-    updateExtraCurCourGrades,
-    updateTesineGrades,
-    uploadExtraCurCourGrades,
-    // uploadTesineGrade
-}
+  getAllGradesByCourse,
+  getExtraCourseGrades,
+  getGraduationCourseGrades,
+  uploadCourseGrades,
+  updateGrades,
+  updateGradeByTest,
+  deleteGradeByStudentId,
+  searchAverageByStudent,
+  // getAllGroupsGrades,
+  // getAllGradesByGroup,
+  getAllGrades,
+  getAllGradesByMatricula,
+  updateExtraCurCourGrades,
+  updateTesineGrades,
+  uploadExtraCurCourGrades,
+  // uploadTesineGrade
+};
