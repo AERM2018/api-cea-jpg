@@ -4,7 +4,7 @@ const Group = require("../models/group");
 const Time_tables = require("../models/time_tables");
 const Major = require("../models/major");
 const Stu_gro = require("../models/stu_gro");
-const { Op, fn, col } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const Courses = require("../models/courses");
 const Gro_cou = require("../models/gro_cou");
 const { response } = require("express");
@@ -348,22 +348,24 @@ const getAssistanceDays = async (req, res = response) => {
       },
     },
     attributes: ["day"],
+    order: [[col("day"), "asc"]],
   });
   assistance_days = assistance_days.map(({ day }) => day);
   let { first_day, last_day } = await getGroupDaysAndOverdue(id_group, {});
-  let assistance_days_dates = assistance_days.map((day) =>
-    moment().day(day).subtract(2, "w").format("YYYY-MM-DD")
-  );
-  assistance_days.forEach((day, i) => {
-    let current_date = first_day;
-    while (moment(current_date) <= moment(last_day)) {
-      assistance_days_dates.push(current_date);
-      current_date = moment(current_date)
-        .weekday(day + 7)
-        .format("YYYY-MM-DD");
+  console.log(first_day, "---", last_day);
+  let assistance_days_dates = [];
+  let current_date = moment(first_day);
+  let nextDay = assistance_days[0];
+  let daysToAdd = (nextDay += 7);
+  while (moment(current_date) <= moment(last_day)) {
+    assistance_days_dates.push(current_date.format("YYYY-MM-DD"));
+    if (assistance_days.length > 1) {
+      nextDay = assistance_days.find((day) => day > moment(current_date).day());
+      if (nextDay === undefined) nextDay = assistance_days[0];
+      daysToAdd = nextDay < moment(current_date).day() ? nextDay + 7 : nextDay;
     }
-  });
-  assistance_days_dates = Array.from(new Set(assistance_days_dates.sort()));
+    current_date = moment(current_date).day(daysToAdd);
+  }
   res.json({ assistance_days_dates });
 };
 

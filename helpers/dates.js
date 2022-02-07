@@ -21,11 +21,11 @@ const getGroupDaysAndOverdue = async (id_group = 0, date = {}) => {
 
   // Find the first of month in which the student attends class
 
-  const begin_of_month = moment(date).local().startOf("month").day();
+  const begin_of_month = moment(date).local().startOf("month");
   const end_of_month = moment(date).local().endOf("month");
   let first_day_date, last_day_date;
 
-  const first_day = time_table_days.find((day) => day >= begin_of_month);
+  const first_day = time_table_days.find((day) => day >= begin_of_month.day());
 
   if (first_day == undefined) {
     first_day_date = moment(date)
@@ -41,17 +41,26 @@ const getGroupDaysAndOverdue = async (id_group = 0, date = {}) => {
     "weeks"
   );
 
-  const pre_last_day = first_day_date.clone().add(weeks_missing_month, "weeks");
-
   // Find the last day in which the stdent attends class
-  last_day = time_table_days
-    .reverse()
-    .find((day) => first_day_date.month() === pre_last_day.day(day).month());
-  last_day_date =
-    last_day != undefined
-      ? pre_last_day.day(last_day)
-      : pre_last_day.subtract(1, "week");
+  last_day_date = first_day_date.clone().add(weeks_missing_month, "weeks");
+  if (time_table_days.length > 1) {
+    // const pre_last_day = first_day_date.clone().add(weeks_missing_month, "weeks");
+    [{ date }] = time_table_days
+      .map((day) =>
+        last_day_date
+          .clone()
+          .day(last_day_date.clone().day() >= day ? day + 7 : day)
+      )
+      .map((date) => ({
+        date,
+        diffFromEndMonth: end_of_month.diff(date.clone(), "days"),
+      }))
+      .filter((possibleDate) => possibleDate.diffFromEndMonth >= 0)
+      .sort((a, b) => a.diffFromEndMonth - b.diffFromEndMonth);
+    last_day_date = date;
+  }
 
+  // console.log(last_date);
   first_day_date = first_day_date.format().substr(0, 10);
   last_day_date = last_day_date.format().substr(0, 10);
 
