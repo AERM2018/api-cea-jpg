@@ -10,6 +10,7 @@ const Group = require("../models/group");
 const Gro_cou = require("../models/gro_cou");
 const Major = require("../models/major");
 const Teacher = require("../models/teacher");
+const Time_tables = require("../models/time_tables");
 
 const getRegularCourseInfo = async (
   opts = { id_gro_cou: 0, addTeacher: false }
@@ -129,6 +130,10 @@ const getExtraCourseInfo = async (
   Teacher.hasOne(ExtraCurricularCourses, { foreignKey: "id_teacher" });
   Major.belongsTo(Educational_level, { foreignKey: "id_edu_lev" });
   Educational_level.hasOne(Major, { foreignKey: "id_edu_lev" });
+  ExtraCurricularCourses.belongsTo(Time_tables, {
+    foreignKey: "id_time_table",
+  });
+  Time_tables.hasMany(ExtraCurricularCourses, { foreignKey: "id_time_table" });
 
   const {
     id_ext_cou,
@@ -157,6 +162,7 @@ const getExtraCourseInfo = async (
           model: Educational_level,
         },
       },
+      { model: Time_tables },
     ],
   };
   if (addTeacher)

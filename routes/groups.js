@@ -136,5 +136,5 @@ groupsRouter.get(
   getStudentsFromGroup
 );
 
-groupsRouter.get("/:id_group/assistances", validateJWT, getAssistanceDays);
+groupsRouter.get("/:id_group/assistance_days", validateJWT, getAssistanceDays);
 module.exports = groupsRouter;

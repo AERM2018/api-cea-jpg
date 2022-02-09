@@ -18,7 +18,10 @@ const {
 const { setCourseInactivate } = require("../helpers/courses");
 const Cam_gro = require("../models/cam_gro");
 const Campus = require("../models/campus");
-const { getGroupDaysAndOverdue } = require("../helpers/dates");
+const {
+  getGroupDaysAndOverdue,
+  findAssistanceDays,
+} = require("../helpers/dates");
 
 const getAllGroups = async (req, res) => {
   const { timeTable = false } = req.query;
@@ -352,20 +355,11 @@ const getAssistanceDays = async (req, res = response) => {
   });
   assistance_days = assistance_days.map(({ day }) => day);
   let { first_day, last_day } = await getGroupDaysAndOverdue(id_group, {});
-  console.log(first_day, "---", last_day);
-  let assistance_days_dates = [];
-  let current_date = moment(first_day);
-  let nextDay = assistance_days[0];
-  let daysToAdd = (nextDay += 7);
-  while (moment(current_date) <= moment(last_day)) {
-    assistance_days_dates.push(current_date.format("YYYY-MM-DD"));
-    if (assistance_days.length > 1) {
-      nextDay = assistance_days.find((day) => day > moment(current_date).day());
-      if (nextDay === undefined) nextDay = assistance_days[0];
-      daysToAdd = nextDay < moment(current_date).day() ? nextDay + 7 : nextDay;
-    }
-    current_date = moment(current_date).day(daysToAdd);
-  }
+  let assistance_days_dates = findAssistanceDays(
+    assistance_days,
+    first_day,
+    last_day
+  );
   res.json({ assistance_days_dates });
 };
 
