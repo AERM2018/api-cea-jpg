@@ -5,7 +5,7 @@ const Time_tables = require("../models/time_tables");
 
 const getGroupDaysAndOverdue = async (
   id_group = 0,
-  date = {},
+  date = moment().month(),
   year = moment().year()
 ) => {
   Time_tables.hasMany(Gro_tim, { foreignKey: "id_time_table" });
