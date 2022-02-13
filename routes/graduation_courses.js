@@ -128,7 +128,7 @@ Graduation_courses_Router.get(
 );
 
 Graduation_courses_Router.get(
-  "/:id_graduation_course/assistence_days",
+  "/:id_graduation_course/assistance_days",
   [
     validateJWT,
     param(

@@ -43,7 +43,7 @@ extraCurricularCoursesRouter.get(
 );
 
 extraCurricularCoursesRouter.get(
-  "/:id_ext_cou/assistence_days",
+  "/:id_ext_cou/assistance_days",
   [
     validateJWT,
     check(
