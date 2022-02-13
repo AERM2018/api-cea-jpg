@@ -356,14 +356,33 @@ const checkGraSecExistence = async (req, res, next) => {
 };
 const checkCourseExistence = async (req, res, next) => {
   const id_course = req.body.id_course || req.params.id_course;
-  const course = await Course.findByPk(id_course);
-  if (!course) {
+  const clave = req.body.clave;
+  const course = await Course.findOne({
+    where: {
+      [Op.or]: [
+        { ...(id_course ? { id_course } : {}) },
+        { ...(clave ? { clave } : {}) },
+      ],
+    },
+  });
+  if (!course && id_course) {
     return res.status(404).json({
       ok: false,
       msg: `El curso con id ${id_course} no existe.`,
     });
   }
+  if (course && clave !== undefined) {
+    return res.status(400).json({
+      ok: false,
+      msg: `El curso con clave ${clave} ya existe.`,
+    });
+  }
   next();
+};
+
+const isValidRestrictionCourseOrExtraCourse = (val) => {
+  if (val !== null && typeof val !== "number") return false;
+  if (val === null || Number.isInteger(val)) return true;
 };
 
 const checkGroupCourseExistence = async (req, res, next) => {
@@ -498,4 +517,5 @@ module.exports = {
   hasStudentTakenCourse,
   checkRequestExistance,
   isRestrictionValid,
+  isValidRestrictionCourseOrExtraCourse,
 };

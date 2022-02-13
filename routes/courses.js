@@ -9,6 +9,10 @@ const {
   deleteCourse,
 } = require("../controllers/coursesController");
 const validateJWT = require("../middlewares/validar-jwt");
+const {
+  checkCourseExistence,
+  isValidRestrictionCourseOrExtraCourse,
+} = require("../middlewares/dbValidations");
 
 const coursesRouter = Router();
 
@@ -17,12 +21,29 @@ coursesRouter.get("/", [validateJWT], getAllCourses);
 coursesRouter.post(
   "/",
   [
+    validateJWT,
     check(
       "id_major",
       "El id de major es obligatorio y debe ser un numero entero"
     )
       .isNumeric()
       .exists({ checkNull: true }),
+    check(
+      "restricted_by_course",
+      "El id del curso que restringe al curso por crear debe ser un numero entero"
+    )
+      .exists({ checkNull: false })
+      .custom((restricted_by_course) =>
+        isValidRestrictionCourseOrExtraCourse(restricted_by_course)
+      ),
+    check(
+      "restricted_by_extracourse",
+      "El id del curso extracurricular que restringe al curso por crear debe ser un numero entero"
+    )
+      .exists({ checkNull: false })
+      .custom((restricted_by_course) =>
+        isValidRestrictionCourseOrExtraCourse(restricted_by_course)
+      ),
     check(
       "course_name",
       "El nombre del curso es obligatorio y debe tener como máximo 70 caracteres"
@@ -31,7 +52,7 @@ coursesRouter.post(
       .isEmpty()
       .isLength({ max: 70 }),
     validateFields,
-    validateJWT,
+    checkCourseExistence,
   ],
   createCourse
 );

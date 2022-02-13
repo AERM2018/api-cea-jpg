@@ -6,7 +6,7 @@ const {
   updateGraduationCourses,
   deleteGraduationCourses,
   getStudentsFromGradCourse,
-  getGraduationCourseAssistanceDays,
+  getGraduationCourseAssistenceDays,
 } = require("../controllers/graduation_coursesController");
 const {
   checkGraduationCourseExistence,
@@ -128,7 +128,7 @@ Graduation_courses_Router.get(
 );
 
 Graduation_courses_Router.get(
-  "/:id_graduation_course/assistance_days",
+  "/:id_graduation_course/assistence_days",
   [
     validateJWT,
     param(
@@ -140,7 +140,7 @@ Graduation_courses_Router.get(
     validateFields,
     checkGraduationCourseExistence,
   ],
-  getGraduationCourseAssistanceDays
+  getGraduationCourseAssistenceDays
 );
 
 module.exports = Graduation_courses_Router;

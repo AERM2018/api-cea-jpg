@@ -11,6 +11,7 @@ const Stu_extracou = require("../models/stu_extracou");
 const Student = require("../models/student");
 const { getExtraCourseInfo } = require("../helpers/courses");
 const Time_tables = require("../models/time_tables");
+const { findAssistenceDays } = require("../helpers/dates");
 
 const getAllExtraCurricularCourses = async (req = request, res = response) => {
   let { teacherName = "", status = "all" } = req.query;
@@ -21,15 +22,6 @@ const getAllExtraCurricularCourses = async (req = request, res = response) => {
       teacherName,
       status: statusCondition.status,
     });
-    extraCurricularCourses = extraCurricularCourses.map((extraCourse) => {
-      const assistance_days_dates = findAssistanceDays(
-        [extraCourse.time_table.day],
-        extraCourse.start_date,
-        moment(extraCourse.start_date).day(extraCourse.time_table.day + 7)
-      );
-      console.log(assistance_days_dates);
-    });
-
     return res.status(200).json({
       //200 means success
       ok: true,
@@ -131,10 +123,33 @@ const getStudentsFromExtraCourse = async (req, res = response) => {
     students: studentsSignedUp,
   });
 };
+
+const getExtraCurricularCourseAssistenceDays = async (req, res) => {
+  const { id_ext_cou } = req.params;
+  ExtraCurricularCourses.belongsTo(Time_tables, {
+    foreignKey: "id_time_table",
+  });
+  Time_tables.hasMany(ExtraCurricularCourses, { foreignKey: "id_time_table" });
+  try {
+    const ext_cou = await ExtraCurricularCourses.findByPk(id_ext_cou, {
+      include: [{ model: Time_tables, attributes: ["day"] }],
+    });
+    const assistence_days = ext_cou.toJSON().time_table.day;
+    const assistence_days_dates = findAssistenceDays(
+      [assistence_days],
+      ext_cou.start_date,
+      moment(ext_cou.start_date).day(moment(ext_cou.start_date).day() + 7)
+    );
+    res.json({ ok: true, assistence_days_dates });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 module.exports = {
   getAllExtraCurricularCourses,
   createExtraCurricularCourse,
   updateExtraCurricularCourse,
   deleteExtraCurricularCourse,
   getStudentsFromExtraCourse,
+  getExtraCurricularCourseAssistenceDays,
 };

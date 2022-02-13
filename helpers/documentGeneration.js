@@ -1,11 +1,11 @@
-const InternshipLetter = require("../models/documents/internshipLetter");
-const Title = require("../models/documents/title");
-const AlePDFDocument = require("../models/alePDFDocument");
+// const InternshipLetter = require("../models/documents/internshipLetter");
+// const Title = require("../models/documents/title");
+// const AlePDFDocument = require("../models/alePDFDocument");
+// const ProofOfTitleInProg = require("../models/documents/proofOfTitleInProg");
+// const CertficateOfStudies = require("../models/documents/certificateOfStudies");
 const ServiceLetter = require("../models/documents/serviceLetter");
 const ProofOfStudies = require("../models/documents/proofOfStudies");
-const ProofOfTitleInProg = require("../models/documents/proofOfTitleInProg");
 const Kardex = require("../models/documents/kardex");
-const CertficateOfStudies = require("../models/documents/certificateOfStudies");
 const TestRecord = require("../models/documents/testRecord");
 
 const generateNewDoc = (tools, document_type, dataCallback, endCallback) => {

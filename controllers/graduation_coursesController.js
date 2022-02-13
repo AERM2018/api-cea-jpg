@@ -17,8 +17,8 @@ const Gro_cou = require("../models/gro_cou");
 const Time_tables = require("../models/time_tables");
 const Gro_tim = require("../models/gro_tim");
 const {
-  findAssistanceDays,
   getGroupDaysAndOverdue,
+  findAssistenceDays,
 } = require("../helpers/dates");
 const Stu_gro = require("../models/stu_gro");
 
@@ -247,7 +247,7 @@ const getStudentsFromGradCourse = async (req, res) => {
   }
 };
 
-const getGraduationCourseAssistanceDays = async (req, res) => {
+const getGraduationCourseAssistenceDays = async (req, res) => {
   const { id_graduation_course } = req.params;
   Stu_gracou.belongsTo(Student, { foreignKey: "id_student" });
   Student.hasOne(Stu_gracou, { foreignKey: "id_student" });
@@ -263,7 +263,7 @@ const getGraduationCourseAssistanceDays = async (req, res) => {
     where: { id_graduation_course },
     include: [{ model: Student }],
   });
-  let assistance_days = await Group.findOne({
+  let assistence_days = await Group.findOne({
     where: {
       id_group: literal(
         `(SELECT id_group FROM STU_GRO where id_student = '${student.student.id_student}')`
@@ -274,8 +274,8 @@ const getGraduationCourseAssistanceDays = async (req, res) => {
       include: { model: Time_tables, attributes: ["day"] },
     },
   });
-  const id_group = assistance_days.id_group;
-  assistance_days = assistance_days.gro_tims.map(
+  const id_group = assistence_days.id_group;
+  assistence_days = assistence_days.gro_tims.map(
     (gro_time_table) => gro_time_table.time_table.day
   );
   const { first_day } = await getGroupDaysAndOverdue(
@@ -288,17 +288,15 @@ const getGraduationCourseAssistanceDays = async (req, res) => {
     moment(graduation_course.end_date).month(),
     moment(graduation_course.end_date).year()
   );
-  const assistance_days_dates = findAssistanceDays(
-    assistance_days,
+  const assistence_days_dates = findAssistenceDays(
+    assistence_days,
     first_day,
     last_day
   );
   res.json({
     ok: true,
-    assistance_days_dates,
+    assistence_days_dates,
   });
-  //   console.log(moment({ year: 2021 }).year());
-  //   res.send("Hola");
 };
 module.exports = {
   getAllGraduationCourses,
@@ -306,5 +304,5 @@ module.exports = {
   updateGraduationCourses,
   deleteGraduationCourses,
   getStudentsFromGradCourse,
-  getGraduationCourseAssistanceDays,
+  getGraduationCourseAssistenceDays,
 };

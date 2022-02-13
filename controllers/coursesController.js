@@ -53,20 +53,14 @@ const getAllCourses = async (req, res = response) => {
 
 const createCourse = async (req, res = response) => {
   const { body } = req;
-  const { id_major, course_name } = body;
+  const {
+    id_major,
+    course_name,
+    restricted_by_course,
+    restricted_by_extracourse,
+  } = body;
 
   try {
-    // Check if the major exist
-    const major = await Major.findOne({
-      where: { id_major },
-    });
-    if (!major) {
-      return res.status(404).json({
-        ok: false,
-        msg: `La carrera con id ${id_major} no existe.`,
-      });
-    }
-
     // Avoid duplicates
     const courseMajor = await Course.findOne({
       where: {
@@ -83,7 +77,16 @@ const createCourse = async (req, res = response) => {
     }
     //  Create and save course
     const course = new Course(body);
-    await course.save();
+    const courseSaved = await course.save();
+    const { id_course } = courseSaved.toJSON();
+    if (restricted_by_course !== null || restricted_by_extracourse !== null) {
+      const restriction = new Restriction({
+        restricted_course: id_course,
+        mandatory_course: restricted_by_course,
+        mandatory_extracourse: restricted_by_extracourse,
+      });
+      await restriction.save();
+    }
 
     res.status(201).json({
       ok: true,
