@@ -90,8 +90,7 @@ const getRegularCourseInfo = async (
     ],
     where: { id_gro_cou },
   });
-  let setInactivate = await setCourseInactivate(course);
-  if (setInactivate) course.status = 0;
+  course = await setCourseInactivate(course);
   let {
     id_course,
     id_group,
@@ -291,8 +290,7 @@ const getGraduationCourseInfo = async (id_graduation_course) => {
     // }],
     where: { id_graduation_course },
   });
-  const isInactivate = setCourseInactivate(graduationCourse);
-  if (isInactivate) graduationCourse.status = 0;
+  graduationCourse = setCourseInactivate(graduationCourse);
 
   // let {id_teacher,id_graduation_course,graduation_course,teacher,...restGraduationSection} = graduationSection
   // return {...restGraduationSection,...graduation_course,...teacher};
@@ -376,6 +374,7 @@ const getCoursesGiveTeachersOrTeacher = async (
     attributes: ["id_course", "status", "start_date", "end_date"],
     where: { ...(id_teacher ? { id_teacher } : {}) },
   });
+
   coursesTeacherGiven = await Promise.all(
     coursesTeacherGiven.map(async (course) => {
       const { id_course, start_date, end_date, teacher, ...restoCourse } =
@@ -388,6 +387,7 @@ const getCoursesGiveTeachersOrTeacher = async (
           ...statusCondition,
         },
       });
+      console.log("----", gro_cou);
       if (!gro_cou) return;
       let courseData = await getRegularCourseInfo({
         id_gro_cou: gro_cou.id_gro_cou,
