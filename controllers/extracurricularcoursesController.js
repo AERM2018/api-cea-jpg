@@ -124,7 +124,7 @@ const getStudentsFromExtraCourse = async (req, res = response) => {
   });
 };
 
-const getExtraCurricularCourseAssistenceDays = async (req, res) => {
+const getExtraCurricularCourseAssistanceDays = async (req, res) => {
   const { id_ext_cou } = req.params;
   ExtraCurricularCourses.belongsTo(Time_tables, {
     foreignKey: "id_time_table",
@@ -151,5 +151,5 @@ module.exports = {
   updateExtraCurricularCourse,
   deleteExtraCurricularCourse,
   getStudentsFromExtraCourse,
-  getExtraCurricularCourseAssistenceDays,
+  getExtraCurricularCourseAssistanceDays,
 };

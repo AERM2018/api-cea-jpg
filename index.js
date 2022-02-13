@@ -1,28 +1,51 @@
-const express = require('express');
-const cors = require('cors');   
-require('dotenv').config()
-const { db } = require('./database/connection');
-const Server = require('./models/server');
-const moment = require('moment');
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+const { db } = require("./database/connection");
+const Server = require("./models/server");
+const moment = require("moment");
 
-moment.tz('America/Mexico_City')
+moment.tz("America/Mexico_City");
 
-moment.updateLocale('en', {
-    months : [
-        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-    ]
+moment.updateLocale("en", {
+  months: [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ],
+  monthsShort: [
+    "Ene",
+    "Feb",
+    "Mar",
+    "Abr",
+    "May",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dic",
+  ],
 });
 // console.log(moment().startOf('week').day())
 
 const server = new Server();
 
 db.authenticate()
-.then( res => console.log("DB Online"))
-.catch( err => {
+  .then((res) => console.log("DB Online"))
+  .catch((err) => {
     console.log("Error al conectar con la base de datos");
-        throw err
-})
-    
+    throw err;
+  });
 
-
-server.listen()
+server.listen();

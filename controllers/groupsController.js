@@ -338,7 +338,7 @@ const getCoursesGroupHasTaken = async (req, res = response) => {
   });
 };
 
-const getAssistenceDays = async (req, res = response) => {
+const getAssistanceDays = async (req, res = response) => {
   const { id_group } = req.params;
   Gro_tim.belongsTo(Time_tables, { foreignKey: "id_time_table" });
   Time_tables.hasMany(Gro_tim, { foreignKey: "id_time_table" });
@@ -376,5 +376,5 @@ module.exports = {
   getStudentsFromGroup,
   removeCourseGroup,
   getCoursesGroupHasTaken,
-  getAssistenceDays,
+  getAssistanceDays,
 };

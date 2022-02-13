@@ -8,7 +8,7 @@ const {
   getStudentsFromExtraCourse,
   getStudentFromExtraCour,
   StudentFromExtraCour,
-  getExtraCurricularCourseAssistenceDays,
+  getExtraCurricularCourseAssistanceDays,
 } = require("../controllers/extracurricularcoursesController");
 const {
   checkMajorExistence,
@@ -55,7 +55,7 @@ extraCurricularCoursesRouter.get(
     validateFields,
     checkExtraCurCourExistence,
   ],
-  getExtraCurricularCourseAssistenceDays
+  getExtraCurricularCourseAssistanceDays
 );
 
 extraCurricularCoursesRouter.post(

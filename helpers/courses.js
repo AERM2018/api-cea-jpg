@@ -393,6 +393,10 @@ const getCoursesGiveTeachersOrTeacher = async (
         id_gro_cou: gro_cou.id_gro_cou,
       });
       if (withTeacher) courseData = { ...courseData, ...teacher };
+      courseData.start_date = moment(courseData.start_date).format(
+        "D-MMM-YYYY"
+      );
+      courseData.end_date = moment(courseData.end_date).format("D-MMM-YYYY");
       courseData.type = "Regular";
       return courseData;
     })
@@ -405,8 +409,14 @@ const getCoursesGiveTeachersOrTeacher = async (
     status: statusCondition.status,
   });
   extraCoursesInfo = extraCoursesInfo.map((extraCourse) => ({
-    ...extraCourse,
     type: "Extracurricular",
+    start_date: (extraCourse.start_date = moment(extraCourse.start_date).format(
+      "D-MMM-YYYY"
+    )),
+    end_date: (extraCourse.end_date = moment(extraCourse.end_date).format(
+      "D-MM-YYYY"
+    )),
+    ...extraCourse,
   }));
   // // Graduation courses
   Graduation_section.belongsTo(Graduation_courses, {
@@ -490,6 +500,12 @@ const getCoursesGiveTeachersOrTeacher = async (
       coursesInfoJSON.teacher_name = teacher.teacher_name;
       coursesInfoJSON.isTeacherTitular =
         coursesInfoJSON.id_teacher == id_teacher ? 1 : 0;
+      coursesInfoJSON.start_date = moment(coursesInfoJSON.start_date).format(
+        "D-MMM-YYYY"
+      );
+      coursesInfoJSON.end_date = moment(coursesInfoJSON.end_date).format(
+        "D-MMM-YYYY"
+      );
       coursesInfoJSON.type = "Graduation Course";
       return coursesInfoJSON;
     })

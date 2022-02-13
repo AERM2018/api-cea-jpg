@@ -37,6 +37,7 @@ const getRequests = async (opts = { matricula: "", status: 0, date: "" }) => {
           required: true,
           include: {
             model: Student,
+            required: true,
             attributes: [
               [
                 fn(
@@ -52,7 +53,6 @@ const getRequests = async (opts = { matricula: "", status: 0, date: "" }) => {
               "matricula",
               "id_student",
             ],
-            where: { ...(matricula ? { matricula } : {}) },
           },
         },
       },

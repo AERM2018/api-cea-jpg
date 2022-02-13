@@ -9,7 +9,7 @@ const {
   getStudentsFromGroup,
   removeCourseGroup,
   getCoursesGroupHasTaken,
-  getAssistenceDays,
+  getAssistanceDays,
 } = require("../controllers/groupsController");
 const {
   checkGroupExistence,
@@ -136,5 +136,5 @@ groupsRouter.get(
   getStudentsFromGroup
 );
 
-groupsRouter.get("/:id_group/assistence_days", validateJWT, getAssistenceDays);
+groupsRouter.get("/:id_group/assistence_days", validateJWT, getAssistanceDays);
 module.exports = groupsRouter;

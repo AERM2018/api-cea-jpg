@@ -6,7 +6,7 @@ const {
   updateGraduationCourses,
   deleteGraduationCourses,
   getStudentsFromGradCourse,
-  getGraduationCourseAssistenceDays,
+  getGraduationCourseAssistanceDays,
 } = require("../controllers/graduation_coursesController");
 const {
   checkGraduationCourseExistence,
@@ -140,7 +140,7 @@ Graduation_courses_Router.get(
     validateFields,
     checkGraduationCourseExistence,
   ],
-  getGraduationCourseAssistenceDays
+  getGraduationCourseAssistanceDays
 );
 
 module.exports = Graduation_courses_Router;

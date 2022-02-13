@@ -247,7 +247,7 @@ const getStudentsFromGradCourse = async (req, res) => {
   }
 };
 
-const getGraduationCourseAssistenceDays = async (req, res) => {
+const getGraduationCourseAssistanceDays = async (req, res) => {
   const { id_graduation_course } = req.params;
   Stu_gracou.belongsTo(Student, { foreignKey: "id_student" });
   Student.hasOne(Stu_gracou, { foreignKey: "id_student" });
@@ -304,5 +304,5 @@ module.exports = {
   updateGraduationCourses,
   deleteGraduationCourses,
   getStudentsFromGradCourse,
-  getGraduationCourseAssistenceDays,
+  getGraduationCourseAssistanceDays,
 };
