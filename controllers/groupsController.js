@@ -202,7 +202,7 @@ const addCourseGroup = async (req, res) => {
       });
     }
     const { first_day: start_date, last_day: end_date } =
-      await getGroupDaysAndOverdue(id_group, {});
+      await getGroupDaysAndOverdue(id_group);
     const gro_cou = new Gro_cou({ id_group, id_course, start_date, end_date });
     await gro_cou.save();
     const cou_tea = new Cou_tea({

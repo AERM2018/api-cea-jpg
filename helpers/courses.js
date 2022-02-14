@@ -427,7 +427,7 @@ const getCoursesGiveTeachersOrTeacher = async (
       "D-MMM-YYYY"
     )),
     end_date: (extraCourse.end_date = moment(extraCourse.end_date).format(
-      "D-MM-YYYY"
+      "D-MMM-YYYY"
     )),
     ...extraCourse,
   }));
@@ -530,6 +530,12 @@ const getCoursesGiveTeachersOrTeacher = async (
   gradCoursesTeacherGiven = gradCoursesTeacherGiven.filter(
     (graduation_course) => graduation_course
   );
+
+  console.log([
+    ...coursesTeacherGiven,
+    ...extraCoursesInfo,
+    ...gradCoursesTeacherGiven,
+  ]);
   return [
     ...coursesTeacherGiven,
     ...extraCoursesInfo,
