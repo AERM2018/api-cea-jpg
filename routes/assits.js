@@ -33,7 +33,7 @@ assitsRouter.get(
 assitsRouter.get("/", [validateFields, validateJWT], getAllAssistance);
 
 assitsRouter.get(
-  "/regular/:id_gro_cou",
+  "/regular_courses/:id_gro_cou",
   [
     check("id_gro_cou", "El id del curso grupo es numero y es obligatorio.")
       .isNumeric()
@@ -46,7 +46,7 @@ assitsRouter.get(
 );
 
 assitsRouter.get(
-  "/extra/:id_ext_cou",
+  "/extracurricular_courses/:id_ext_cou",
   [
     check(
       "id_ext_cou",
@@ -62,7 +62,7 @@ assitsRouter.get(
 );
 
 assitsRouter.get(
-  "/grasec/:id_graduation_section",
+  "/graduation_sections/:id_graduation_section",
   [
     check(
       "id_graduation_section",
@@ -77,15 +77,13 @@ assitsRouter.get(
   getGraSecAssistance
 );
 
-// TODO: Solo tomar asistencia de los alumnos que pertenezcan al grupo
-
 assitsRouter.post(
-  "/courses/:id_course",
+  "/regular_courses/:id_course",
   [
     check("id_course", "id_course de tipo integer, campo obligatorio")
       .isInt()
       .notEmpty(),
-    check("date_assistence", "La fecha de la asistencia es obligatorio")
+    check("date_assistance", "La fecha de la asistencia es obligatorio")
       .isDate()
       .notEmpty(),
     checkCourseExistence,
@@ -96,12 +94,12 @@ assitsRouter.post(
 );
 
 assitsRouter.post(
-  "/extra/:id_ext_cou",
+  "/extracurricular_courses/:id_ext_cou",
   [
     check("id_ext_cou", "id_ext_cou de tipo integer, campo obligatorio")
       .isInt()
       .notEmpty(),
-    check("date_assistence", "La fecha de la asistencia es obligatorio")
+    check("date_assistance", "La fecha de la asistencia es obligatorio")
       .isDate()
       .notEmpty(),
     checkExtraCurCourExistence,
@@ -112,7 +110,7 @@ assitsRouter.post(
 );
 
 assitsRouter.post(
-  "/grasec/:id_graduation_section",
+  "/graduation_sections/:id_graduation_section",
   [
     check(
       "id_graduation_section",
@@ -120,7 +118,7 @@ assitsRouter.post(
     )
       .isInt()
       .notEmpty(),
-    check("date_assistence", "La fecha de la asistencia es obligatorio")
+    check("date_assistance", "La fecha de la asistencia es obligatorio")
       .isDate()
       .notEmpty(),
     checkGraSecExistence,
