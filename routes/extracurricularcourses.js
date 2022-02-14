@@ -42,22 +42,6 @@ extraCurricularCoursesRouter.get(
   getStudentsFromExtraCourse
 );
 
-extraCurricularCoursesRouter.get(
-  "/:id_ext_cou/assistance_days",
-  [
-    validateJWT,
-    check(
-      "id_ext_cou",
-      "El id del curso extracurricular es obligatorio y es número"
-    )
-      .notEmpty()
-      .isNumeric(),
-    validateFields,
-    checkExtraCurCourExistence,
-  ],
-  getExtraCurricularCourseAssistanceDays
-);
-
 extraCurricularCoursesRouter.post(
   "/",
   [

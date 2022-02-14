@@ -124,32 +124,10 @@ const getStudentsFromExtraCourse = async (req, res = response) => {
   });
 };
 
-const getExtraCurricularCourseAssistanceDays = async (req, res) => {
-  const { id_ext_cou } = req.params;
-  ExtraCurricularCourses.belongsTo(Time_tables, {
-    foreignKey: "id_time_table",
-  });
-  Time_tables.hasMany(ExtraCurricularCourses, { foreignKey: "id_time_table" });
-  try {
-    const ext_cou = await ExtraCurricularCourses.findByPk(id_ext_cou, {
-      include: [{ model: Time_tables, attributes: ["day"] }],
-    });
-    const assistence_days = ext_cou.toJSON().time_table.day;
-    const assistence_days_dates = findAssistenceDays(
-      [assistence_days],
-      ext_cou.start_date,
-      moment(ext_cou.start_date).day(moment(ext_cou.start_date).day() + 7)
-    );
-    res.json({ ok: true, assistence_days_dates });
-  } catch (err) {
-    printAndSendError(res, err);
-  }
-};
 module.exports = {
   getAllExtraCurricularCourses,
   createExtraCurricularCourse,
   updateExtraCurricularCourse,
   deleteExtraCurricularCourse,
   getStudentsFromExtraCourse,
-  getExtraCurricularCourseAssistanceDays,
 };

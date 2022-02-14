@@ -127,20 +127,4 @@ Graduation_courses_Router.get(
   getStudentsFromGradCourse
 );
 
-Graduation_courses_Router.get(
-  "/:id_graduation_course/assistance_days",
-  [
-    validateJWT,
-    param(
-      "id_graduation_course",
-      "El id del curso de graduación es numero y es obligatorio."
-    )
-      .isInt()
-      .notEmpty(),
-    validateFields,
-    checkGraduationCourseExistence,
-  ],
-  getGraduationCourseAssistanceDays
-);
-
 module.exports = Graduation_courses_Router;

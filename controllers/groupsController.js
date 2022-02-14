@@ -338,35 +338,6 @@ const getCoursesGroupHasTaken = async (req, res = response) => {
   });
 };
 
-const getAssistanceDays = async (req, res = response) => {
-  const { id_group } = req.params;
-  Gro_tim.belongsTo(Time_tables, { foreignKey: "id_time_table" });
-  Time_tables.hasMany(Gro_tim, { foreignKey: "id_time_table" });
-  let assistence_days = await Time_tables.findAll({
-    where: {
-      id_time_table: {
-        [Op.in]: literal(
-          `(SELECT id_time_table FROM gro_tim WHERE id_group = ${id_group})`
-        ),
-      },
-    },
-    attributes: ["day"],
-    order: [[col("day"), "asc"]],
-  });
-  assistence_days = assistence_days.map(({ day }) => day);
-  let { first_day, last_day } = await getGroupDaysAndOverdue(
-    id_group,
-    moment().month(),
-    moment().year()
-  );
-  let assistence_days_dates = findAssistenceDays(
-    assistence_days,
-    first_day,
-    last_day
-  );
-  res.json({ assistence_days_dates });
-};
-
 module.exports = {
   getAllGroups,
   createGroup,
@@ -376,5 +347,4 @@ module.exports = {
   getStudentsFromGroup,
   removeCourseGroup,
   getCoursesGroupHasTaken,
-  getAssistanceDays,
 };

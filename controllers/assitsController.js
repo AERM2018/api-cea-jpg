@@ -1,10 +1,15 @@
 const { response } = require("express");
+const moment = require("moment");
 const { fn, col, literal, Op } = require("sequelize");
 const {
   getRegularCourseInfo,
   getGraduationSectionInfo,
   getExtraCourseInfo,
 } = require("../helpers/courses");
+const {
+  getGroupDaysAndOverdue,
+  findAssistenceDays,
+} = require("../helpers/dates");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Assit = require("../models/assit");
 const Course = require("../models/courses");
@@ -17,11 +22,13 @@ const Gra_sec_ass = require("../models/gra_sec_ass");
 const Group = require("../models/group");
 const Gro_cou = require("../models/gro_cou");
 const Gro_cou_ass = require("../models/gro_cou_ass");
+const Gro_tim = require("../models/gro_tim");
 const Student = require("../models/student");
 const Stu_extracou = require("../models/stu_extracou");
 const Stu_gracou = require("../models/stu_gracou");
 const Stu_gro = require("../models/stu_gro");
 const Teacher = require("../models/teacher");
+const Time_tables = require("../models/time_tables");
 
 const getAllAssistance = async (req, res) => {
   let assistence = [];
@@ -365,14 +372,45 @@ const getCourseAssistance = async (req, res) => {
   }
 };
 
+const getCourseAssistanceDays = async (req, res = response) => {
+  const { id_gro_cou } = req.params;
+  Gro_tim.belongsTo(Time_tables, { foreignKey: "id_time_table" });
+  Time_tables.hasMany(Gro_tim, { foreignKey: "id_time_table" });
+  try {
+    const group = await Gro_cou.findOne({ where: { id_gro_cou } });
+    const { id_group } = group.toJSON();
+    let assistence_days = await Time_tables.findAll({
+      where: {
+        id_time_table: {
+          [Op.in]: literal(
+            `(SELECT id_time_table FROM gro_tim WHERE id_group = ${id_group})`
+          ),
+        },
+      },
+      attributes: ["day"],
+      order: [[col("day"), "asc"]],
+    });
+    assistence_days = assistence_days.map(({ day }) => day);
+    let { first_day, last_day } = await getGroupDaysAndOverdue(
+      id_group,
+      moment().month(),
+      moment().year()
+    );
+    let assistence_days_dates = findAssistenceDays(
+      assistence_days,
+      first_day,
+      last_day
+    );
+    res.json({ ok: true, assistence_days_dates });
+  } catch (error) {
+    printAndSendError(res, error);
+  }
+};
 const takeCourseAssistance = async (req, res = response) => {
-  const { studentsList, id_group, date_assistance } = req.body;
-  const { id_course } = req.params;
+  const { studentsList, date_assistance } = req.body;
+  const { id_gro_cou } = req.params;
   let except = [];
   try {
-    const { id_gro_cou } = await Gro_cou.findOne({
-      where: { [Op.and]: [{ id_group }, { id_course }] },
-    });
     let studentsGroup = await Stu_gro.findAll({ where: { id_group } });
     studentsGroup = studentsGroup.map(({ id_student }) => id_student);
     await Promise.all(
@@ -600,6 +638,28 @@ const deleteExtracurCourAssistance = async (req, res = response) => {
   }
 };
 
+const getExtraCurricularCourseAssistanceDays = async (req, res) => {
+  const { id_ext_cou } = req.params;
+  ExtraCurricularCourses.belongsTo(Time_tables, {
+    foreignKey: "id_time_table",
+  });
+  Time_tables.hasMany(ExtraCurricularCourses, { foreignKey: "id_time_table" });
+  try {
+    const ext_cou = await ExtraCurricularCourses.findByPk(id_ext_cou, {
+      include: [{ model: Time_tables, attributes: ["day"] }],
+    });
+    const assistence_days = ext_cou.toJSON().time_table.day;
+    const assistence_days_dates = findAssistenceDays(
+      [assistence_days],
+      ext_cou.start_date,
+      moment(ext_cou.start_date).day(moment(ext_cou.start_date).day() + 7)
+    );
+    res.json({ ok: true, assistence_days_dates });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
+
 // GRADUATION SECTION
 const getGraSecAssistance = async (req, res = response) => {
   const { id_graduation_section } = req.params;
@@ -712,19 +772,77 @@ const takeGraSecAssistance = async (req, res = response) => {
   }
 };
 
+const getGraduationCourseAssistanceDays = async (req, res) => {
+  const { id_graduation_course } = req.params;
+  Stu_gracou.belongsTo(Student, { foreignKey: "id_student" });
+  Student.hasOne(Stu_gracou, { foreignKey: "id_student" });
+  Gro_tim.belongsTo(Group, { foreignKey: "id_group" });
+  Group.hasMany(Gro_tim, { foreignKey: "id_group" });
+  Gro_tim.belongsTo(Time_tables, { foreignKey: "id_time_table" });
+  Time_tables.hasMany(Gro_tim, { foreignKey: "id_time_table" });
+  try {
+    const graduation_course = await Graduation_courses.findByPk(
+      id_graduation_course
+    );
+    // Get assistance days in realtion to the group which the first student found belongs to
+    const student = await Stu_gracou.findOne({
+      where: { id_graduation_course },
+      include: [{ model: Student }],
+    });
+    let assistence_days = await Group.findOne({
+      where: {
+        id_group: literal(
+          `(SELECT id_group FROM STU_GRO where id_student = '${student.student.id_student}')`
+        ),
+      },
+      include: {
+        model: Gro_tim,
+        include: { model: Time_tables, attributes: ["day"] },
+      },
+    });
+    const id_group = assistence_days.id_group;
+    assistence_days = assistence_days.gro_tims.map(
+      (gro_time_table) => gro_time_table.time_table.day
+    );
+    const { first_day } = await getGroupDaysAndOverdue(
+      id_group,
+      moment(graduation_course.start_date).month(),
+      moment(graduation_course.end_date).year()
+    );
+    const { last_day } = await getGroupDaysAndOverdue(
+      id_group,
+      moment(graduation_course.end_date).month(),
+      moment(graduation_course.end_date).year()
+    );
+    const assistence_days_dates = findAssistenceDays(
+      assistence_days,
+      first_day,
+      last_day
+    );
+    res.json({
+      ok: true,
+      assistence_days_dates,
+    });
+  } catch (error) {
+    printAndSendError(res, error);
+  }
+};
 // TODO: Testear el poner asistencia con los nuevos cambios(No agregar asistencia a alumnos que no estan en los cursos)
 
 module.exports = {
   takeCourseAssistance,
   getAllAssistance,
   getCourseAssistance,
+  getCourseAssistanceDays,
   updateAssitence,
   deleteAssistence,
   getExtrCourAssistance,
+  getExtraCurricularCourseAssistanceDays,
   getAllAssistanceByStudent,
   takeExtracurCourAssistance,
   updateExtracurCourAssistance,
   deleteExtracurCourAssistance,
   getGraSecAssistance,
   takeGraSecAssistance,
+  getGraduationCourseAssistanceDays,
 };

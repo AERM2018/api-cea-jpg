@@ -247,62 +247,10 @@ const getStudentsFromGradCourse = async (req, res) => {
   }
 };
 
-const getGraduationCourseAssistanceDays = async (req, res) => {
-  const { id_graduation_course } = req.params;
-  Stu_gracou.belongsTo(Student, { foreignKey: "id_student" });
-  Student.hasOne(Stu_gracou, { foreignKey: "id_student" });
-  Gro_tim.belongsTo(Group, { foreignKey: "id_group" });
-  Group.hasMany(Gro_tim, { foreignKey: "id_group" });
-  Gro_tim.belongsTo(Time_tables, { foreignKey: "id_time_table" });
-  Time_tables.hasMany(Gro_tim, { foreignKey: "id_time_table" });
-  const graduation_course = await Graduation_courses.findByPk(
-    id_graduation_course
-  );
-  // Get assistance days in realtion to the group which the first student found belongs to
-  const student = await Stu_gracou.findOne({
-    where: { id_graduation_course },
-    include: [{ model: Student }],
-  });
-  let assistence_days = await Group.findOne({
-    where: {
-      id_group: literal(
-        `(SELECT id_group FROM STU_GRO where id_student = '${student.student.id_student}')`
-      ),
-    },
-    include: {
-      model: Gro_tim,
-      include: { model: Time_tables, attributes: ["day"] },
-    },
-  });
-  const id_group = assistence_days.id_group;
-  assistence_days = assistence_days.gro_tims.map(
-    (gro_time_table) => gro_time_table.time_table.day
-  );
-  const { first_day } = await getGroupDaysAndOverdue(
-    id_group,
-    moment(graduation_course.start_date).month(),
-    moment(graduation_course.end_date).year()
-  );
-  const { last_day } = await getGroupDaysAndOverdue(
-    id_group,
-    moment(graduation_course.end_date).month(),
-    moment(graduation_course.end_date).year()
-  );
-  const assistence_days_dates = findAssistenceDays(
-    assistence_days,
-    first_day,
-    last_day
-  );
-  res.json({
-    ok: true,
-    assistence_days_dates,
-  });
-};
 module.exports = {
   getAllGraduationCourses,
   createGraduationCourses,
   updateGraduationCourses,
   deleteGraduationCourses,
   getStudentsFromGradCourse,
-  getGraduationCourseAssistanceDays,
 };

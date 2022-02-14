@@ -11,6 +11,9 @@ const {
   getExtrCourAssistance,
   getGraSecAssistance,
   getCourseAssistance,
+  getExtraCurricularCourseAssistanceDays,
+  getGraduationCourseAssistanceDays,
+  getCourseAssistanceDays,
 } = require("../controllers/assitsController");
 const {
   checkExtraCurCourExistence,
@@ -18,6 +21,7 @@ const {
   checkCourseExistence,
   checkAssitExistence,
   checkGroupCourseExistence,
+  checkGraduationCourseExistence,
 } = require("../middlewares/dbValidations");
 const validateJWT = require("../middlewares/validar-jwt");
 const { validateFields } = require("../middlewares/validateFields");
@@ -33,7 +37,7 @@ assitsRouter.get(
 assitsRouter.get("/", [validateFields, validateJWT], getAllAssistance);
 
 assitsRouter.get(
-  "/regular_courses/:id_gro_cou",
+  "/regular/:id_gro_cou",
   [
     check("id_gro_cou", "El id del curso grupo es numero y es obligatorio.")
       .isNumeric()
@@ -45,8 +49,22 @@ assitsRouter.get(
   getCourseAssistance
 );
 
+// Traer días de asistencia de curso normal
 assitsRouter.get(
-  "/extracurricular_courses/:id_ext_cou",
+  "/regular/:id_gro_cou/assistance_days",
+  [
+    check("id_gro_cou", "El id del curso grupo es numero y es obligatorio.")
+      .isNumeric()
+      .notEmpty(),
+    validateFields,
+    checkGroupCourseExistence,
+    validateJWT,
+  ],
+  getCourseAssistanceDays
+);
+
+assitsRouter.get(
+  "/extracurricular/:id_ext_cou",
   [
     check(
       "id_ext_cou",
@@ -60,41 +78,57 @@ assitsRouter.get(
   ],
   getExtrCourAssistance
 );
-
+//  Traer días de asistencia de cursos extra
 assitsRouter.get(
-  "/graduation_sections/:id_graduation_section",
+  "/extracurricular/:id_ext_cou/assistance_days",
   [
     check(
-      "id_graduation_section",
-      "El id de la sección de graduación es numero y es obligatorio."
+      "id_ext_cou",
+      "El id del curso extracurricular es numero y es obligatorio."
     )
       .isNumeric()
       .notEmpty(),
     validateFields,
-    checkGraSecExistence,
+    checkExtraCurCourExistence,
     validateJWT,
   ],
-  getGraSecAssistance
+  getExtraCurricularCourseAssistanceDays
+);
+assitsRouter.get(
+  "/graduation/:id_graduation_course/assistance_days",
+  [
+    check(
+      "id_graduation_course",
+      "El id del curso de graduación es numero y es obligatorio."
+    )
+      .isNumeric()
+      .notEmpty(),
+    validateFields,
+    checkGraduationCourseExistence,
+    validateJWT,
+  ],
+  getGraduationCourseAssistanceDays
 );
 
 assitsRouter.post(
-  "/regular_courses/:id_course",
+  "/regular/:id_gro_cou",
+
   [
-    check("id_course", "id_course de tipo integer, campo obligatorio")
-      .isInt()
+    check("id_gro_cou", "El id del curso grupo es numero y es obligatorio.")
+      .isNumeric()
       .notEmpty(),
     check("date_assistance", "La fecha de la asistencia es obligatorio")
       .isDate()
       .notEmpty(),
-    checkCourseExistence,
     validateFields,
+    checkGroupCourseExistence,
     validateJWT,
   ],
   takeCourseAssistance
 );
 
 assitsRouter.post(
-  "/extracurricular_courses/:id_ext_cou",
+  "/extracurricular/:id_ext_cou",
   [
     check("id_ext_cou", "id_ext_cou de tipo integer, campo obligatorio")
       .isInt()
@@ -110,7 +144,7 @@ assitsRouter.post(
 );
 
 assitsRouter.post(
-  "/graduation_sections/:id_graduation_section",
+  "/graduation/:id_graduation_section",
   [
     check(
       "id_graduation_section",
