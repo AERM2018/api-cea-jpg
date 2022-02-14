@@ -90,7 +90,7 @@ const getRegularCourseInfo = async (
     ],
     where: { id_gro_cou },
   });
-  course = await setCourseInactivate(course);
+  course = await setCourseInactivate(course, "regular");
   let {
     id_course,
     id_group,
@@ -217,7 +217,7 @@ const getExtraCourseInfo = async (
   });
   extraCourses = Promise.all(
     extraCourses.map(async (extraCourse) => {
-      extraCourse = await setCourseInactivate(extraCourse);
+      extraCourse = await setCourseInactivate(extraCourse, "extracurricular");
       let {
         teacher,
         major: { major_name },
@@ -293,29 +293,40 @@ const getGraduationCourseInfo = async (id_graduation_course) => {
     attributes: ["course_grad_name", "course_name"],
     where: { id_graduation_course },
   });
-  graduationCourse = setCourseInactivate(graduationCourse);
+  graduationCourse = setCourseInactivate(graduationCourse, "graduation");
 
   // let {id_teacher,id_graduation_course,graduation_course,teacher,...restGraduationSection} = graduationSection
   // return {...restGraduationSection,...graduation_course,...teacher};
   return graduationCourse.toJSON();
 };
 
-const setCourseInactivate = async (entity) => {
+const setCourseInactivate = async (entity, type = "regular") => {
   const { start_date, end_date, status } = entity.toJSON();
+  let searchBy;
+  if (entity.toJSON().id_course) {
+    searchBy = { id_course: entity.toJSON().id_course };
+  } else if (entity.toJSON().id_ext_cou) {
+    searchBy = { id_ext_cou: entity.toJSON().id_ext_cou };
+  } else if (entity.toJSON().id_graduation_course) {
+    searchBy = { id_graduation_course: entity.toJSON().id_graduation_course };
+  }
   if (moment(end_date).isBefore(moment({})) && status) {
-    // When a record in gro_cou is overdue, set status = 0 the records with the same dates in cou_tea
-    await Cou_tea.update(
-      { status: 0 },
-      {
+    if (type === "regular") {
+      // When a record in gro_cou is overdue, set status = 0 the records with the same dates in cou_tea
+      const cou_tea = await Cou_tea.findOne({
         where: {
           [Op.and]: [
+            { id_course: searchBy.id_course },
             { start_date: { [Op.eq]: start_date } },
             { end_date: { [Op.eq]: end_date } },
           ],
         },
-      }
-    );
-    await entity.update({ status: 0 });
+      });
+      await cou_tea.update({ status: 0 });
+    } else if (!["extracurricular", "graduation"].includes(type)) {
+      throw Error("Tipo de curso desconocido, verifiquelo por favor.");
+    }
+    await entity.update({ status: 0 }, { searchBy });
     entity.status = 0;
   }
   return entity;
@@ -476,7 +487,7 @@ const getCoursesGiveTeachersOrTeacher = async (
     },
     attributes: {
       include: [["course_grad_name", "course_name"]],
-      exclude: ["id_graduation_course", "course_grad_name"],
+      exclude: ["course_grad_name"],
     },
   });
   gradCoursesTeacherGiven = await Promise.all(
