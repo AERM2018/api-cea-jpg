@@ -204,6 +204,7 @@ const getExtraCourseInfo = async (
     },
     attributes: {
       include: [
+        ["ext_cou_name", "course_name"],
         [
           literal(
             `(limit_participants - (SELECT COUNT(*) FROM stu_extracou WHERE stu_extracou.id_ext_cou = id_ext_cou))`
@@ -211,6 +212,7 @@ const getExtraCourseInfo = async (
           "spot_left",
         ],
       ],
+      exclude: ["ext_cou_name"],
     },
   });
   extraCourses = Promise.all(
@@ -288,6 +290,7 @@ const getGraduationCourseInfo = async (id_graduation_course) => {
     // },{
     //   model : Graduation_courses
     // }],
+    attributes: ["course_grad_name", "course_name"],
     where: { id_graduation_course },
   });
   graduationCourse = setCourseInactivate(graduationCourse);
@@ -387,7 +390,6 @@ const getCoursesGiveTeachersOrTeacher = async (
           ...statusCondition,
         },
       });
-      console.log("----", gro_cou);
       if (!gro_cou) return;
       let courseData = await getRegularCourseInfo({
         id_gro_cou: gro_cou.id_gro_cou,
@@ -471,6 +473,10 @@ const getCoursesGiveTeachersOrTeacher = async (
           : []),
         ...(status != "all" ? [{ status }] : []),
       ],
+    },
+    attributes: {
+      include: [["course_grad_name", "course_name"]],
+      exclude: ["id_graduation_course", "course_grad_name"],
     },
   });
   gradCoursesTeacherGiven = await Promise.all(
