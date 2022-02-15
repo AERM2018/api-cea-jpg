@@ -91,6 +91,9 @@ const getRegularCourseInfo = async (
     where: { id_gro_cou },
   });
   course = await setCourseInactivate(course, "regular");
+  course = course.toJSON();
+  course.start_date = moment(course.start_date).format("D-MMM-YYYY");
+  course.end_date = moment(course.end_date).format("D-MMM-YYYY");
   let {
     id_course,
     id_group,
@@ -100,7 +103,7 @@ const getRegularCourseInfo = async (
     },
     course: { course_name, cou_tea },
     ...restCourse
-  } = course.toJSON();
+  } = course;
 
   return {
     id_course,
@@ -218,11 +221,16 @@ const getExtraCourseInfo = async (
   extraCourses = Promise.all(
     extraCourses.map(async (extraCourse) => {
       extraCourse = await setCourseInactivate(extraCourse, "extracurricular");
+      extraCourse = extraCourse.toJSON();
+      extraCourse.start_date = moment(extraCourse.start_date).format(
+        "D-MMM-YYYY"
+      );
+      extraCourse.end_date = moment(extraCourse.end_date).format("D-MMM-YYYY");
       let {
         teacher,
         major: { major_name },
         ...restExtraCourse
-      } = extraCourse.toJSON();
+      } = extraCourse;
       return { ...restExtraCourse, major_name, ...(addTeacher && teacher) };
     })
   );
@@ -294,10 +302,16 @@ const getGraduationCourseInfo = async (id_graduation_course) => {
     where: { id_graduation_course },
   });
   graduationCourse = setCourseInactivate(graduationCourse, "graduation");
-
+  graduationCourse = graduationCourse.toJSON();
+  graduationCourse.start_date = moment(graduationCourse.start_date).format(
+    "D-MMM-YYYY"
+  );
+  graduationCourse.end_date = moment(graduationCourse.end_date).format(
+    "D-MMM-YYYY"
+  );
   // let {id_teacher,id_graduation_course,graduation_course,teacher,...restGraduationSection} = graduationSection
   // return {...restGraduationSection,...graduation_course,...teacher};
-  return graduationCourse.toJSON();
+  return graduationCourse;
 };
 
 const setCourseInactivate = async (entity, type = "regular") => {
@@ -406,10 +420,6 @@ const getCoursesGiveTeachersOrTeacher = async (
         id_gro_cou: gro_cou.id_gro_cou,
       });
       if (withTeacher) courseData = { ...courseData, ...teacher };
-      courseData.start_date = moment(courseData.start_date).format(
-        "D-MMM-YYYY"
-      );
-      courseData.end_date = moment(courseData.end_date).format("D-MMM-YYYY");
       courseData.type = "Regular";
       return courseData;
     })
@@ -423,12 +433,6 @@ const getCoursesGiveTeachersOrTeacher = async (
   });
   extraCoursesInfo = extraCoursesInfo.map((extraCourse) => ({
     type: "Extracurricular",
-    start_date: (extraCourse.start_date = moment(extraCourse.start_date).format(
-      "D-MMM-YYYY"
-    )),
-    end_date: (extraCourse.end_date = moment(extraCourse.end_date).format(
-      "D-MMM-YYYY"
-    )),
     ...extraCourse,
   }));
   // // Graduation courses
@@ -523,7 +527,7 @@ const getCoursesGiveTeachersOrTeacher = async (
       coursesInfoJSON.end_date = moment(coursesInfoJSON.end_date).format(
         "D-MMM-YYYY"
       );
-      coursesInfoJSON.type = "Graduation Course";
+      coursesInfoJSON.type = "Graduation";
       return coursesInfoJSON;
     })
   );
@@ -531,11 +535,6 @@ const getCoursesGiveTeachersOrTeacher = async (
     (graduation_course) => graduation_course
   );
 
-  console.log([
-    ...coursesTeacherGiven,
-    ...extraCoursesInfo,
-    ...gradCoursesTeacherGiven,
-  ]);
   return [
     ...coursesTeacherGiven,
     ...extraCoursesInfo,

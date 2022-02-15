@@ -315,6 +315,8 @@ const getCourseAssistance = async (req, res) => {
       id_gro_cou,
       addTeacher: true,
     });
+    courseInfo.start_date = moment(courseInfo.start_date).format("D-MMM-YYYY");
+    courseInfo.end_date = moment(courseInfo.end_date).format("D-MMM-YYYY");
     let students_group_ass = await Gro_cou_ass.findAll({
       include: [
         {

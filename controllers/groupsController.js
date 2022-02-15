@@ -287,7 +287,7 @@ const getStudentsFromGroup = async (req, res = response) => {
           attributes: ["id_group", "name_group"],
         },
       ],
-      where: { id_group },
+      where: { [Op.and]: [{ id_group }, { status: 1 }] },
     });
 
     studentsGroup = studentsGroup.map((studentGro) => {

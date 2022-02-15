@@ -20,6 +20,11 @@ const Stu_gro = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    status: {
+      type: DataTypes.TINYINT,
+      allowNull: false,
+      defaultValue: 1,
+    },
   },
   {
     timestamps: false,

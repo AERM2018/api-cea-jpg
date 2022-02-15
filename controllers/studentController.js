@@ -399,20 +399,29 @@ const moveStudentFromGroup = async (req, res) => {
   Stu_gro.belongsTo(Group, { foreignKey: "id_group" });
   Group.hasOne(Stu_gro, { foreignKey: "id_group" });
   // Find student's current group and major
-  const {
-    groupss: { id_major: id_current_major },
-  } = await Stu_gro.findOne({
-    include: { model: Group, attributes: ["id_major"] },
+  const stu_gro = await Stu_gro.findOne({
+    include: { model: Group, attributes: ["id_major", "id_group"] },
     where: { id_student },
     order: [["id_stu_gro", "desc"]],
   });
+  const {
+    groupss: { id_major: id_current_major, id_group: id_current_group },
+  } = stu_gro.toJSON();
+  console.log("actual", id_current_group);
+  console.log("nuevo", id_group);
+  if (id_current_group === parseInt(id_group)) {
+    return res.status(400).json({
+      ok: false,
+      msg: `Accion denegada, no se pudo mover al estudiante con matricula ${matricula} ya que el nuevo grupo es el mismo donte actualmente está.`,
+    });
+  }
   const { id_major } = await Group.findByPk(id_group);
-  console.log(id_current_major, id_major);
   if (id_current_major != id_major)
     return res.status(400).json({
       ok: false,
       msg: `Accion denegada, no se puede cambiar al alumno con matricula ${matricula} a otro grupo que no pertence a su carrera.`,
     });
+  stu_gro.update({ status: 0 });
   const new_stu_gro = new Stu_gro({ id_group, id_student });
   await new_stu_gro.save();
   return res.json({
