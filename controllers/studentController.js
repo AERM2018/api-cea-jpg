@@ -41,98 +41,10 @@ const Educational_level = require("../models/educational_level");
 
 const getAllStudents = async (req, res) => {
   try {
-    // const students = await db.query(getStudents, { type: QueryTypes.SELECT })
-    Cam_use.belongsTo(Campus, { foreignKey: "id_campus" });
-    Campus.hasMany(Cam_use, { foreignKey: "id_campus" });
-
-    Cam_use.belongsTo(User, { foreignKey: "id_user" });
-    User.hasOne(Cam_use, { foreignKey: "id_user" });
-
-    Student.belongsTo(User, { foreignKey: "id_user" });
-    User.hasOne(Student, { foreignKey: "id_user" });
-
-    Stu_gro.belongsTo(Student, { foreignKey: "id_student" });
-    Student.hasMany(Stu_gro, { foreignKey: "id_student" });
-
-    Stu_gro.belongsTo(Group, { foreignKey: "id_group" });
-    Group.hasMany(Stu_gro, { foreignKey: "id_group" });
-
-    Group.belongsTo(Major, { foreignKey: "id_major" });
-    Major.hasMany(Group, { foreignKey: "id_major" });
-    Major.belongsTo(Educational_level, { foreignKey: "id_edu_lev" });
-    Educational_level.hasOne(Major, { foreignKey: "id_edu_lev" });
-
-    let students = await Student.findAll({
-      include: [
-        {
-          model: User,
-          attributes: {
-            exclude: ["user_type", "email", "password"],
-          },
-          include: {
-            model: Cam_use,
-            attributes: {
-              exclude: ["id_user", "id_cam_use"],
-            },
-            include: {
-              model: Campus,
-              attributes: ["campus_name"],
-            },
-          },
-        },
-        {
-          model: Stu_gro,
-          include: {
-            model: Group,
-            attributes: ["name_group", "id_major"],
-            include: {
-              model: Major,
-              attributes: [
-                [
-                  fn(
-                    "concat",
-                    col("educational_level"),
-                    " en ",
-                    col("major_name")
-                  ),
-                  "major_name",
-                ],
-              ],
-              include: { model: Educational_level, attributes: [] },
-            },
-          },
-        },
-      ],
-      attributes: {
-        include: [
-          [
-            fn(
-              "concat",
-              col("name"),
-              " ",
-              col("surname_f"),
-              " ",
-              col("surname_m")
-            ),
-            "student_name",
-          ],
-        ],
-      },
-    });
-
-    students = students.map((student) => {
-      const { user, stu_gros, ...restoStudent } = student.toJSON();
-      return {
-        ...restoStudent,
-        id_campus: user.cam_use.id_campus,
-        campus_name: user.cam_use.campus.campus_name,
-        id_group: stu_gros[stu_gros.length - 1].id_group,
-        group_name: stu_gros[stu_gros.length - 1].groupss.name_group,
-        id_major: stu_gros[stu_gros.length - 1].groupss.id_major,
-        major_name: stu_gros[stu_gros.length - 1].groupss.major.major_name,
-      };
-    });
-
+    let students = await Student.findAll();
+    students = await Promise.all(
+      students.map(async (student) => await getStudentInfo(student.matricula))
+    );
     return res.status(200).json({
       ok: true,
       students,
@@ -166,10 +78,11 @@ const createStudent = async (req, res = response) => {
     zip,
     colony,
     birthdate,
+    birthplace,
+    age,
     name,
     surname_f,
     surname_m,
-    group_chief,
     curp,
     mobile_number,
     mobile_back_number,
@@ -224,13 +137,14 @@ const createStudent = async (req, res = response) => {
           name,
           surname_f,
           surname_m,
-          group_chief,
           curp,
           mobile_number,
           mobile_back_number,
           street,
           zip,
           birthdate,
+          birthplace,
+          age,
         });
         return res.status(200).json({
           ok: true,
@@ -279,7 +193,6 @@ const createStudent = async (req, res = response) => {
       name,
       surname_f,
       surname_m,
-      group_chief,
       curp,
       mobile_number,
       mobile_back_number,
@@ -287,6 +200,8 @@ const createStudent = async (req, res = response) => {
       zip,
       colony,
       birthdate,
+      birthplace,
+      age,
       gendre,
     });
     await newStudent.save();

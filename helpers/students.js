@@ -31,7 +31,7 @@ const { getTitularTeacherOfCourse } = require("./groups");
 const Req_pay = require("../models/req_pay");
 
 const getStudentInfo = async (matricula = "") => {
-  let student = await Stu_info.findAll({
+  const student = await Stu_info.findOne({
     where: { matricula },
     attributes: {
       exclude: ["id", "name", "surname_f", "surname_m"],
@@ -55,7 +55,7 @@ const getStudentInfo = async (matricula = "") => {
     },
     raw: true,
   });
-  return student[student.length - 1];
+  return student;
 };
 
 const getPaymentStudent = async (
