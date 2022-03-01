@@ -17,6 +17,7 @@ const {
   checkGroupCourseExistence,
   checkMajorExistence,
   checkTeacherExistence,
+  checkCampusExistence,
 } = require("../middlewares/dbValidations");
 const { isValidSchedule } = require("../middlewares/schedule");
 const validateJWT = require("../middlewares/validar-jwt");
@@ -38,6 +39,12 @@ groupsRouter.post(
       .notEmpty()
       .isNumeric(),
     check(
+      "id_campus",
+      "El id del campus es obligatorio y tiene que ser un numero entero"
+    )
+      .notEmpty()
+      .isNumeric(),
+    check(
       "name_group",
       "El nombre del grupo es obligaotorio y tiene que tener como maximo 15 caracteres"
     )
@@ -49,6 +56,7 @@ groupsRouter.post(
       "Es obligatorio seleccionar por lo menos un dia para el horario"
     ).isArray({ min: 1 }),
     checkMajorExistence,
+    checkCampusExistence,
     validateFields,
     validateJWT,
     isValidSchedule,

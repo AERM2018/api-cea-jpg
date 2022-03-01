@@ -27,13 +27,18 @@ const User = require("../models/user");
 const Request = require("../models/request");
 const { document_types } = require("../types/dictionaries");
 
-const checkCampusExistence = async (id_campus = 0) => {
+const checkCampusExistence = async (req, res, next) => {
+  const id_campus = req.body.id_campus | req.params.id_campus;
   const campus = await Campus.findOne({
     where: { id_campus },
   });
   if (!campus) {
-    throw new Error(`El campus con el id ${id_campus} no existe`);
+    return res.status(404).json({
+      ok: false,
+      msg: `El campus con el id ${id_campus} no existe`,
+    });
   }
+  next();
 };
 
 const checkStudentExistence = async (req, res = response, next) => {
