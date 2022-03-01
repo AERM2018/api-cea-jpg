@@ -17,7 +17,7 @@ const getAllExtraCurricularCourses = async (req = request, res = response) => {
   let { teacherName = "", status = "all" } = req.query;
   const statusCondition = status == "all" ? {} : { status };
   try {
-    let extraCurricularCourses = await getExtraCourseInfo({
+    let extracurricular_courses = await getExtraCourseInfo({
       addTeacher: true,
       teacherName,
       status: statusCondition.status,
@@ -25,7 +25,7 @@ const getAllExtraCurricularCourses = async (req = request, res = response) => {
     return res.status(200).json({
       //200 means success
       ok: true,
-      extraCurricularCourses,
+      extracurricular_courses,
     });
   } catch (err) {
     printAndSendError(res, err);

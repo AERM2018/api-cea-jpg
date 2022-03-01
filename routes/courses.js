@@ -12,6 +12,7 @@ const validateJWT = require("../middlewares/validar-jwt");
 const {
   checkCourseExistence,
   isValidRestrictionCourseOrExtraCourse,
+  checkMajorExistence,
 } = require("../middlewares/dbValidations");
 
 const coursesRouter = Router();
@@ -51,6 +52,7 @@ coursesRouter.post(
       .not()
       .isEmpty()
       .isLength({ max: 70 }),
+    checkMajorExistence,
     validateFields,
     checkCourseExistence,
   ],
@@ -97,6 +99,7 @@ coursesRouter.put(
       .not()
       .isEmpty()
       .isLength({ max: 70 }),
+    checkMajorExistence,
     validateFields,
     validateJWT,
   ],
