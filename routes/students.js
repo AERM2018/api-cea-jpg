@@ -37,10 +37,10 @@ studentsRouter.post(
   "/",
   [
     // check('email','El email es obligatorio').notEmpty().isEmail(),
-    check("matricula", "La matricula del estudiante es obligatoria")
-      .not()
-      .isEmpty()
-      .isLength({ max: 15 }),
+    // check("matricula", "La matricula del estudiante es obligatoria")
+    //   .not()
+    //   .isEmpty()
+    //   .isLength({ max: 15 }),
     check(
       "name",
       "El nombre del estudiante es obligatorio y debe de tener como maximo 35 caracteres"
@@ -127,19 +127,12 @@ studentsRouter.post(
       .not()
       .isEmpty()
       .isLength({ max: 50 }),
-    check(
-      "birthplace",
-      "El lugar de nacimiento es obligatorio y tiene que tener 50 caracteres como maximo"
-    )
-      .not()
-      .isEmpty()
-      .isLength({ max: 50 }),
-    check("age", "La edad es obligatoria.").isInt(),
     validateFields,
     validateJWT,
   ],
   createStudent
 );
+
 studentsRouter.put(
   "/:id",
   [
@@ -223,6 +216,13 @@ studentsRouter.put(
       .not()
       .isEmpty()
       .isLength({ max: 10 }),
+    check(
+      "birthplace",
+      "El lugar de nacimiento es obligatorio y tiene que tener 50 caracteres como maximo"
+    )
+      .not()
+      .isEmpty()
+      .isLength({ max: 50 }),
     //check('address','El domicilio es obligatorio y tiene que tener 50 caracteres como maximo').not().isEmpty().isLength({max:50}),
 
     // check('complete_documents','Falta el campo de los documentos del alumno').isInt().exists({checkNull:true}),
