@@ -87,16 +87,12 @@ const Student = db.define(
       type: DataTypes.STRING(50),
       allowNull: false,
     },
-    age: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
     regular: {
       type: DataTypes.TINYINT,
       allowNull: false,
       defaultValue: 1,
     },
-    gendre: {
+    gender: {
       type: DataTypes.ENUM("F", "M"),
       allowNull: false,
     },
