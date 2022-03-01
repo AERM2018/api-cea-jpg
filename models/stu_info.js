@@ -68,10 +68,6 @@ const Stu_info = db.define(
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
-    age: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
     matricula: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -100,7 +96,7 @@ const Stu_info = db.define(
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
-    gendre: {
+    gender: {
       type: DataTypes.STRING,
       allowNull: false,
     },
