@@ -10,20 +10,24 @@ const getAllMajors = async (req, res) => {
     let majors = await Major.findAll({
       include: {
         model: Educational_level,
-        attributes: [["educational_level", "name"]],
+        attributes: ["educational_level"],
       },
-      attributes: [
-        "id_major",
-        [
-          fn("concat", col("educational_level"), " en ", col("major_name")),
-          "major_name",
+      attributes: {
+        include: [
+          [
+            fn("concat", col("educational_level"), " en ", col("major_name")),
+            "major_name",
+          ],
         ],
-      ],
+      },
     });
-    majors = majors.map(({ id_major, major_name }) => ({
-      id_major,
-      major_name,
-    }));
+    majors = majors.map((major) => {
+      const { educational_level, ...restMajor } = major.toJSON();
+      return {
+        ...restMajor,
+        ...educational_level,
+      };
+    });
     return res.status(200).json({
       ok: true,
       majors,

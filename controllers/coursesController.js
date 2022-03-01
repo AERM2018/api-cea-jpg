@@ -181,11 +181,7 @@ const deleteCourse = async (req, res = response) => {
       msg: "Curso eliminado correctamente",
     });
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      ok: false,
-      msg: "Hable con el administrador",
-    });
+    printAndSendError(res, err);
   }
 };
 

@@ -64,7 +64,7 @@ studentsRouter.post(
       .isLength({ max: 45 }),
     check("group_chief", "El campo de jefe de grupo es obligatorio")
       .notEmpty()
-      .isInt(),
+      .isBoolean(),
     check(
       "curp",
       "El CURP es obligatorio y tiene que tener como maximo 18 caracteres"
@@ -169,7 +169,7 @@ studentsRouter.put(
       .isLength({ max: 45 }),
     check("group_chief", "El campo de jefe de grupo se tiene que llenar")
       .notEmpty()
-      .isInt(),
+      .isBoolean(),
     check(
       "birthdate",
       "La fecha de nacimiento del estudiante es obligatoria"

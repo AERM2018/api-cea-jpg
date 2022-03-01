@@ -52,6 +52,20 @@ coursesRouter.post(
       .not()
       .isEmpty()
       .isLength({ max: 70 }),
+    check(
+      "credits",
+      "Los creditos del curso es obligatorio y debe de ser un numero"
+    )
+      .not()
+      .isEmpty()
+      .isInt(),
+    check(
+      "clave",
+      "La clave del curso es obligatoria y debe tener como máximo 5 caracteres"
+    )
+      .not()
+      .isEmpty()
+      .isLength({ max: 5 }),
     checkMajorExistence,
     validateFields,
     checkCourseExistence,
@@ -99,6 +113,20 @@ coursesRouter.put(
       .not()
       .isEmpty()
       .isLength({ max: 70 }),
+    check(
+      "credits",
+      "Los creditos del curso es obligatorio y debe de ser un numero"
+    )
+      .not()
+      .isEmpty()
+      .isInt(),
+    check(
+      "clave",
+      "La clave del curso es obligatoria y debe tener como máximo 5 caracteres"
+    )
+      .not()
+      .isEmpty()
+      .isLength({ max: 5 }),
     checkMajorExistence,
     validateFields,
     validateJWT,

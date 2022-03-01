@@ -34,7 +34,7 @@ const getStudentInfo = async (matricula = "") => {
   const student = await Stu_info.findOne({
     where: { matricula },
     attributes: {
-      exclude: ["id", "name", "surname_f", "surname_m"],
+      exclude: ["id"],
       include: [
         [
           fn(

@@ -92,6 +92,7 @@ const createStudent = async (req, res = response) => {
     start_date,
     end_date,
     gender,
+    group_chief,
   } = req.body;
   let id_user, id_student, user;
   try {
@@ -174,6 +175,7 @@ const createStudent = async (req, res = response) => {
         msg: "No existe un grupo con ese id " + id_group,
       });
     }
+
     const campus = await Campus.findOne({
       where: { id_campus },
     });
@@ -191,6 +193,17 @@ const createStudent = async (req, res = response) => {
     matricula = await generateMatricula(id_group, id_campus);
     // Generate id student
     id_student = generateIdAle(id_user);
+
+    if (group_chief) {
+      if (group.group_chief_id_student) {
+        // Verify group chief existence
+        return res.status(400).json({
+          ok: false,
+          msg: `El grupo con id ${group.id_group} ya cuenta con un jefe de grupo`,
+        });
+      }
+      group.update({ group_chief_id_student: id_student });
+    }
     const newStudent = new Student({
       id_student,
       matricula,

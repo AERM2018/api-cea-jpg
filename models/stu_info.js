@@ -40,6 +40,10 @@ const Stu_info = db.define(
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     surname_f: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -80,12 +84,20 @@ const Stu_info = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    id_major: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     major_name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     educational_level: {
       type: DataTypes.STRING,
+      allowNull: false,
+    },
+    id_campus: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     campus_name: {
