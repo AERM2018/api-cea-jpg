@@ -30,6 +30,8 @@ const generateNewDoc = (tools, document_type, dataCallback, endCallback) => {
       aleDocument = new TestRecord(tools.tests);
       break;
     default:
+      aleDocument.PDFInstance.on("end", endCallback);
+      throw Error("Unexpected behavior at document generation.");
       break;
   }
   aleDocument.PDFInstance.on("data", dataCallback);

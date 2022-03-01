@@ -156,7 +156,11 @@ const completeARequest = async (req, res = response) => {
     const { matricula, document_type } = request.document;
     res.redirect(
       307,
-      `http://localhost:3005/api-ale/v1/documents/${document_type}/students/${matricula}`
+      `http://${
+        process.env.NODE_ENV === "production"
+          ? "api.alejandria.edu.mx"
+          : "localhost"
+      }:3005/api-ale/v1/documents/${document_type}/students/${matricula}`
     );
   } catch (error) {
     console.log(error);
