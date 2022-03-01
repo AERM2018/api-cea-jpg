@@ -38,7 +38,8 @@ const Stu_info = require("../models/stu_info");
 const getAllGrades = async (req, res = response) => {
   let grades;
   let { q = "", page = 1 } = req.query;
-  q = q.toLowerCase().split(" ").join("");
+  try {
+    q = q.toLowerCase().split(" ").join("");
   let students = await Stu_info.findAll({
     where: {
       id_student: { [Op.in]: literal("(SELECT id_student FROM grades)") },
@@ -66,6 +67,10 @@ const getAllGrades = async (req, res = response) => {
     ok: true,
     grades,
   });
+  } catch (error) {
+    printAndSendError
+  }
+  
 };
 
 const getAllGradesByCourse = async (req, res = response) => {
@@ -137,8 +142,8 @@ const getExtraCourseGrades = async (req, res = response) => {
   const { id_ext_cou } = req.params;
   Stu_extracou.belongsTo(Student, { foreignKey: "id_student" });
   Student.hasOne(Stu_extracou, { foreignKey: "id_student" });
-
-  let courseInfo = await getExtraCourseInfo({ id_ext_cou });
+  try {
+    let courseInfo = await getExtraCourseInfo({ id_ext_cou });
   let grades = await Stu_extracou.findAll({
     include: {
       model: Student,
@@ -168,11 +173,15 @@ const getExtraCourseGrades = async (req, res = response) => {
     ...courseInfo[0],
     grades,
   });
+  } catch (error) {
+    printAndSendError(res,error)
+  }
 };
 
 const getGraduationCourseGrades = async (req, res = response) => {
   const { id_graduation_course } = req.params;
-  let graduationCourse = await getGraduationCourseInfo(id_graduation_course);
+  try {
+    let graduationCourse = await getGraduationCourseInfo(id_graduation_course);
 
   Stu_gracou.belongsTo(Student, { foreignKey: "id_student" });
   Student.hasOne(Stu_gracou, { foreignKey: "id_student" });
@@ -212,6 +221,10 @@ const getGraduationCourseGrades = async (req, res = response) => {
     ...graduationCourse,
     grades,
   });
+  } catch (error) {
+    printAndSendError(res,error)
+  }
+  
 };
 // // It's not working
 // const getAllGroupsGrades = async ( req, res =  response)=>{
@@ -626,6 +639,10 @@ const deleteGradeByStudentId = async (req, res = response) => {
       });
     }
 
+    const testRelated = await Test.findOne({ where : {[Op.and] : {id_grade : grade.id_grade, id_student}}})
+    if(testRelated){
+      await testRelated.destroy()
+    }
     await grade.destroy();
 
     res.status(200).json({
@@ -633,11 +650,7 @@ const deleteGradeByStudentId = async (req, res = response) => {
       msg: `Calificación del estudiante con id ${id_student} eliminada correctamente`,
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      ok: false,
-      msg: "Hable con el administrador.",
-    });
+    printAndSendError(res,err)
   }
 };
 
