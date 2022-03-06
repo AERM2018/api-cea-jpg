@@ -8,6 +8,7 @@ const { printAndSendError } = require("../helpers/responsesOfReq");
 const Gro_cou = require("../models/gro_cou");
 const { setCourseInactivate } = require("../helpers/courses");
 const Restriction = require("../models/restriction");
+const ExtraCurricularCourses = require("../models/extracurricularcourses");
 
 const getAllCourses = async (req, res = response) => {
   let { courseName = "" } = req.query;
@@ -74,6 +75,28 @@ const createCourse = async (req, res = response) => {
         ok: false,
         msg: `En la carrera ya esta registrado un curso con el nombre '${course_name}'.`,
       });
+    }
+    // Validate that the course restriction exists
+    if (restricted_by_course) {
+      const course_restriction = await Course.findByPk(restricted_by_course);
+      if (!course_restriction) {
+        return res.status(400).json({
+          ok: false,
+          msg: `El curso con id ${restricted_by_course} de restricción para el curso a crear no existe.`,
+        });
+      }
+    }
+    // Validate that the extracurricular course restriction exists
+    if (restricted_by_extracourse) {
+      const extracourse_restriction = await ExtraCurricularCourses.findByPk(
+        restricted_by_extracourse
+      );
+      if (!extracourse_restriction) {
+        return res.status(400).json({
+          ok: false,
+          msg: `El curso extracurricular con id ${restricted_by_extracourse} de restricción para el curso a crear no existe.`,
+        });
+      }
     }
     //  Create and save course
     const course = new Course(body);

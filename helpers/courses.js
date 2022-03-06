@@ -145,6 +145,7 @@ const getExtraCourseInfo = async (
     courseName,
     status,
   } = opts;
+
   let includeOpts = {
     include: [
       {
@@ -429,6 +430,8 @@ const getCoursesGiveTeachersOrTeacher = async (
   let extraCoursesInfo = await getExtraCourseInfo({
     id_teacher,
     courseName,
+    teacherName,
+    addTeacher: true,
     status: statusCondition.status,
   });
   extraCoursesInfo = extraCoursesInfo.map((extraCourse) => ({

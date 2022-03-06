@@ -161,19 +161,13 @@ const deleteGroup = async (req, res) => {
   const { id_group } = req.params;
   try {
     const group = await Group.findByPk(id_group);
-    // const stu_gro = await Stu_gro.findAll({
-    //   where: { id_group },
-    // });
-    // stu_gro.forEach(async (grupo) => {
-    //   await grupo.destroy();
-    // });
-    // const gro_tim = await Gro_tim.findAll({
-    //   where: { id_group },
-    // });
-    // gro_tim.forEach(async (grupo) => {
-    //   await grupo.destroy();
-    // });
-    // await Cam_gro.destroy({ where: { id_group } });
+    const gro_tim = await Gro_tim.findAll({
+      where: { id_group },
+    });
+    gro_tim.forEach(async (grupo) => {
+      await grupo.destroy();
+    });
+    await Cam_gro.destroy({ where: { id_group } });
     await group.destroy();
     res.status(200).json({
       ok: true,
