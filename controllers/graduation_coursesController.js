@@ -136,7 +136,7 @@ const createGraduationCourses = async (req, res = response) => {
         id_graduation_course,
       });
       await graduation_section.save();
-      sections.pop();
+      sections.shift();
     }
     res.status(201).json({
       ok: true,
