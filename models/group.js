@@ -29,7 +29,7 @@ const Group = db.define(
     },
     group_chief_id_student: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
   },
   {

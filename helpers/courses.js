@@ -298,10 +298,10 @@ const getGraduationCourseInfo = async (id_graduation_course) => {
     // },{
     //   model : Graduation_courses
     // }],
-    attributes: ["course_grad_name", "course_name"],
+    attributes: [["course_grad_name", "course_name"]],
     where: { id_graduation_course },
   });
-  graduationCourse = setCourseInactivate(graduationCourse, "graduation");
+  graduationCourse = await setCourseInactivate(graduationCourse, "graduation");
   graduationCourse = graduationCourse.toJSON();
   graduationCourse.start_date = moment(graduationCourse.start_date).format(
     "D-MMM-YYYY"
