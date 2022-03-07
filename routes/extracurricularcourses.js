@@ -77,6 +77,14 @@ extraCurricularCoursesRouter.post(
       .not()
       .isEmpty()
       .isLength({ max: 30 }),
+    check("start_hour", "La hora de inicio es obligatoria.")
+      .isString()
+      .not()
+      .isEmpty(),
+    check("finish_hour", "La hora de finalización es obligatoria.")
+      .isString()
+      .not()
+      .isEmpty(),
     checkMajorExistence,
     checkTeacherExistence,
     validateFields,

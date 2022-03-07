@@ -166,7 +166,13 @@ const getExtraCourseInfo = async (
           model: Educational_level,
         },
       },
-      { model: Time_tables },
+      {
+        model: Time_tables,
+        attributes: [
+          [fn("date_format", col("start_hour"), "%H:%i"), "start_hour"],
+          [fn("date_format", col("finish_hour"), "%H:%i"), "finish_hour"],
+        ],
+      },
     ],
   };
   if (addTeacher)

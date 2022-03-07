@@ -34,18 +34,20 @@ const getAllExtraCurricularCourses = async (req = request, res = response) => {
 
 const createExtraCurricularCourse = async (req, res = response) => {
   const { body } = req;
-  const { day, start_hour, finish_hour } = body;
-  // Look for if there's coincidences in the time table chose
-  let time_table = await Time_tables.findOne({
-    where: { day, start_hour, finish_hour },
-  });
-  if (!time_table) {
-    const new_time_table = new Time_tables({ day, start_hour, finish_hour });
-    time_table = await new_time_table.save();
-    time_table = time_table.toJSON();
-  }
-  body.id_time_table = time_table.id_time_table;
+  const { start_hour, finish_hour, start_date } = body;
+
   try {
+    const day = moment(start_date).day();
+    // Look for if there's coincidences in the time table chose
+    let time_table = await Time_tables.findOne({
+      where: { day, start_hour, finish_hour },
+    });
+    if (!time_table) {
+      const new_time_table = new Time_tables({ day, start_hour, finish_hour });
+      time_table = await new_time_table.save();
+      time_table = time_table.toJSON();
+    }
+    body.id_time_table = time_table.id_time_table;
     const extracurricular_course = new ExtraCurricularCourses({ ...body });
     await extracurricular_course.save();
     res.status(201).json({

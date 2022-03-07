@@ -8,7 +8,7 @@ const Cam_use = require("../models/cam_use");
 const Department = require("../models/department");
 const { db } = require("../database/connection");
 const { getEmployees } = require("../queries/queries");
-const { QueryTypes, Op } = require("sequelize");
+const { QueryTypes, Op, fn, col } = require("sequelize");
 const { generateIdAle } = require("../helpers/generateIdOrMatricula");
 const getAllEmployees = async (req, res) => {
   try {
@@ -30,7 +30,13 @@ const getAllEmployees = async (req, res) => {
             ),
           },
         },
-        attributes: { exclude: ["id_time_table"] },
+        attributes: {
+          exclude: ["id_time_table"],
+          include: [
+            [fn("date_format", col("start_hour"), "%H:%i"), "start_hour"],
+            [fn("date_format", col("finish_hour"), "%H:%i"), "finish_hour"],
+          ],
+        },
       });
 
       return {

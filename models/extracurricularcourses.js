@@ -23,9 +23,6 @@ const ExtraCurricularCourses = db.define(
       type: DataTypes.DATE,
       allowNull: false,
     },
-    end_date: {
-      type: DataTypes.DATE,
-    },
     limit_participants: {
       type: DataTypes.TINYINT,
       allowNull: false,

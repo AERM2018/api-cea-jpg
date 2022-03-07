@@ -43,7 +43,13 @@ const getAllGroups = async (req, res) => {
               ),
             },
           },
-          attributes: { exclude: ["id_time_table"] },
+          attributes: {
+            exclude: ["id_time_table"],
+            include: [
+              [fn("date_format", col("start_hour"), "%H:%i"), "start_hour"],
+              [fn("date_format", col("finish_hour"), "%H:%i"), "finish_hour"],
+            ],
+          },
         });
         return {
           ...group,
@@ -319,7 +325,6 @@ const getCoursesGroupHasTaken = async (req, res = response) => {
     raw: true,
     nest: true,
   });
-  console.log(coursesTakenByGroup);
   groupInfo.coursesTaken = await Promise.all(
     coursesTakenByGroup.map(async (course) => {
       const { teacher } = await getTitularTeacherOfCourse(

@@ -178,22 +178,24 @@ gradesRouter.put(
 );
 
 gradesRouter.put(
-  "/extracurricular_courses/:id_stu_extracou",
+  "/extracurricular_courses/:id_ext_cou/students/:matricula",
   [
     param(
-      "id_stu_extracou",
-      "El id de estudiante_extracurricular es un numero y es obligatorio "
+      "id_ext_cou",
+      "El id del curso extracurricular es un numero y es obligatorio "
     )
       .not()
       .isEmpty()
       .isInt(),
-    // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
-    // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
-    // check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
+    param("matricula", "La matricula del estudiante es obligatorio ")
+      .not()
+      .isEmpty()
+      .isInt(),
     check("grade", "Calificación es de tipo float obligatoria")
       .isFloat()
       .notEmpty(),
     checkExtraCurCourExistence,
+    checkStudentExistence,
     validateFields,
     validateJWT,
   ],

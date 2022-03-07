@@ -56,7 +56,7 @@ groupsRouter.post(
       .isEmpty()
       .isLength({ max: 15 }),
     check(
-      "time_tables",
+      "time_table",
       "Es obligatorio seleccionar por lo menos un dia para el horario"
     ).isArray({ min: 1 }),
     checkMajorExistence,
