@@ -181,12 +181,12 @@ const deleteGroup = async (req, res) => {
 const addCourseGroup = async (req, res) => {
   const { id_group, id_course } = req.params;
   const { id_teacher } = req.body;
+  let { start_date, end_date } = req.body;
 
   try {
     const groupCourse = await Gro_cou.findOne({
       where: {
-        id_course,
-        id_group: { [Op.ne]: id_group },
+        [Op.and]: [{ id_course }, { id_group }],
       },
     });
     if (groupCourse) {
@@ -195,8 +195,11 @@ const addCourseGroup = async (req, res) => {
         msg: `Ya existe una materia en ese grupo con el id ${id_course}`,
       });
     }
-    const { first_day: start_date, last_day: end_date } =
-      await getGroupDaysAndOverdue(id_group);
+    if (!start_date || !end_date) {
+      const { first_day, last_day } = await getGroupDaysAndOverdue(id_group);
+      start_date = first_day;
+      end_date = last_day;
+    }
     const gro_cou = new Gro_cou({ id_group, id_course, start_date, end_date });
     await gro_cou.save();
     const cou_tea = new Cou_tea({

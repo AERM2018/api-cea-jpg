@@ -92,6 +92,7 @@ const getRegularCourseInfo = async (
   });
   course = await setCourseInactivate(course, "regular");
   course = course.toJSON();
+  course.status = course.status === 1 ? "Activo" : "Inactivo";
   course.start_date = moment(course.start_date).format("D-MMM-YYYY");
   course.end_date = moment(course.end_date).format("D-MMM-YYYY");
   let {
@@ -223,6 +224,7 @@ const getExtraCourseInfo = async (
     extraCourses.map(async (extraCourse) => {
       extraCourse = await setCourseInactivate(extraCourse, "extracurricular");
       extraCourse = extraCourse.toJSON();
+      extraCourse.status = extraCourse.status === 1 ? "Activo" : "Inactivo";
       extraCourse.start_date = moment(extraCourse.start_date).format(
         "D-MMM-YYYY"
       );
@@ -304,6 +306,8 @@ const getGraduationCourseInfo = async (id_graduation_course) => {
   });
   graduationCourse = await setCourseInactivate(graduationCourse, "graduation");
   graduationCourse = graduationCourse.toJSON();
+  graduationCourse.status =
+    graduationCourse.status === 1 ? "Activo" : "Inactivo";
   graduationCourse.start_date = moment(graduationCourse.start_date).format(
     "D-MMM-YYYY"
   );
@@ -521,6 +525,8 @@ const getCoursesGiveTeachersOrTeacher = async (
         coursesInfoJSON.graduation_sections.filter((section) => section);
       course = await setCourseInactivate(course);
       if (!course.status && status == 1) return;
+      coursesInfoJSON.status =
+        coursesInfoJSON.status === 1 ? "Activo" : "Inactivo";
       coursesInfoJSON.teacher_name = teacher.teacher_name;
       coursesInfoJSON.isTeacherTitular =
         coursesInfoJSON.id_teacher == id_teacher ? 1 : 0;
