@@ -29,9 +29,13 @@ const Test = require("../models/test");
 const { raw } = require("mysql");
 const { getTitularTeacherOfCourse } = require("./groups");
 const Req_pay = require("../models/req_pay");
+const Stu_gro = require("../models/stu_gro");
+const Group = require("../models/group");
 
 const getStudentInfo = async (matricula = "") => {
-  const student = await Stu_info.findOne({
+  Stu_gro.belongsTo(Group, { foreignKey: "id_group" });
+  Group.hasMany(Stu_gro, { foreignKey: "id_group" });
+  let student = await Stu_info.findOne({
     where: { matricula },
     attributes: {
       exclude: ["id"],
@@ -55,6 +59,20 @@ const getStudentInfo = async (matricula = "") => {
     },
     raw: true,
   });
+  // Checar si es jefe de grupo del grupo donde está actualmente
+  const is_group_chief = await Stu_gro.findOne({
+    include: {
+      model: Group,
+      required: true,
+      where: {
+        [Op.and]: [
+          { group_chief_id_student: student.id_student },
+          { id_group: student.id_group },
+        ],
+      },
+    },
+  });
+  student.is_group_chief = is_group_chief ? true : false;
   return student;
 };
 

@@ -41,6 +41,11 @@ const {
 } = require("../helpers/students");
 const Stu_info = require("../models/stu_info");
 const Educational_level = require("../models/educational_level");
+const {
+  hasGroupAGroupChief,
+  assingStudentAsGroupChief,
+  removeStudentAsGroupChief,
+} = require("../helpers/groups");
 
 const getAllStudents = async (req, res) => {
   try {
@@ -193,17 +198,14 @@ const createStudent = async (req, res = response) => {
     matricula = await generateMatricula(id_group, id_campus);
     // Generate id student
     id_student = generateIdAle(id_user);
-
-    if (group_chief) {
-      if (group.group_chief_id_student) {
-        // Verify group chief existence
-        return res.status(400).json({
-          ok: false,
-          msg: `El grupo con id ${group.id_group} ya cuenta con un jefe de grupo`,
-        });
-      }
-      group.update({ group_chief_id_student: id_student });
+    if (await hasGroupAGroupChief(id_student, id_group)) {
+      return res.status(400).json({
+        ok: false,
+        msg: `El grupo con id ${id_group} ya cuenta con un jefe de grupo`,
+      });
     }
+    await assingStudentAsGroupChief(id_student, id_group);
+
     const newStudent = new Student({
       id_student,
       matricula,
@@ -340,8 +342,6 @@ const moveStudentFromGroup = async (req, res) => {
   const {
     groupss: { id_major: id_current_major, id_group: id_current_group },
   } = stu_gro.toJSON();
-  console.log("actual", id_current_group);
-  console.log("nuevo", id_group);
   if (id_current_group === parseInt(id_group)) {
     return res.status(400).json({
       ok: false,
@@ -357,6 +357,10 @@ const moveStudentFromGroup = async (req, res) => {
   stu_gro.update({ status: 0 });
   const new_stu_gro = new Stu_gro({ id_group, id_student });
   await new_stu_gro.save();
+  await removeStudentAsGroupChief(
+    stu_gro.toJSON().id_student,
+    stu_gro.toJSON().id_group
+  );
   return res.json({
     ok: true,
     msg: `El estudiante con matricula ${matricula} fue cambiado correctamente.`,

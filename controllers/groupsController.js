@@ -14,6 +14,8 @@ const Cou_tea = require("../models/cou_tea");
 const {
   getGroupInfo,
   getTitularTeacherOfCourse,
+  assingStudentAsGroupChief,
+  removeStudentAsGroupChief,
 } = require("../helpers/groups");
 const { setCourseInactivate } = require("../helpers/courses");
 const Cam_gro = require("../models/cam_gro");
@@ -336,6 +338,33 @@ const getCoursesGroupHasTaken = async (req, res = response) => {
   });
 };
 
+const assignGroupChief = async (req, res = response) => {
+  const { id_group, matricula } = req.params;
+  const { id_student } = req;
+  try {
+    await assingStudentAsGroupChief(id_student, id_group);
+    res.json({
+      ok: true,
+      msg: `El estudiante con matricula ${matricula} fue asignado como jefe de grupo.`,
+    });
+  } catch (error) {
+    printAndSendError(res, error);
+  }
+};
+
+const removeGroupChief = async (req, res = response) => {
+  const { id_group, matricula } = req.params;
+  const { id_student } = req;
+  try {
+    await removeStudentAsGroupChief(id_student, id_group);
+    res.json({
+      ok: true,
+      msg: `El estudiante con matricula ${matricula} fue removido como jefe de grupo.`,
+    });
+  } catch (error) {
+    printAndSendError(res, error);
+  }
+};
 module.exports = {
   getAllGroups,
   createGroup,
@@ -345,4 +374,6 @@ module.exports = {
   getStudentsFromGroup,
   removeCourseGroup,
   getCoursesGroupHasTaken,
+  assignGroupChief,
+  removeGroupChief,
 };

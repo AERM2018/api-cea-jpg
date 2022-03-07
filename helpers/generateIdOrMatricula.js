@@ -23,7 +23,7 @@ const generateMatricula = async (id_group, id_campus) => {
   const {
     major: { major_name },
   } = group.toJSON();
-  const major_name_part = `${major_name.toUpperCase().slice(0, 3)}`;
+  const major_name_part = `${major_name.toUpperCase().slice(0, 2)}`;
   const campus = await Campus.findByPk(id_campus);
   const { state, municipality } = campus.toJSON();
   const municipality_part = municipality.toUpperCase().slice(0, 2);

@@ -26,6 +26,7 @@ const Test = require("../models/test");
 const User = require("../models/user");
 const Request = require("../models/request");
 const { document_types } = require("../types/dictionaries");
+const Stu_gro = require("../models/stu_gro");
 
 const checkCampusExistence = async (req, res, next) => {
   const id_campus = req.body.id_campus | req.params.id_campus;
@@ -495,6 +496,22 @@ const isRestrictionValid = async (req, res, next) => {
     // course =
   }
 };
+
+const isStudentPartOfAGroup = async (req, res, next) => {
+  const { id_student } = req;
+  const id_group = req.params.id_group || req.body.id_group;
+  const matricula = req.params.matricula || req.body.matricula;
+  const stu_gro = await Stu_gro.findOne({
+    where: { [Op.and]: [{ id_student }, { id_group }, { status: 1 }] },
+  });
+  if (!stu_gro) {
+    return res.status(400).json({
+      ok: false,
+      msg: `El estudiante con matricula ${matricula} no puede ser jefe de grupo porque no pertence a él.`,
+    });
+  }
+  next();
+};
 module.exports = {
   checkCampusExistence,
   checkStudentExistence,
@@ -530,4 +547,5 @@ module.exports = {
   checkRequestExistance,
   isRestrictionValid,
   isValidRestrictionCourseOrExtraCourse,
+  isStudentPartOfAGroup,
 };

@@ -10,6 +10,8 @@ const {
   removeCourseGroup,
   getCoursesGroupHasTaken,
   getAssistanceDays,
+  assignGroupChief,
+  removeGroupChief,
 } = require("../controllers/groupsController");
 const {
   checkGroupExistence,
@@ -18,6 +20,8 @@ const {
   checkMajorExistence,
   checkTeacherExistence,
   checkCampusExistence,
+  checkStudentExistence,
+  isStudentPartOfAGroup,
 } = require("../middlewares/dbValidations");
 const { isValidSchedule } = require("../middlewares/schedule");
 const validateJWT = require("../middlewares/validar-jwt");
@@ -143,4 +147,39 @@ groupsRouter.get(
   ],
   getStudentsFromGroup
 );
+
+groupsRouter.patch(
+  "/:id_group/student/:matricula",
+  [
+    check(
+      "id_group",
+      "El id del grupo es obligatorio y debe de ser un numero entero"
+    ).isNumeric(),
+    check("matricula", "La matricula del estudiante es obligatoria").notEmpty(),
+    checkGroupExistence,
+    checkStudentExistence,
+    isStudentPartOfAGroup,
+    validateFields,
+    validateJWT,
+  ],
+  assignGroupChief
+);
+
+groupsRouter.delete(
+  "/:id_group/student/:matricula",
+  [
+    check(
+      "id_group",
+      "El id del grupo es obligatorio y debe de ser un numero entero"
+    ).isNumeric(),
+    check("matricula", "La matricula del estudiante es obligatoria").notEmpty(),
+    checkGroupExistence,
+    checkStudentExistence,
+    isStudentPartOfAGroup,
+    validateFields,
+    validateJWT,
+  ],
+  removeGroupChief
+);
+
 module.exports = groupsRouter;

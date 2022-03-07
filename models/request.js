@@ -30,7 +30,7 @@ const Request = db.define(
     },
     creation_date: {
       type: DataTypes.DATEONLY,
-      defaultValue: db.query("(current_timestamp() + interval -6 hour)"),
+      defaultValue: db.query("SELECT DATE_ADD(now(), interval -6 hour)"),
       allowNull: true,
     },
   },

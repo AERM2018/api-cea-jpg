@@ -11,57 +11,138 @@ const Major = require("../models/major");
 const Student = require("../models/student");
 const Stu_gro = require("../models/stu_gro");
 const Teacher = require("../models/teacher");
-const User = require("../models/user")
+const User = require("../models/user");
 
-const getGroupInfo = async(id_group = 0) => {
-    Cam_gro.belongsTo(Group,{foreignKey:'id_group'})
-    Group.hasOne(Cam_gro,{foreignKey:'id_group'})
-    Cam_gro.belongsTo(Campus,{foreignKey:'id_campus'})
-    Campus.hasOne(Cam_gro,{foreignKey:'id_campus'})   
-    Group.belongsTo(Major,{foreignKey:'id_major'})
-    Major.hasOne(Group,{foreignKey:'id_major'})
-    Major.belongsTo(Educational_level,{foreignKey:'id_edu_lev'})
-    Educational_level.hasOne(Major,{foreignKey:'id_edu_lev'})
-    let groups = await Group.findAll({
-        attributes : {include : [['name_group','group_name']],exclude:['name_group']},
-        include : [{
-            model : Cam_gro,
-            include : {model :Campus,attributes:['campus_name']}
-        },
-        {
-            model : Major, attributes : [[fn('concat',col('major.educational_level.educational_level'),' en ',col('major_name')),'major_name']],
-            include : { model : Educational_level, attributes : []}
-        }],
-        where : {...(id_group)&&{id_group}}
-    })
-    groups = groups.map((group)=>{
-        let {major,cam_gro:{campus},...restGroupInfo} = group.toJSON()
-        return {...campus,...major,...restGroupInfo,}
-    })
-    return (id_group) ? groups[0] : groups
-}
+const getGroupInfo = async (id_group = 0) => {
+  Cam_gro.belongsTo(Group, { foreignKey: "id_group" });
+  Group.hasOne(Cam_gro, { foreignKey: "id_group" });
+  Cam_gro.belongsTo(Campus, { foreignKey: "id_campus" });
+  Campus.hasOne(Cam_gro, { foreignKey: "id_campus" });
+  Group.belongsTo(Major, { foreignKey: "id_major" });
+  Major.hasOne(Group, { foreignKey: "id_major" });
+  Major.belongsTo(Educational_level, { foreignKey: "id_edu_lev" });
+  Educational_level.hasOne(Major, { foreignKey: "id_edu_lev" });
+  Group.belongsTo(Student, { foreignKey: "group_chief_id_student" });
+  Student.hasOne(Group, { foreignKey: "group_chief_id_student" });
+  let groups = await Group.findAll({
+    attributes: {
+      include: [["name_group", "group_name"]],
+      exclude: ["name_group"],
+    },
+    include: [
+      {
+        model: Cam_gro,
+        include: { model: Campus, attributes: ["campus_name"] },
+      },
+      {
+        model: Major,
+        attributes: [
+          [
+            fn(
+              "concat",
+              col("major.educational_level.educational_level"),
+              " en ",
+              col("major_name")
+            ),
+            "major_name",
+          ],
+        ],
+        include: { model: Educational_level, attributes: [] },
+      },
+      {
+        model: Student,
+        attributes: [
+          ["matricula", "group_chief_matricula"],
+          [
+            fn(
+              "concat",
+              col("student.name"),
+              " ",
+              col("student.surname_f"),
+              " ",
+              col("student.surname_m")
+            ),
+            "group_chief_student_name",
+          ],
+        ],
+      },
+    ],
+    where: { ...(id_group && { id_group }) },
+  });
+  groups = groups.map((group) => {
+    let {
+      major,
+      cam_gro: { campus },
+      student,
+      ...restGroupInfo
+    } = group.toJSON();
+    return { ...campus, ...major, ...restGroupInfo, ...student };
+  });
+  return id_group ? groups[0] : groups;
+};
 
-const getTitularTeacherOfCourse = async(id_group = 0, id_course = 0) =>{
-    // Gro_cou.belongsTo(Course,{foreignKey:'id_course'})
-    // Course.hasOne(Gro_cou,{foreignKey:'id_course'})
-    // Cou_tea.belongsTo(Course,{foreignKey:'id_course'})
-    // Course.hasOne(Cou_tea,{foreignKey:'id_course'})
-    Cou_tea.belongsTo(Teacher,{foreignKey:'id_teacher'})
-    Teacher.hasOne(Cou_tea,{foreignKey:'id_teacher'})
-    const course = await Cou_tea.findOne({
-        // where : {[Op.and] : [{id_course},{id_group}]},
-        
-            include : {
-                model:Teacher,
-                attributes : ['id_teacher',[fn('concat',col('name'),' ',col('surname_f'),' ',col('surname_m')),'teacher_name']]
-            },
-            where : where(literal(`((${col('start_date').col} = (SELECT start_date FROM gro_cou WHERE id_course = ${id_course} AND id_group = ${id_group})) AND (${col('end_date').col} = (SELECT end_date FROM gro_cou WHERE id_course = ${id_course} AND id_group = ${id_group})) AND ${col('id_course').col} = ${id_course})`),true),
-        raw : true,
-        nest : true
-    })
-    return course
-}
+const getTitularTeacherOfCourse = async (id_group = 0, id_course = 0) => {
+  // Gro_cou.belongsTo(Course,{foreignKey:'id_course'})
+  // Course.hasOne(Gro_cou,{foreignKey:'id_course'})
+  // Cou_tea.belongsTo(Course,{foreignKey:'id_course'})
+  // Course.hasOne(Cou_tea,{foreignKey:'id_course'})
+  Cou_tea.belongsTo(Teacher, { foreignKey: "id_teacher" });
+  Teacher.hasOne(Cou_tea, { foreignKey: "id_teacher" });
+  const course = await Cou_tea.findOne({
+    // where : {[Op.and] : [{id_course},{id_group}]},
+
+    include: {
+      model: Teacher,
+      attributes: [
+        "id_teacher",
+        [
+          fn(
+            "concat",
+            col("name"),
+            " ",
+            col("surname_f"),
+            " ",
+            col("surname_m")
+          ),
+          "teacher_name",
+        ],
+      ],
+    },
+    where: where(
+      literal(
+        `((${
+          col("start_date").col
+        } = (SELECT start_date FROM gro_cou WHERE id_course = ${id_course} AND id_group = ${id_group})) AND (${
+          col("end_date").col
+        } = (SELECT end_date FROM gro_cou WHERE id_course = ${id_course} AND id_group = ${id_group})) AND ${
+          col("id_course").col
+        } = ${id_course})`
+      ),
+      true
+    ),
+    raw: true,
+    nest: true,
+  });
+  return course;
+};
+
+const assingStudentAsGroupChief = async (id_student, id_group) => {
+  const group = await Group.findByPk(id_group);
+  group.update({ group_chief_id_student: id_student });
+};
+const removeStudentAsGroupChief = async (id_student, id_group) => {
+  const group = await Group.findByPk(id_group);
+  group.update({ group_chief_id_student: null });
+};
+const hasGroupAGroupChief = async (id_student, id_group) => {
+  const group = await Group.findByPk(id_group);
+  if (group.group_chief_id_student) return true;
+  return false;
+};
 module.exports = {
-    getGroupInfo,
-    getTitularTeacherOfCourse
+  getGroupInfo,
+  getTitularTeacherOfCourse,
+  assingStudentAsGroupChief,
+  removeStudentAsGroupChief,
+  hasGroupAGroupChief,
 };
