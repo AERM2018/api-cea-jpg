@@ -26,34 +26,31 @@ const {
 } = require("../helpers/dates");
 
 const getAllGroups = async (req, res) => {
-  const { timeTable = false } = req.query;
   let groups = [];
   try {
     groups = await getGroupInfo();
-    if (timeTable) {
-      groups = await Promise.all(
-        groups.map(async (group) => {
-          const gro_tim = await Gro_tim.findAll({
-            where: { id_group: group.id_group },
-            attributes: ["id_time_table"],
-          });
-          const time_tables = await Time_tables.findAll({
-            where: {
-              id_time_table: {
-                [Op.in]: gro_tim.map(
-                  (time_table) => time_table.toJSON().id_time_table
-                ),
-              },
+    groups = await Promise.all(
+      groups.map(async (group) => {
+        const gro_tim = await Gro_tim.findAll({
+          where: { id_group: group.id_group },
+          attributes: ["id_time_table"],
+        });
+        const time_tables = await Time_tables.findAll({
+          where: {
+            id_time_table: {
+              [Op.in]: gro_tim.map(
+                (time_table) => time_table.toJSON().id_time_table
+              ),
             },
-            attributes: { exclude: ["id_time_table"] },
-          });
-          return {
-            ...group,
-            time_table: time_tables.map((time_table) => time_table.toJSON()),
-          };
-        })
-      );
-    }
+          },
+          attributes: { exclude: ["id_time_table"] },
+        });
+        return {
+          ...group,
+          time_table: time_tables.map((time_table) => time_table.toJSON()),
+        };
+      })
+    );
     res.json({
       ok: true,
       groups,

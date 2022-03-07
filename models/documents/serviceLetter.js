@@ -14,8 +14,9 @@ class ServiceLetter extends AlePDFDocument {
     super.writeHeader();
     this.PDFInstance.font("regular-bold")
       .fontSize(12)
-      .text(`${this.student.worksFor.person_name}`, { align: "justify" })
-      .text(`${this.student.worksFor.person_workstation}`)
+      //.text(`${this.student.worksFor.person_name}`, { align: "justify" })
+      //.text(`${this.student.worksFor.person_workstation}`
+      .text(`A  Q U I E N  C O R R E S P O N D A.`)
       .text("P R E S E N T E.-")
       .moveDown(3)
       .font("regular")
