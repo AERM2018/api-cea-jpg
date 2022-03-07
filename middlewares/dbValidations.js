@@ -206,10 +206,19 @@ const isValidDocument = (document_type = null, req) => {
   return true;
 };
 
-const isValidDocumentType = (document_type = null, req) => {
-  if (document_type < 0 || document_type >= document_types.length)
-    throw Error(`Tipo de documento invalido`);
-  return true;
+const isValidDocumentType = (req, res, next) => {
+  const { document_type } = req.body;
+  if (document_type !== undefined) {
+    if (
+      !document_types
+        .map((document_type) => document_type.id)
+        .includes(document_type)
+    )
+      return res
+        .status(404)
+        .json({ ok: false, msg: `Tipo de documento invalido` });
+  }
+  next();
 };
 
 const checkDocumentExistance = (req, res, next) => {
