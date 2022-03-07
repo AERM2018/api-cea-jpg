@@ -200,8 +200,6 @@ const isValidDocument = (document_type = null, req) => {
   } else {
     if (document_type === null)
       throw Error(`El tipo de documento es obligatorio.`);
-    if (document_type < 0 || document_type >= document_types.length)
-      throw Error(`Tipo de documento invalido`);
   }
   return true;
 };

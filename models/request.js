@@ -30,7 +30,7 @@ const Request = db.define(
     },
     creation_date: {
       type: DataTypes.DATEONLY,
-      defaultValue: Sequelize.NOW,
+      defaultValue: db.query("(current_timestamp() + interval -6 hour)"),
       allowNull: true,
     },
   },
