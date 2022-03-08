@@ -65,12 +65,8 @@ const getAllCourses = async (req, res = response) => {
 
 const createCourse = async (req, res = response) => {
   const { body } = req;
-  const {
-    id_major,
-    course_name,
-    restricted_by_course,
-    restricted_by_extracourse,
-  } = body;
+  const { id_major, course_name } = body;
+  let { restricted_by_course, restricted_by_extracourse } = body;
 
   try {
     // Avoid duplicates
@@ -88,7 +84,7 @@ const createCourse = async (req, res = response) => {
       });
     }
     // Validate that the course restriction exists
-    if (restricted_by_course !== undefined) {
+    if (restricted_by_course !== "") {
       const course_restriction = await Course.findByPk(restricted_by_course);
       if (!course_restriction) {
         return res.status(400).json({
@@ -100,7 +96,7 @@ const createCourse = async (req, res = response) => {
       restricted_by_course = null;
     }
     // Validate that the extracurricular course restriction exists
-    if (restricted_by_extracourse !== undefined) {
+    if (restricted_by_extracourse !== "") {
       const extracourse_restriction = await ExtraCurricularCourses.findByPk(
         restricted_by_extracourse
       );
