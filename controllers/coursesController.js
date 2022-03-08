@@ -35,13 +35,24 @@ const getAllCourses = async (req, res = response) => {
       },
     });
 
-    courses = courses.map((course) => {
-      const { major, ...restoCourse } = course.toJSON();
-      return {
-        ...restoCourse,
-        major_name: major.major_name,
-      };
-    });
+    courses = await Promise.all(
+      courses.map(async (course) => {
+        const { major, ...restoCourse } = course.toJSON();
+        const restriction = await Restriction.findOne({
+          restricted_course: restoCourse.id_course,
+        });
+        const {
+          mandatory_course: restricted_by_course,
+          mandatory_extracourse: restricted_by_extracourse,
+        } = restriction.toJSON();
+        return {
+          ...restoCourse,
+          restricted_by_course,
+          restricted_by_extracourse,
+          major_name: major.major_name,
+        };
+      })
+    );
     return res.status(200).json({
       //200 means success
       ok: true,

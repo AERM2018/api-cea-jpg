@@ -22,7 +22,7 @@ const Restriction = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    mandatory_course: {
+    mandatory_extracourse: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
