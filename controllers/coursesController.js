@@ -47,8 +47,10 @@ const getAllCourses = async (req, res = response) => {
         } = restriction.toJSON();
         return {
           ...restoCourse,
-          restricted_by_course,
-          restricted_by_extracourse,
+          restricted_by_course:
+            restricted_by_course === null ? "" : restricted_by_course,
+          restricted_by_extracourse:
+            restricted_by_extracourse === null ? "" : restricted_by_extracourse,
           major_name: major.major_name,
         };
       })
