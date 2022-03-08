@@ -125,6 +125,7 @@ const getExtraCourseInfo = async (
     id_teacher: undefined,
     courseName: "",
     status: undefined,
+    applyFormatToDate: true,
   }
 ) => {
   ExtraCurricularCourses.belongsTo(Major, { foreignKey: "id_major" });
@@ -145,6 +146,7 @@ const getExtraCourseInfo = async (
     id_teacher,
     courseName,
     status,
+    applyFormatToDate,
   } = opts;
 
   let includeOpts = {
@@ -231,10 +233,14 @@ const getExtraCourseInfo = async (
       extraCourse = await setCourseInactivate(extraCourse, "extracurricular");
       extraCourse = extraCourse.toJSON();
       extraCourse.status = extraCourse.status === 1 ? "Activo" : "Inactivo";
-      extraCourse.start_date = moment(extraCourse.start_date).format(
-        "D-MMM-YYYY"
-      );
-      extraCourse.end_date = moment(extraCourse.end_date).format("D-MMM-YYYY");
+      if (applyFormatToDate) {
+        extraCourse.start_date = moment(extraCourse.start_date).format(
+          "D-MMM-YYYY"
+        );
+        extraCourse.end_date = moment(extraCourse.end_date).format(
+          "D-MMM-YYYY"
+        );
+      }
       let {
         teacher,
         major: { major_name },
@@ -294,7 +300,11 @@ const getGraduationSectionInfo = async (id_graduation_section) => {
   return { ...restGraduationSection, ...graduation_course, ...teacher };
 };
 
-const getGraduationCourseInfo = async (id_graduation_course) => {
+const getGraduationCourseInfo = async (
+  id_graduation_course,
+  opts = { applyFormatToDate: true }
+) => {
+  const { applyFormatToDate } = opts;
   // Graduation_section.belongsTo(Teacher,{foreignKey:'id_teacher'})
   // Teacher.hasOne(Graduation_section,{foreignKey:'id_teacher'})
   // Graduation_section.belongsTo(Graduation_courses,{foreignKey:'id_graduation_course'})
@@ -314,12 +324,14 @@ const getGraduationCourseInfo = async (id_graduation_course) => {
   graduationCourse = graduationCourse.toJSON();
   graduationCourse.status =
     graduationCourse.status === 1 ? "Activo" : "Inactivo";
-  graduationCourse.start_date = moment(graduationCourse.start_date).format(
-    "D-MMM-YYYY"
-  );
-  graduationCourse.end_date = moment(graduationCourse.end_date).format(
-    "D-MMM-YYYY"
-  );
+  if (applyFormatToDate) {
+    graduationCourse.start_date = moment(graduationCourse.start_date).format(
+      "D-MMM-YYYY"
+    );
+    graduationCourse.end_date = moment(graduationCourse.end_date).format(
+      "D-MMM-YYYY"
+    );
+  }
   // let {id_teacher,id_graduation_course,graduation_course,teacher,...restGraduationSection} = graduationSection
   // return {...restGraduationSection,...graduation_course,...teacher};
   return graduationCourse;

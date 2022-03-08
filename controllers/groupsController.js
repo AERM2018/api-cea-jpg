@@ -312,7 +312,7 @@ const getStudentsFromGroup = async (req, res = response) => {
 
 const getCoursesGroupHasTaken = async (req, res = response) => {
   const { id_group } = req.params;
-  const groupInfo = { ...(await getGroupInfo(id_group)) };
+  let groupInfo = { ...(await getGroupInfo(id_group)) };
   const gro_cous = await Gro_cou.findAll({ where: { id_group } });
   const coursesId = await Promise.all(
     gro_cous.map(async (gro_cou) => {
@@ -334,6 +334,17 @@ const getCoursesGroupHasTaken = async (req, res = response) => {
       return { ...course, ...teacher };
     })
   );
+  const coursesNotTakenByGroup = await Courses.findAll({
+    where: {
+      [Op.and]: [
+        { id_course: { [Op.notIn]: coursesId } },
+        { id_major: groupInfo.id_major },
+      ],
+    },
+    raw: true,
+    nest: true,
+  });
+  groupInfo.coursesNotTaken = coursesNotTakenByGroup;
   res.json({
     ok: true,
     group: groupInfo,

@@ -65,14 +65,20 @@ const getAllTeachers = async (req, res) => {
     raw: true,
     nest: true,
   });
-  teachers = teachers.map(
-    ({
+  teachers = teachers.map((teacher) => {
+    const {
       user: {
         cam_use: { campus },
       },
+      active,
       ...restTeacher
-    }) => ({ ...restTeacher, ...campus })
-  );
+    } = teacher;
+    return {
+      active: active ? "Activo" : "Inactivo",
+      ...restTeacher,
+      ...campus,
+    };
+  });
   return res.status(200).json({
     ok: true,
     teachers,

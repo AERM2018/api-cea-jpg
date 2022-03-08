@@ -21,6 +21,14 @@ const getAllExtraCurricularCourses = async (req = request, res = response) => {
       addTeacher: true,
       teacherName,
       status: statusCondition.status,
+      applyFormatToDate: false,
+    });
+    extracurricular_courses = extracurricular_courses.map((extraCourse) => {
+      const { time_table, ...restExtraCourse } = extraCourse;
+      return {
+        ...restExtraCourse,
+        ...time_table,
+      };
     });
     return res.status(200).json({
       //200 means success
