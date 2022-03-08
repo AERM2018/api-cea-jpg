@@ -30,22 +30,6 @@ coursesRouter.post(
       .isNumeric()
       .exists({ checkNull: true }),
     check(
-      "restricted_by_course",
-      "El id del curso que restringe al curso por crear debe ser un numero entero"
-    )
-      .exists({ checkNull: false })
-      .custom((restricted_by_course) =>
-        isValidRestrictionCourseOrExtraCourse(restricted_by_course)
-      ),
-    check(
-      "restricted_by_extracourse",
-      "El id del curso extracurricular que restringe al curso por crear debe ser un numero entero"
-    )
-      .exists({ checkNull: false })
-      .custom((restricted_by_course) =>
-        isValidRestrictionCourseOrExtraCourse(restricted_by_course)
-      ),
-    check(
       "course_name",
       "El nombre del curso es obligatorio y debe tener como máximo 70 caracteres"
     )
