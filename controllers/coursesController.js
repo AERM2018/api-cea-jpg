@@ -88,7 +88,7 @@ const createCourse = async (req, res = response) => {
       });
     }
     // Validate that the course restriction exists
-    if (restricted_by_course) {
+    if (restricted_by_course !== undefined) {
       const course_restriction = await Course.findByPk(restricted_by_course);
       if (!course_restriction) {
         return res.status(400).json({
@@ -96,9 +96,11 @@ const createCourse = async (req, res = response) => {
           msg: `El curso con id ${restricted_by_course} de restricción para el curso a crear no existe.`,
         });
       }
+    } else {
+      restricted_by_course = null;
     }
     // Validate that the extracurricular course restriction exists
-    if (restricted_by_extracourse) {
+    if (restricted_by_extracourse !== undefined) {
       const extracourse_restriction = await ExtraCurricularCourses.findByPk(
         restricted_by_extracourse
       );
@@ -108,6 +110,8 @@ const createCourse = async (req, res = response) => {
           msg: `El curso extracurricular con id ${restricted_by_extracourse} de restricción para el curso a crear no existe.`,
         });
       }
+    } else {
+      restricted_by_extracourse = null;
     }
     //  Create and save course
     const course = new Course(body);

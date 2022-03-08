@@ -72,7 +72,7 @@ employeesRouter.post(
       .exists({ checkNull: true }),
     // Checar como guardar los horarios
     check(
-      "time_tables",
+      "time_table",
       "Es obligatorio seleccionar por lo menos un dia para el horario"
     ).isArray({ min: 1 }),
     validateFields,
