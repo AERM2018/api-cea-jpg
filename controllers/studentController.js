@@ -298,7 +298,7 @@ const createStudent = async (req, res = response) => {
 const updateStudent = async (req, res) => {
   const { id } = req.params;
   const { body } = req;
-  const { curp, id_group, group_chief, matricula, email } = body;
+  const { curp, id_group, group_chief, email } = body;
   try {
     const student = await Student.findByPk(id);
     if (!student) {
@@ -319,18 +319,6 @@ const updateStudent = async (req, res) => {
         msg: `Ya existe un estudiante con la CURP ${curp}`,
       });
     }
-    const stu_matricula = await Student.findOne({
-      where: {
-        matricula,
-        id_student: { [Op.ne]: id },
-      },
-    });
-    if (stu_matricula) {
-      return res.status(400).json({
-        ok: false,
-        msg: `Ya existe un estudiante con esa matricula ${matricula}`,
-      });
-    }
     const currentStudentGroup = await Stu_gro.findOne({
       where: { [Op.and]: [{ id_student: id }, { status: 1 }] },
     });
@@ -347,7 +335,7 @@ const updateStudent = async (req, res) => {
       if (!(await studentGroupBelongsSameMajor(id_student, id_group))) {
         return res.status(400).json({
           ok: false,
-          msg: `No se puede cambiar al alumno con matricula ${matricula} a otro grupo que no pertence a su carrera.`,
+          msg: `No se puede cambiar al alumno a otro grupo que no pertence a su carrera.`,
         });
       }
       if (await isStudentGroupChiefOfGroup(id_student)) {

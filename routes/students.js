@@ -135,10 +135,6 @@ studentsRouter.put(
     )
       .notEmpty()
       .isString(),
-    check("matricula", "La matricula del estudiante es obligatoria")
-      .not()
-      .isEmpty()
-      .isLength({ max: 15 }),
     check(
       "name",
       "El nombre del estudiante es obligatorio y debe de tener como maximo 35 caracteres"
