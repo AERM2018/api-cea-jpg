@@ -35,7 +35,7 @@ const getAllGroups = async (req, res) => {
           where: { id_group: group.id_group },
           attributes: ["id_time_table"],
         });
-        const time_tables = await Time_tables.findAll({
+        const time_table = await Time_tables.findAll({
           where: {
             id_time_table: {
               [Op.in]: gro_tim.map(
@@ -53,7 +53,7 @@ const getAllGroups = async (req, res) => {
         });
         return {
           ...group,
-          time_table: time_tables.map((time_table) => time_table.toJSON()),
+          time_table: time_table.map((time_table) => time_table.toJSON()),
         };
       })
     );
@@ -67,7 +67,7 @@ const getAllGroups = async (req, res) => {
 };
 
 const createGroup = async (req, res) => {
-  const { id_major, name_group, entry_year, end_year, time_tables, id_campus } =
+  const { id_major, name_group, entry_year, end_year, time_table, id_campus } =
     req.body;
   let id_group, id_time_table;
   let ids_emp_tim;
@@ -94,7 +94,7 @@ const createGroup = async (req, res) => {
     const cam_gro = new Cam_gro({ id_campus, id_group });
     await cam_gro.save();
 
-    ids_emp_tim = time_tables.map(async (x) => {
+    ids_emp_tim = time_table.map(async (x) => {
       let { day, start_hour, finish_hour } = x;
       const time = await Time_tables.findAll({
         where: { day: day, start_hour: start_hour, finish_hour: finish_hour },
