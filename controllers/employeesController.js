@@ -22,7 +22,7 @@ const getAllEmployees = async (req, res) => {
         attributes: ["id_time_table"],
       });
 
-      const time_tables = await Time_tables.findAll({
+      const time_table = await Time_tables.findAll({
         where: {
           id_time_table: {
             [Op.in]: emp_time.map(
@@ -41,7 +41,7 @@ const getAllEmployees = async (req, res) => {
 
       return {
         ...employee,
-        time_table: time_tables.map((time_table) => time_table.toJSON()),
+        time_table: time_table.map((time_table) => time_table.toJSON()),
       };
     });
 
@@ -63,7 +63,7 @@ const getAllEmployees = async (req, res) => {
 const createEmployee = async (req, res) => {
   const { body } = req;
   const { email } = body;
-  const { time_tables, id_campus } = body;
+  const { time_table, id_campus } = body;
   const {
     name,
     surname_f,
@@ -122,7 +122,7 @@ const createEmployee = async (req, res) => {
     });
   }
   try {
-    ids_emp_tim = time_tables.map(async (x) => {
+    ids_emp_tim = time_table.map(async (x) => {
       let { day, start_hour, finish_hour } = x;
       const time = await Time_tables.findAll({
         where: { day: day, start_hour: start_hour, finish_hour: finish_hour },

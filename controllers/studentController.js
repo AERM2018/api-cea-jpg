@@ -190,7 +190,7 @@ const createStudent = async (req, res = response) => {
         msg: "No existe un campus con ese id " + id_campus,
       });
     }
-    const usern = new User({ user_type: "student", password: "123456" });
+    const usern = new User({ user_type: "student", password: "123456", email });
     const newUser = await usern.save();
     const userJson = newUser.toJSON();
     id_user = userJson["id_user"];
@@ -251,7 +251,7 @@ const updateStudent = async (req, res) => {
   const { id } = req.params;
   const { body } = req;
   const { curp } = body;
-  const { matricula } = body;
+  const { matricula, email } = body;
   try {
     const student = await Student.findByPk(id);
     if (!student) {
@@ -260,7 +260,7 @@ const updateStudent = async (req, res) => {
         msg: "No existe un estudiante con el id " + id,
       });
     }
-
+    const { id_user } = student.toJSON();
     const stu = await Student.findOne({
       where: {
         curp,
@@ -287,6 +287,7 @@ const updateStudent = async (req, res) => {
     }
 
     await student.update(body);
+    await User.update({ email }, { where: { id_user } });
     res.status(200).json({
       ok: true,
       msg: "El estudiante se actualizo correctamente",
@@ -298,7 +299,6 @@ const updateStudent = async (req, res) => {
 
 const deleteStudent = async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
   try {
     const student = await Student.findOne({
       where: { id_student: id },
@@ -317,7 +317,7 @@ const deleteStudent = async (req, res) => {
       });
     }
 
-    await student.update({ status });
+    await student.update({ status: 2 });
     res.status(200).json({
       ok: true,
       msg: "El alumno se elimino correctamente",

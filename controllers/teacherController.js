@@ -94,14 +94,6 @@ const createTeacher = async (req, res) => {
     const teacher = await Teacher.findOne({
       where: { rfc },
     });
-    if (teacher) {
-      //aqui hacer cosas
-
-      return res.status(400).json({
-        ok: false,
-        msg: "Ya existe un maestro con ese rfc",
-      });
-    }
     const campus = await Campus.findOne({
       where: { id_campus },
     });
@@ -111,17 +103,30 @@ const createTeacher = async (req, res) => {
         msg: "No existe un campus con ese id " + id_campus,
       });
     }
+    if (teacher) {
+      //Reactivate teacher
+      const { id_teacher } = teacher.toJSON();
+      await teacher.update({
+        name,
+        surname_f,
+        surname_m,
+        rfc,
+        mobile_number,
+        active: 1,
+      });
+      return res.status(201).json({
+        ok: true,
+        msg: "Maestro creado correctamente",
+        id_teacher,
+      });
+    }
 
     const usern = new User({ user_type: "teacher", password: "123456" });
     const newUser = await usern.save();
     const userJson = newUser.toJSON();
     id_user = userJson["id_user"];
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      ok: false,
-      msg: "Hable con el administrador",
-    });
+    return pri;
   }
   try {
     id_teacher = generateIdAle(id_user);
@@ -230,7 +235,6 @@ const updateTeacher = async (req, res) => {
 
 const deleteTeacher = async (req, res) => {
   const { id } = req.params;
-  const { active } = req.body;
   try {
     const teacher = await Teacher.findOne({
       where: { id_teacher: id },
@@ -248,7 +252,7 @@ const deleteTeacher = async (req, res) => {
       });
     }
 
-    await teacher.update({ active });
+    await teacher.update({ active: 2 });
 
     res.status(200).json({
       ok: true,

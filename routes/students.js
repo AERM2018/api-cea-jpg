@@ -36,7 +36,7 @@ studentsRouter.get(
 studentsRouter.post(
   "/",
   [
-    // check('email','El email es obligatorio').notEmpty().isEmail(),
+    check("email", "El email es obligatorio").notEmpty().isEmail(),
     // check("matricula", "La matricula del estudiante es obligatoria")
     //   .not()
     //   .isEmpty()
@@ -75,13 +75,6 @@ studentsRouter.post(
     check(
       "mobile_number",
       "El numero de telefono es obligatorio y tienen que ser 10 digitos"
-    )
-      .not()
-      .isEmpty()
-      .isLength({ max: 10 }),
-    check(
-      "mobile_back_number",
-      "El numero de telefono es obligatorio y tiene que tener como maximo 10 caracteres"
     )
       .not()
       .isEmpty()
@@ -210,19 +203,13 @@ studentsRouter.put(
       .isEmpty()
       .isLength({ max: 30 }),
     check(
-      "mobile_back_number",
-      "El numero de telefono es obligatorio y tiene que tener como maximo 10 caracteres"
-    )
-      .not()
-      .isEmpty()
-      .isLength({ max: 10 }),
-    check(
       "birthplace",
       "El lugar de nacimiento es obligatorio y tiene que tener 50 caracteres como maximo"
     )
       .not()
       .isEmpty()
       .isLength({ max: 50 }),
+    check("email", "El email es obligatorio").notEmpty().isEmail(),
     //check('address','El domicilio es obligatorio y tiene que tener 50 caracteres como maximo').not().isEmpty().isLength({max:50}),
 
     // check('complete_documents','Falta el campo de los documentos del alumno').isInt().exists({checkNull:true}),
@@ -256,7 +243,6 @@ studentsRouter.delete(
     )
       .notEmpty()
       .isString(),
-    check("status", "El status es invalido ").isIn([2, 3]).isNumeric(),
     validateFields,
     validateJWT,
   ],
