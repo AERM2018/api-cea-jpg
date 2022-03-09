@@ -411,6 +411,14 @@ const deleteStudent = async (req, res) => {
     }
 
     await student.update({ status: 2 });
+    if (await isStudentGroupChiefOfGroup(student.id_student)) {
+      const stu_gro = await Stu_gro.findOne({
+        where: {
+          [Op.and]: [{ id_student: student.id_student }, { status: 1 }],
+        },
+      });
+      await removeStudentAsGroupChief(stu_gro.id_group);
+    }
 
     res.status(200).json({
       ok: true,

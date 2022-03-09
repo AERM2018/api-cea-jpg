@@ -16,6 +16,7 @@ const {
   getTitularTeacherOfCourse,
   assingStudentAsGroupChief,
   removeStudentAsGroupChief,
+  hasGroupAGroupChief,
 } = require("../helpers/groups");
 const { setCourseInactivate } = require("../helpers/courses");
 const Cam_gro = require("../models/cam_gro");
@@ -355,10 +356,17 @@ const assignGroupChief = async (req, res = response) => {
   const { id_group, matricula } = req.params;
   const { id_student } = req;
   try {
-    await assingStudentAsGroupChief(id_student, id_group);
-    res.json({
-      ok: true,
-      msg: `El estudiante con matricula ${matricula} fue asignado como jefe de grupo.`,
+    const group_chief_id_student = await hasGroupAGroupChief(id_group);
+    if (!group_chief_id_student) {
+      await assingStudentAsGroupChief(id_student, id_group);
+      return res.json({
+        ok: true,
+        msg: `El estudiante con matricula ${matricula} fue asignado como jefe de grupo.`,
+      });
+    }
+    return res.status(400).json({
+      ok: false,
+      msg: `El grupo con id ${id_group} ya cuenta con un jefe de grupo`,
     });
   } catch (error) {
     printAndSendError(res, error);
