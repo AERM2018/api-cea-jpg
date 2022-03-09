@@ -366,13 +366,12 @@ const assignGroupChief = async (req, res = response) => {
 };
 
 const removeGroupChief = async (req, res = response) => {
-  const { id_group, matricula } = req.params;
-  const { id_student } = req;
+  const { id_group } = req.params;
   try {
-    await removeStudentAsGroupChief(id_student, id_group);
+    await removeStudentAsGroupChief(id_group);
     res.json({
       ok: true,
-      msg: `El estudiante con matricula ${matricula} fue removido como jefe de grupo.`,
+      msg: `Jefe de grupo del grupo con id ${id_group} removido correctamente.`,
     });
   } catch (error) {
     printAndSendError(res, error);

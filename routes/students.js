@@ -210,6 +210,12 @@ studentsRouter.put(
       .isEmpty()
       .isLength({ max: 50 }),
     check("email", "El email es obligatorio").notEmpty().isEmail(),
+    check(
+      "id_group",
+      "El grupo al cual va a pertenecer el alumno es obligatorio"
+    )
+      .isInt()
+      .exists({ checkNull: true }),
     //check('address','El domicilio es obligatorio y tiene que tener 50 caracteres como maximo').not().isEmpty().isLength({max:50}),
 
     // check('complete_documents','Falta el campo de los documentos del alumno').isInt().exists({checkNull:true}),

@@ -166,16 +166,13 @@ groupsRouter.patch(
 );
 
 groupsRouter.delete(
-  "/:id_group/student/:matricula",
+  "/:id_group/groupChief",
   [
     check(
       "id_group",
       "El id del grupo es obligatorio y debe de ser un numero entero"
     ).isNumeric(),
-    check("matricula", "La matricula del estudiante es obligatoria").notEmpty(),
     checkGroupExistence,
-    checkStudentExistence,
-    isStudentPartOfAGroup,
     validateFields,
     validateJWT,
   ],

@@ -130,14 +130,52 @@ const assingStudentAsGroupChief = async (id_student, id_group) => {
   const group = await Group.findByPk(id_group);
   group.update({ group_chief_id_student: id_student });
 };
-const removeStudentAsGroupChief = async (id_student, id_group) => {
+const removeStudentAsGroupChief = async (id_group) => {
   const group = await Group.findByPk(id_group);
   group.update({ group_chief_id_student: null });
 };
-const hasGroupAGroupChief = async (id_student, id_group) => {
+const hasGroupAGroupChief = async (id_group) => {
   const group = await Group.findByPk(id_group);
-  if (group.group_chief_id_student) return true;
+  if (group.group_chief_id_student) return group.group_chief_id_student;
   return false;
+};
+
+const isStudentGroupChiefOfGroup = async (
+  id_student,
+  opts = { excludeCurrentStudentGroup: false }
+) => {
+  const { excludeCurrentStudentGroup } = opts;
+  let currentStudentGroup = await Stu_gro.findOne({
+    where: { [Op.and]: [{ id_student }, { status: 1 }] },
+  });
+  const { id_group } = currentStudentGroup;
+  const groupsStudentIsChief = await Group.findAndCountAll({
+    where: {
+      [Op.and]: [
+        { group_chief_id_student: id_student },
+        excludeCurrentStudentGroup
+          ? { id_group: { [Op.ne]: id_group } }
+          : undefined,
+      ],
+    },
+  });
+  return groupsStudentIsChief.count > 0;
+};
+
+const studentGroupBelongsSameMajor = async (id_student, id_group) => {
+  Stu_gro.belongsTo(Group, { foreignKey: "id_group" });
+  Group.hasOne(Stu_gro, { foreignKey: "id_group" });
+  // Find student's current group and major
+  const stu_gro = await Stu_gro.findOne({
+    include: { model: Group, attributes: ["id_major", "id_group"] },
+    where: { [Op.and]: [{ id_student }, { status: 1 }] },
+    order: [["id_stu_gro", "desc"]],
+  });
+  const {
+    groupss: { id_major: id_current_major, id_group: id_current_group },
+  } = stu_gro.toJSON();
+  const { id_major } = await Group.findByPk(id_group);
+  return id_current_major === id_major;
 };
 module.exports = {
   getGroupInfo,
@@ -145,4 +183,6 @@ module.exports = {
   assingStudentAsGroupChief,
   removeStudentAsGroupChief,
   hasGroupAGroupChief,
+  isStudentGroupChiefOfGroup,
+  studentGroupBelongsSameMajor,
 };
