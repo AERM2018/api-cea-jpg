@@ -104,116 +104,110 @@ const createStudent = async (req, res = response) => {
   let id_user, id_student, user;
   try {
     //reactivate in case the matricula already exists
-    if (matricula) {
-      const student = await Student.findOne({
-        where: { matricula },
-      });
-      if (student) {
-        if (student.status === 1) {
+    const student = await Student.findOne({
+      where: { curp },
+    });
+    if (student) {
+      if (student.status === 1) {
+        return res.status(400).json({
+          ok: false,
+          msg: `Ya existe un estudiante con la CURP ${curp}`,
+        });
+      } else {
+        const { id_student } = student;
+        let currentStudentGroup = await Stu_gro.findOne({
+          where: { [Op.and]: [{ id_student }, { status: 1 }] },
+        });
+        const group = await Group.findOne({
+          where: { id_group },
+        });
+        if (!group) {
           return res.status(400).json({
             ok: false,
-            msg: "Ya existe un estudiante con la matricula " + matricula,
+            msg: "No existe un grupo con ese id " + id_group,
           });
-        } else {
-          const { id_student } = student;
-          const currentStudentGroup = await Stu_gro.findOne({
-            where: { [Op.and]: [{ id_student }, { status: 1 }] },
-          });
-          // Cambiar de grupo al estudiante si es necesario
+        }
+        // Cambiar de grupo al estudiante si es necesario
+        if (currentStudentGroup) {
           if (currentStudentGroup.id_group !== id_group) {
-            const group = await Group.findOne({
-              where: { id_group },
-            });
-            if (!group) {
-              return res.status(400).json({
-                ok: false,
-                msg: "No existe un grupo con ese id " + id_group,
-              });
-            }
             if (!(await studentGroupBelongsSameMajor(id_student, id_group))) {
               return res.status(400).json({
                 ok: false,
                 msg: `No se puede cambiar al alumno con matricula ${matricula} a otro grupo que no pertence a su carrera.`,
               });
             }
-            if (await isStudentGroupChiefOfGroup(id_student)) {
-              await removeStudentAsGroupChief(currentStudentGroup.id_group);
-            }
             await currentStudentGroup.update({ id_group });
           }
+        } else {
+          currentStudentGroup = await Stu_gro.create({ id_student, id_group });
+        }
+        if (await isStudentGroupChiefOfGroup(id_student)) {
+          await removeStudentAsGroupChief(currentStudentGroup.id_group);
+        }
 
-          const campus = await Campus.findOne({
-            where: { id_campus },
-          });
-          if (!campus) {
-            return res.status(400).json({
-              ok: false,
-              msg: "No existe un campus con ese id " + id_campus,
-            });
-          }
-          const cam_use = await Cam_use.findOne({
-            where: { id_user: student.id_user },
-          });
-          await cam_use.update({ id_campus });
-          if (group_chief) {
-            const group_chief_id_student = await hasGroupAGroupChief(id_group);
-            if (group_chief_id_student) {
-              if (group_chief_id_student !== id_student)
-                return res.status(400).json({
-                  ok: false,
-                  msg: `El grupo con id ${id_group} ya cuenta con un jefe de grupo`,
-                });
-            } else {
-              if (
-                await isStudentGroupChiefOfGroup(id_student, {
-                  excludeCurrentStudentGroup: true,
-                })
-              )
-                return res.status(400).json({
-                  ok: false,
-                  msg: `El estudiante ya es jefe de grupo de otro grupo`,
-                });
-              await assingStudentAsGroupChief(id_student, id_group);
-            }
-          } else {
-            await removeStudentAsGroupChief(id_group);
-          }
-          await student.update({
-            status: 1,
-            name,
-            surname_f,
-            surname_m,
-            curp,
-            mobile_number,
-            mobile_back_number,
-            street,
-            zip,
-            birthdate,
-            birthplace,
-            age,
-          });
-          const studentUser = await User.findByPk(student.id_user);
-          // Cambiar email del usuario si es necesario
-          if (studentUser.email !== email) {
-            studentUser.update({ email });
-          }
-          return res.status(200).json({
-            ok: true,
-            msg: "El estudiante se creo correctamente",
-            id_student,
+        const campus = await Campus.findOne({
+          where: { id_campus },
+        });
+        if (!campus) {
+          return res.status(400).json({
+            ok: false,
+            msg: "No existe un campus con ese id " + id_campus,
           });
         }
+        const cam_use = await Cam_use.findOne({
+          where: { id_user: student.id_user },
+        });
+        await cam_use.update({ id_campus });
+        if (group_chief) {
+          const group_chief_id_student = await hasGroupAGroupChief(id_group);
+          if (group_chief_id_student) {
+            if (group_chief_id_student !== id_student)
+              return res.status(400).json({
+                ok: false,
+                msg: `El grupo con id ${id_group} ya cuenta con un jefe de grupo`,
+              });
+          } else {
+            if (
+              await isStudentGroupChiefOfGroup(id_student, {
+                excludeCurrentStudentGroup: true,
+              })
+            )
+              return res.status(400).json({
+                ok: false,
+                msg: `El estudiante ya es jefe de grupo de otro grupo`,
+              });
+            await assingStudentAsGroupChief(id_student, id_group);
+          }
+        } else {
+          await removeStudentAsGroupChief(id_group);
+        }
+        await student.update({
+          status: 1,
+          name,
+          surname_f,
+          surname_m,
+          curp,
+          mobile_number,
+          mobile_back_number,
+          street,
+          zip,
+          birthdate,
+          birthplace,
+          age,
+        });
+        const studentUser = await User.findByPk(student.id_user);
+        // Cambiar email del usuario si es necesario
+        if (studentUser.email !== email) {
+          studentUser.update({ email });
+        }
+        return res.status(200).json({
+          ok: true,
+          msg: "El estudiante se creo correctamente",
+          id_student,
+        });
       }
     }
-    const studentCurp = await Student.findOne({
-      where: { curp },
-    });
-    if (studentCurp) {
-      return res.status(400).json({
-        ok: false,
-        msg: `Ya existe un estudiante con la CURP ${curp}`,
-      });
-    }
+
     const group = await Group.findOne({
       where: { id_group },
     });
@@ -233,10 +227,12 @@ const createStudent = async (req, res = response) => {
         msg: "No existe un campus con ese id " + id_campus,
       });
     }
-    const usern = new User({ user_type: "student", password: "123456", email });
-    const newUser = await usern.save();
-    const userJson = newUser.toJSON();
-    id_user = userJson["id_user"];
+    const usern = await User.create({
+      user_type: "student",
+      password: "123456",
+      email,
+    });
+    const { id_user } = usern.toJSON();
     // Generate matricula
     matricula = await generateMatricula(id_group, id_campus);
     // Generate id student
@@ -278,8 +274,6 @@ const createStudent = async (req, res = response) => {
     const salt = bcrypt.genSaltSync();
     const pass = bcrypt.hashSync(matricula, salt);
     await user.update({ password: pass });
-    const inst_email = `${id_student}@alejandria.edu.mx`;
-    await user.update({ email: inst_email });
     const stu_gro = new Stu_gro({ id_student, id_group });
     await stu_gro.save();
     //campus
@@ -319,29 +313,34 @@ const updateStudent = async (req, res) => {
         msg: `Ya existe un estudiante con la CURP ${curp}`,
       });
     }
-    const currentStudentGroup = await Stu_gro.findOne({
-      where: { [Op.and]: [{ id_student: id }, { status: 1 }] },
+    let currentStudentGroup = await Stu_gro.findOne({
+      where: { [Op.and]: [{ id_student }, { status: 1 }] },
     });
-    if (currentStudentGroup.id_group !== id_group) {
-      const group = await Group.findOne({
-        where: { id_group },
+    const group = await Group.findOne({
+      where: { id_group },
+    });
+    if (!group) {
+      return res.status(400).json({
+        ok: false,
+        msg: "No existe un grupo con ese id " + id_group,
       });
-      if (!group) {
-        return res.status(400).json({
-          ok: false,
-          msg: "No existe un grupo con ese id " + id_group,
-        });
+    }
+    // Cambiar de grupo al estudiante si es necesario
+    if (currentStudentGroup) {
+      if (currentStudentGroup.id_group !== id_group) {
+        if (!(await studentGroupBelongsSameMajor(id_student, id_group))) {
+          return res.status(400).json({
+            ok: false,
+            msg: `No se puede cambiar al alumno con matricula ${matricula} a otro grupo que no pertence a su carrera.`,
+          });
+        }
+        await currentStudentGroup.update({ id_group });
       }
-      if (!(await studentGroupBelongsSameMajor(id_student, id_group))) {
-        return res.status(400).json({
-          ok: false,
-          msg: `No se puede cambiar al alumno a otro grupo que no pertence a su carrera.`,
-        });
-      }
-      if (await isStudentGroupChiefOfGroup(id_student)) {
-        await removeStudentAsGroupChief(currentStudentGroup.id_group);
-      }
-      await currentStudentGroup.update({ id_group });
+    } else {
+      currentStudentGroup = await Stu_gro.create({ id_student, id_group });
+    }
+    if (await isStudentGroupChiefOfGroup(id_student)) {
+      await removeStudentAsGroupChief(currentStudentGroup.id_group);
     }
 
     if (group_chief) {
@@ -399,13 +398,16 @@ const deleteStudent = async (req, res) => {
     }
 
     await student.update({ status: 2 });
+    const stu_gro = await Stu_gro.findOne({
+      where: {
+        [Op.and]: [{ id_student: student.id_student }, { status: 1 }],
+      },
+    });
     if (await isStudentGroupChiefOfGroup(student.id_student)) {
-      const stu_gro = await Stu_gro.findOne({
-        where: {
-          [Op.and]: [{ id_student: student.id_student }, { status: 1 }],
-        },
-      });
       await removeStudentAsGroupChief(stu_gro.id_group);
+    }
+    if (stu_gro) {
+      await stu_gro.destroy();
     }
 
     res.status(200).json({

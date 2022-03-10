@@ -25,6 +25,7 @@ const {
   getGroupDaysAndOverdue,
   findAssistenceDays,
 } = require("../helpers/dates");
+const Gro_cou_ass = require("../models/gro_cou_ass");
 
 const getAllGroups = async (req, res) => {
   let groups = [];
@@ -167,6 +168,15 @@ const deleteGroup = async (req, res) => {
   const { id_group } = req.params;
   try {
     const group = await Group.findByPk(id_group);
+    const studentFromGroup = await Stu_gro.findAndCountAll({
+      where: { [Op.and]: [{ id_group }, { status: 1 }] },
+    });
+    if (studentFromGroup.count > 0) {
+      return res.status(400).json({
+        ok: false,
+        msg: "Existen alumnos relacionados al grupo, remuevalos del grupo antes de eliminar el grupo.",
+      });
+    }
     const gro_tim = await Gro_tim.findAll({
       where: { id_group },
     });
@@ -174,6 +184,24 @@ const deleteGroup = async (req, res) => {
       await grupo.destroy();
     });
     await Cam_gro.destroy({ where: { id_group } });
+    const gro_cous = await Gro_cou.findAll({ where: { id_group } });
+    await Promise.all(
+      gro_cous.map(async (gro_cou) => {
+        await Cou_tea.destroy({
+          where: {
+            [Op.and]: [
+              { start_date: gro_cou.start_date },
+              { end_date: gro_cou.end_date },
+              { id_course: gro_cou.id_course },
+            ],
+          },
+        });
+        await Gro_cou_ass.destroy({
+          where: { id_gro_cou: gro_cou.id_gro_cou },
+        });
+        await gro_cou.destroy();
+      })
+    );
     await group.destroy();
     res.status(200).json({
       ok: true,
