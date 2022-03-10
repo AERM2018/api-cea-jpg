@@ -217,7 +217,6 @@ const getExtraCourseInfo = async (
     },
     attributes: {
       include: [
-        ["ext_cou_name", "course_name"],
         [
           literal(
             `(limit_participants - (SELECT COUNT(*) FROM stu_extracou WHERE stu_extracou.id_ext_cou = id_ext_cou))`
@@ -225,7 +224,6 @@ const getExtraCourseInfo = async (
           "spot_left",
         ],
       ],
-      exclude: ["ext_cou_name"],
     },
   });
   extraCourses = Promise.all(

@@ -24,7 +24,7 @@ const ExtraCurricularCourses = db.define(
       allowNull: false,
     },
     limit_participants: {
-      type: DataTypes.TINYINT,
+      type: DataTypes.SMALLINT,
       allowNull: false,
     },
     cost: {

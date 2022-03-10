@@ -38,13 +38,16 @@ const getAllCourses = async (req, res = response) => {
     courses = await Promise.all(
       courses.map(async (course) => {
         const { major, ...restoCourse } = course.toJSON();
+        let restricted_by_course = "";
+        let restricted_by_extracourse = "";
         const restriction = await Restriction.findOne({
           restricted_course: restoCourse.id_course,
         });
-        const {
-          mandatory_course: restricted_by_course,
-          mandatory_extracourse: restricted_by_extracourse,
-        } = restriction.toJSON();
+        if (restriction) {
+          restricted_by_course = restriction.toJSON().mandatory_course;
+          restricted_by_extracourse =
+            restriction.toJSON().mandatory_extracourse;
+        }
         return {
           ...restoCourse,
           restricted_by_course:

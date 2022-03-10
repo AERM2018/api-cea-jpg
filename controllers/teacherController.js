@@ -59,7 +59,6 @@ const getAllTeachers = async (req, res) => {
           "teacher_name",
         ],
       ],
-      exclude: ["name", "surname_f", "surname_m"],
     },
     where: { active: 1 },
     raw: true,
@@ -69,6 +68,7 @@ const getAllTeachers = async (req, res) => {
     const {
       user: {
         cam_use: { campus },
+        email,
       },
       active,
       ...restTeacher
@@ -76,6 +76,7 @@ const getAllTeachers = async (req, res) => {
     return {
       active: active ? "Activo" : "Inactivo",
       ...restTeacher,
+      email,
       ...campus,
     };
   });
