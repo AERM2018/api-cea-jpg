@@ -49,7 +49,7 @@ groupsRouter.post(
       .notEmpty()
       .isNumeric(),
     check(
-      "name_group",
+      "group_name",
       "El nombre del grupo es obligaotorio y tiene que tener como maximo 15 caracteres"
     )
       .not()
@@ -75,6 +75,29 @@ groupsRouter.put(
       "id_group",
       "El id del grupo es obligatorio y debe ser un numero entero"
     ).isNumeric(),
+    check(
+      "id_major",
+      "El id de la cerrera es obligatorio y tiene que ser un numero entero"
+    )
+      .notEmpty()
+      .isNumeric(),
+    check(
+      "id_campus",
+      "El id del campus es obligatorio y tiene que ser un numero entero"
+    )
+      .notEmpty()
+      .isNumeric(),
+    check(
+      "group_name",
+      "El nombre del grupo es obligaotorio y tiene que tener como maximo 15 caracteres"
+    )
+      .not()
+      .isEmpty()
+      .isLength({ max: 15 }),
+    check(
+      "time_table",
+      "Es obligatorio seleccionar por lo menos un dia para el horario"
+    ).isArray({ min: 1 }),
     checkGroupExistence,
     validateFields,
     validateJWT,

@@ -8,55 +8,21 @@ const Cam_use = require("../models/cam_use");
 const Department = require("../models/department");
 const { db } = require("../database/connection");
 const { getEmployees } = require("../queries/queries");
-const { QueryTypes, Op, fn, col } = require("sequelize");
+const { QueryTypes, Op, fn, col, literal } = require("sequelize");
 const { generateIdAle } = require("../helpers/generateIdOrMatricula");
+const {
+  getEmployeesInfoWithTimeTable,
+} = require("../helpers/getDataSavedFromEntities");
+const { printAndSendError } = require("../helpers/responsesOfReq");
 const getAllEmployees = async (req, res) => {
   try {
-    const employees_no_time = await db.query(getEmployees, {
-      type: QueryTypes.SELECT,
-    });
-
-    const employees_time = employees_no_time.map(async (employee) => {
-      const emp_time = await Emp_tim.findAll({
-        where: { id_employee: employee.id_employee },
-        attributes: ["id_time_table"],
-      });
-
-      const time_table = await Time_tables.findAll({
-        where: {
-          id_time_table: {
-            [Op.in]: emp_time.map(
-              (time_table) => time_table.toJSON().id_time_table
-            ),
-          },
-        },
-        attributes: {
-          exclude: ["id_time_table"],
-          include: [
-            [fn("date_format", col("start_hour"), "%H:%i"), "start_hour"],
-            [fn("date_format", col("finish_hour"), "%H:%i"), "finish_hour"],
-          ],
-        },
-      });
-
-      return {
-        ...employee,
-        time_table: time_table.map((time_table) => time_table.toJSON()),
-      };
-    });
-
-    Promise.all(employees_time).then((employees) => {
-      return res.status(200).json({
-        ok: true,
-        employees,
-      });
+    const employees = await getEmployeesInfoWithTimeTable();
+    return res.status(200).json({
+      ok: true,
+      employees,
     });
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      ok: false,
-      msg: "Hable con el administrador",
-    });
+    printAndSendError(res, err);
   }
 };
 
@@ -149,7 +115,7 @@ const createEmployee = async (req, res) => {
     //creation of id_employee
     id_employee = generateIdAle(id_user);
     //creating employee
-    const employee = new Employee({
+    const employee = await Employee.create({
       id_employee,
       id_user,
       name,
@@ -160,9 +126,6 @@ const createEmployee = async (req, res) => {
       mobile_number,
       salary,
     });
-    const newEmployee = await employee.save();
-    const newEmployeeJson = newEmployee.toJSON();
-    id_employee = newEmployeeJson["id_employee"];
     user = await User.findByPk(id_user);
     // creation of password
     const salt = bcrypt.genSaltSync();
@@ -207,6 +170,12 @@ const createEmployee = async (req, res) => {
 
     const cam_use = new Cam_use({ id_campus, id_user });
     await cam_use.save();
+    const employeeDB = await getEmployeesInfoWithTimeTable(id_employee);
+    res.status(201).json({
+      ok: true,
+      msg: `Empleado creado correctamente con id: ${id_employee}`,
+      employee: employeeDB,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
@@ -214,12 +183,8 @@ const createEmployee = async (req, res) => {
       msg: "Hable con el administrador",
     });
   }
-
-  res.status(201).json({
-    ok: true,
-    msg: `Empleado creado correctamente con id: ${id_employee}`,
-  });
 };
+
 const updateEmployee = async (req, res) => {
   const { id } = req.params;
   const { body } = req;
@@ -231,6 +196,105 @@ const updateEmployee = async (req, res) => {
         msg: "No existe un empleado con el id " + id,
       });
     }
+    const employeeRfcConcidence = await Employee.findOne({
+      where: {
+        [Op.and]: [{ rfc: body.rfc }, { id_employee: { [Op.ne]: id } }],
+      },
+    });
+    if (employeeRfcConcidence) {
+      return res.status(400).json({
+        ok: false,
+        msg: `Ya existe un empleado con el RFC ${body.rfc}`,
+      });
+    }
+
+    const employeeCurpConcidence = await Employee.findOne({
+      where: {
+        [Op.and]: [{ curp: body.curp }, { id_employee: { [Op.ne]: id } }],
+      },
+    });
+    if (employeeCurpConcidence) {
+      return res.status(400).json({
+        ok: false,
+        msg: `Ya existe un empleado con la CURP ${body.curp}`,
+      });
+    }
+    // Actualizar campus del usuario
+    const campusUser = await Cam_use.findOne({
+      where: { id_user: employee.id_user },
+    });
+    if (campusUser.id_campus !== body.id_campus) {
+      campusUser.update({ id_campus: body.id_campus });
+    }
+    // Actualizar departamento del trabajador
+    const employeeDepartment = await Emp_dep.findOne({
+      where: { id_employee: id },
+    });
+    if (employeeDepartment.id_department !== body.id_department) {
+      employeeDepartment.update({ id_department: body.id_department });
+    }
+    // Actualizar el horario del trabajador
+    const employeeTimeTable = await Time_tables.findAll({
+      where: {
+        id_time_table: {
+          [Op.in]: literal(
+            `(SELECT id_time_table FROM emp_tim WHERE id_employee = '${id}')`
+          ),
+        },
+      },
+      nest: false,
+      raw: true,
+    });
+    await Promise.all(
+      body.time_table.map(async (req_time_table) => {
+        const current_time_table = employeeTimeTable.find(
+          (time_table) => time_table.day === req_time_table.day
+        );
+        if (
+          current_time_table &&
+          (current_time_table?.start_hour !== req_time_table.start_hour ||
+            current_time_table?.start_hour !== req_time_table.start_hour)
+        )
+          return;
+
+        const possible_time_table = await Time_tables.findOne({
+          where: {
+            day: req_time_table.day,
+            start_hour: req_time_table.start_hour,
+            finish_hour: req_time_table.finish_hour,
+          },
+        });
+        if (possible_time_table) {
+          await Emp_tim.create({
+            id_employee: id,
+            id_time_table: possible_time_table.id_time_table,
+          });
+        } else {
+          const { id_time_table } = await Time_tables.create({
+            day: req_time_table.day,
+            start_hour: req_time_table.start_hour,
+            finish_hour: req_time_table.finish_hour,
+          });
+          await Emp_tim.create({
+            id_employee: id,
+            id_time_table,
+          });
+        }
+      }),
+      employeeTimeTable.map(async (time_table_db) => {
+        const time_table_days = body.time_table.map(
+          (time_table) => time_table.day
+        );
+        if (!time_table_days.includes(time_table_db.day)) {
+          await Emp_tim.destroy({
+            where: {
+              id_time_table: time_table_db.id_time_table,
+              id_employee: id,
+            },
+          });
+        }
+      })
+    );
 
     await employee.update(body);
 
@@ -246,6 +310,7 @@ const updateEmployee = async (req, res) => {
     });
   }
 };
+
 const deleteEmployee = async (req, res) => {
   const { id } = req.params;
   const { active } = req.body;

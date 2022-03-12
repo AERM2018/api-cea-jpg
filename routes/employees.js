@@ -6,7 +6,10 @@ const {
   updateEmployee,
   deleteEmployee,
 } = require("../controllers/employeesController");
-const { checkCampusExistence } = require("../middlewares/dbValidations");
+const {
+  checkCampusExistence,
+  checkDepartmentExistence,
+} = require("../middlewares/dbValidations");
 const { isValidSchedule } = require("../middlewares/schedule");
 const validateJWT = require("../middlewares/validar-jwt");
 const { validateFields } = require("../middlewares/validateFields");
@@ -62,6 +65,9 @@ employeesRouter.post(
       .isLength({ max: 10 }),
     // check('active','al campo activo es obligatorio').isInt().exists({checkNull:true}),
     check("id_department", "El id del departamento es obligatorio")
+      .isNumeric()
+      .exists({ checkNull: true }),
+    check("id_campus", "El id del campus es obligatorio")
       .isNumeric()
       .exists({ checkNull: true }),
     check(
@@ -138,8 +144,16 @@ employeesRouter.put(
     )
       .isFloat()
       .exists({ checkNull: true }),
-    // poner id department
+    check("id_department", "El id del departamento es obligatorio")
+      .isNumeric()
+      .exists({ checkNull: true }),
+    check(
+      "time_table",
+      "Es obligatorio seleccionar por lo menos un dia para el horario"
+    ).isArray({ min: 1 }),
     validateFields,
+    checkCampusExistence,
+    checkDepartmentExistence,
     validateJWT,
   ],
   updateEmployee

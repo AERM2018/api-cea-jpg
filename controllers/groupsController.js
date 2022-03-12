@@ -26,39 +26,13 @@ const {
   findAssistenceDays,
 } = require("../helpers/dates");
 const Gro_cou_ass = require("../models/gro_cou_ass");
+const {
+  getGroupsInfoWithTimeTable,
+} = require("../helpers/getDataSavedFromEntities");
 
 const getAllGroups = async (req, res) => {
-  let groups = [];
   try {
-    groups = await getGroupInfo();
-    groups = await Promise.all(
-      groups.map(async (group) => {
-        const gro_tim = await Gro_tim.findAll({
-          where: { id_group: group.id_group },
-          attributes: ["id_time_table"],
-        });
-        const time_table = await Time_tables.findAll({
-          where: {
-            id_time_table: {
-              [Op.in]: gro_tim.map(
-                (time_table) => time_table.toJSON().id_time_table
-              ),
-            },
-          },
-          attributes: {
-            exclude: ["id_time_table"],
-            include: [
-              [fn("date_format", col("start_hour"), "%H:%i"), "start_hour"],
-              [fn("date_format", col("finish_hour"), "%H:%i"), "finish_hour"],
-            ],
-          },
-        });
-        return {
-          ...group,
-          time_table: time_table.map((time_table) => time_table.toJSON()),
-        };
-      })
-    );
+    const groups = await getGroupsInfoWithTimeTable();
     res.json({
       ok: true,
       groups,
@@ -69,9 +43,15 @@ const getAllGroups = async (req, res) => {
 };
 
 const createGroup = async (req, res) => {
-  const { id_major, name_group, entry_year, end_year, time_table, id_campus } =
-    req.body;
-  let id_group, id_time_table;
+  const {
+    id_major,
+    group_name: name_group,
+    entry_year,
+    end_year,
+    time_table,
+    id_campus,
+  } = req.body;
+  let id_time_table;
   let ids_emp_tim;
   try {
     const major = await Major.findByPk(id_major);
@@ -84,15 +64,13 @@ const createGroup = async (req, res) => {
         msg: "Ya existe una un grupo con el nombre " + name_group,
       });
     }
-    const group = new Group({
+    const group = await Group.create({
       id_major: major.id_major,
       name_group,
       entry_year,
       end_year,
     });
-    const newGroup = await group.save();
-    const groupJson = newGroup.toJSON();
-    id_group = groupJson["id_group"];
+    const { id_group } = group;
     const cam_gro = new Cam_gro({ id_campus, id_group });
     await cam_gro.save();
 
@@ -117,10 +95,11 @@ const createGroup = async (req, res) => {
       const gro_tim = new Gro_tim({ id_group, id_time_table });
       await gro_tim.save();
     });
-
+    const groupDB = await getGroupsInfoWithTimeTable(id_group);
     res.status(201).json({
       ok: true,
       msg: "Grupo creado correctamente",
+      group: groupDB,
     });
   } catch (error) {
     printAndSendError(res, error);

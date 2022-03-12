@@ -26,60 +26,12 @@ const {
   setSectionInactivate,
   getCoursesGiveTeachersOrTeacher,
 } = require("../helpers/courses");
+const {
+  getTeachersInfoWithTimeTable,
+} = require("../helpers/getDataSavedFromEntities");
 
 const getAllTeachers = async (req, res) => {
-  Teacher.belongsTo(User, { foreignKey: "id_user" });
-  User.hasOne(Teacher, { foreignKey: "id_user" });
-  Cam_use.belongsTo(User, { foreignKey: "id_user" });
-  User.hasOne(Cam_use, { foreignKey: "id_user" });
-  Cam_use.belongsTo(Campus, { foreignKey: "id_campus" });
-  Campus.hasOne(Cam_use, { foreignKey: "id_campus" });
-  let teachers = await Teacher.findAll({
-    include: {
-      model: User,
-      include: {
-        model: Cam_use,
-        include: {
-          model: Campus,
-          attributes: ["id_campus", "campus_name"],
-        },
-      },
-    },
-    attributes: {
-      include: [
-        [
-          fn(
-            "concat",
-            col("name"),
-            " ",
-            col("surname_f"),
-            " ",
-            col("surname_m")
-          ),
-          "teacher_name",
-        ],
-      ],
-    },
-    where: { active: 1 },
-    raw: true,
-    nest: true,
-  });
-  teachers = teachers.map((teacher) => {
-    const {
-      user: {
-        cam_use: { campus },
-        email,
-      },
-      active,
-      ...restTeacher
-    } = teacher;
-    return {
-      active: active ? "Activo" : "Inactivo",
-      ...restTeacher,
-      email,
-      ...campus,
-    };
-  });
+  const teachers = await getTeachersInfoWithTimeTable();
   return res.status(200).json({
     ok: true,
     teachers,
@@ -115,10 +67,11 @@ const createTeacher = async (req, res) => {
         mobile_number,
         active: 1,
       });
+      const teacherDB = await getTeachersInfoWithTimeTable(id_teacher);
       return res.status(201).json({
         ok: true,
         msg: "Maestro creado correctamente",
-        id_teacher,
+        teacher: teacherDB,
       });
     }
 
@@ -127,7 +80,7 @@ const createTeacher = async (req, res) => {
     const userJson = newUser.toJSON();
     id_user = userJson["id_user"];
   } catch (error) {
-    return pri;
+    printAndSendError(res, err);
   }
   try {
     id_teacher = generateIdAle(id_user);
@@ -153,43 +106,22 @@ const createTeacher = async (req, res) => {
     const inst_email = `${id_teacher}@alejandria.edu.mx`;
     await user.update({ email: inst_email });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      ok: false,
-      msg: "Hable con el administrador",
-    });
+    printAndSendError(res, err);
   }
-  // try {
-  //     id_courses.forEach(async id_course => {
-  //         const cou_tea= new Cou_tea({id_course, id_teacher, status, start_date ,end_date})
-  //         await cou_tea.save();
-  //     });
-
-  // } catch (error) {
-  //     console.log(error)
-  //     return res.status(500).json({
-  //         ok : false,
-  //         msg: "Hable con el administrador",
-  //     })
-  // }
 
   try {
     //campus
     const cam_use = new Cam_use({ id_campus, id_user });
     await cam_use.save();
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      ok: false,
-      msg: "Hable con el administrador",
+    const teacherDB = await getTeachersInfoWithTimeTable(id_teacher);
+    res.status(201).json({
+      ok: true,
+      msg: "Maestro creado correctamente",
+      teacher: teacherDB,
     });
+  } catch (error) {
+    printAndSendError(res, err);
   }
-
-  res.status(201).json({
-    ok: true,
-    msg: "Maestro creado correctamente",
-    id_teacher,
-  });
 };
 
 const updateTeacher = async (req, res) => {

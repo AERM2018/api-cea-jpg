@@ -5,52 +5,15 @@ const { QueryTypes, fn, col } = require("sequelize");
 const Sch_stu = require("../models/sch_stu");
 const { getScholarships } = require("../queries/queries");
 const Student = require("../models/student");
+const { getSchoolarshipsInfo } = require("../helpers/getDataSavedFromEntities");
+const { printAndSendError } = require("../helpers/responsesOfReq");
 
 const getAllScholarships = async (req, res = response) => {
-  Sch_stu.belongsTo(Scholarship, { foreignKey: "id_scholarship" });
-  Scholarship.hasOne(Sch_stu, { foreignKey: "id_scholarship" });
-  Sch_stu.belongsTo(Student, { foreignKey: "id_student" });
-  Student.hasOne(Sch_stu, { foreignKey: "id_student" });
-
   try {
-    let scholarships = await Scholarship.findAll({
-      include: {
-        model: Sch_stu,
-        include: {
-          model: Student,
-          attributes: [
-            "id_student",
-            "matricula",
-            [
-              fn(
-                "concat",
-                col("name"),
-                " ",
-                col("surname_f"),
-                " ",
-                col("surname_m")
-              ),
-              "student_name",
-            ],
-          ],
-        },
-      },
-      attributes: {
-        include: [[fn("concat", col("percentage"), "%"), "percentage"]],
-      },
-    });
-    scholarships = scholarships.map((scholarship) => {
-      const { sch_stu, ...restScholarship } = scholarship.toJSON();
-      return {
-        ...restScholarship,
-        id_student: sch_stu.student.id_student,
-        matricula: sch_stu.student.matricula,
-        student_name: sch_stu.student.student_name,
-      };
-    });
+    const scholarshipsDB = await getSchoolarshipsInfo();
     res.status(200).json({
       ok: true,
-      scholarships,
+      scholarships: scholarshipsDB,
     });
   } catch (err) {
     console.log(err);
@@ -77,31 +40,26 @@ const createScholarship = async (req, res = response) => {
       });
     }
 
-    const scholarship = new Scholarship({
+    const { id_scholarship } = await Scholarship.create({
       scholarship_name,
       percentage,
       reason,
       observations,
     });
-    const newSch = await scholarship.save();
-    const id_scholarship = newSch.toJSON()["id_scholarship"];
 
-    const sch_stu = new Sch_stu({
+    const sch_stu = await Sch_stu.create({
       id_scholarship,
       id_student: student.id_student,
     });
-    await sch_stu.save();
 
+    const scholarshipDB = await getSchoolarshipsInfo(id_scholarship);
     res.status(201).json({
       ok: true,
       msg: "La beca se creo correctamente.",
+      scholarship: scholarshipDB,
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      ok: false,
-      msg: "Hable con el adminstrador.",
-    });
+    printAndSendError(res, err);
   }
 };
 

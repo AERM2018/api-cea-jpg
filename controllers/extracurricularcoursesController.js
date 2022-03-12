@@ -12,26 +12,22 @@ const Student = require("../models/student");
 const { getExtraCourseInfo } = require("../helpers/courses");
 const Time_tables = require("../models/time_tables");
 const { findAssistenceDays } = require("../helpers/dates");
+const {
+  getExtraCoursesWithTimeTable,
+} = require("../helpers/getDataSavedFromEntities");
 
 const getAllExtraCurricularCourses = async (req = request, res = response) => {
   let { teacherName = "", status = "all" } = req.query;
   const statusCondition = status == "all" ? {} : { status };
   try {
-    let extracurricular_courses = await getExtraCourseInfo({
-      addTeacher: true,
+    const extracurricular_courses = await getExtraCoursesWithTimeTable(
+      undefined,
+      true,
       teacherName,
-      status: statusCondition.status,
-      applyFormatToDate: false,
-    });
-    extracurricular_courses = extracurricular_courses.map((extraCourse) => {
-      const { time_table, ...restExtraCourse } = extraCourse;
-      return {
-        ...restExtraCourse,
-        ...time_table,
-      };
-    });
+      statusCondition.status,
+      false
+    );
     return res.status(200).json({
-      //200 means success
       ok: true,
       extracurricular_courses,
     });
@@ -56,11 +52,20 @@ const createExtraCurricularCourse = async (req, res = response) => {
       time_table = time_table.toJSON();
     }
     body.id_time_table = time_table.id_time_table;
-    const extracurricular_course = new ExtraCurricularCourses({ ...body });
-    await extracurricular_course.save();
+    const extracurricular_course = await ExtraCurricularCourses.create({
+      ...body,
+    });
+    const extraCourseDB = await getExtraCoursesWithTimeTable(
+      extracurricular_course.id_ext_cou,
+      true,
+      "",
+      1,
+      false
+    );
     res.status(201).json({
       ok: true,
       msg: "Curso extra curricular creado correctamente",
+      extracurricular_course: extraCourseDB,
     });
   } catch (err) {
     printAndSendError(res, err);

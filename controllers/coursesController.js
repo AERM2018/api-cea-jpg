@@ -9,54 +9,62 @@ const Gro_cou = require("../models/gro_cou");
 const { setCourseInactivate } = require("../helpers/courses");
 const Restriction = require("../models/restriction");
 const ExtraCurricularCourses = require("../models/extracurricularcourses");
+const {
+  getCoursesInfoWithRestrinctions,
+} = require("../helpers/getDataSavedFromEntities");
 
 const getAllCourses = async (req, res = response) => {
   let { courseName = "" } = req.query;
 
-  Course.belongsTo(Major, { foreignKey: "id_major" });
-  Major.hasMany(Course, { foreignKey: "id_major" });
+  // Course.belongsTo(Major, { foreignKey: "id_major" });
+  // Major.hasMany(Course, { foreignKey: "id_major" });
 
+  // try {
+  //   let gro_cou = await Gro_cou.findAll();
+  //   await Promise.all(
+  //     gro_cou.map(async (gro_cou) => {
+  //       gro_cou = await setCourseInactivate(gro_cou);
+  //       return gro_cou.status;
+  //     })
+  //   );
+  //   let courses = await Course.findAll({
+  //     include: { model: Major, attributes: ["major_name"] },
+  //     where: {
+  //       [Op.or]: [
+  //         {
+  //           course_name: { [Op.like]: `%${courseName}%` },
+  //         },
+  //       ],
+  //     },
+  //   });
+
+  //   courses = await Promise.all(
+  //     courses.map(async (course) => {
+  //       const { major, ...restoCourse } = course.toJSON();
+  //       let restricted_by_course = "";
+  //       let restricted_by_extracourse = "";
+  //       const restriction = await Restriction.findOne({
+  //         restricted_course: restoCourse.id_course,
+  //       });
+  //       if (restriction) {
+  //         restricted_by_course = restriction.toJSON().mandatory_course;
+  //         restricted_by_extracourse =
+  //           restriction.toJSON().mandatory_extracourse;
+  //       }
+  //       return {
+  //         ...restoCourse,
+  //         restricted_by_course:
+  //           restricted_by_course === null ? "" : restricted_by_course,
+  //         restricted_by_extracourse:
+  //           restricted_by_extracourse === null ? "" : restricted_by_extracourse,
+  //         major_name: major.major_name,
+  //       };
+  //     })
+  //   );
   try {
-    let gro_cou = await Gro_cou.findAll();
-    await Promise.all(
-      gro_cou.map(async (gro_cou) => {
-        gro_cou = await setCourseInactivate(gro_cou);
-        return gro_cou.status;
-      })
-    );
-    let courses = await Course.findAll({
-      include: { model: Major, attributes: ["major_name"] },
-      where: {
-        [Op.or]: [
-          {
-            course_name: { [Op.like]: `%${courseName}%` },
-          },
-        ],
-      },
-    });
-
-    courses = await Promise.all(
-      courses.map(async (course) => {
-        const { major, ...restoCourse } = course.toJSON();
-        let restricted_by_course = "";
-        let restricted_by_extracourse = "";
-        const restriction = await Restriction.findOne({
-          restricted_course: restoCourse.id_course,
-        });
-        if (restriction) {
-          restricted_by_course = restriction.toJSON().mandatory_course;
-          restricted_by_extracourse =
-            restriction.toJSON().mandatory_extracourse;
-        }
-        return {
-          ...restoCourse,
-          restricted_by_course:
-            restricted_by_course === null ? "" : restricted_by_course,
-          restricted_by_extracourse:
-            restricted_by_extracourse === null ? "" : restricted_by_extracourse,
-          major_name: major.major_name,
-        };
-      })
+    const courses = await getCoursesInfoWithRestrinctions(
+      undefined,
+      courseName
     );
     return res.status(200).json({
       //200 means success
@@ -126,10 +134,11 @@ const createCourse = async (req, res = response) => {
       });
       await restriction.save();
     }
-
+    const courseDB = await getCoursesInfoWithRestrinctions(id_course);
     res.status(201).json({
       ok: true,
       msg: "Curso creado correctamente",
+      course: courseDB,
     });
   } catch (err) {
     console.log(err);

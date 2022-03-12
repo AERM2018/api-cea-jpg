@@ -1,33 +1,12 @@
 const { Op, fn, col } = require("sequelize");
+const { getMajorsInfo } = require("../helpers/getDataSavedFromEntities");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Educational_level = require("../models/educational_level");
 const Major = require("../models/major");
 
 const getAllMajors = async (req, res) => {
-  Educational_level.hasOne(Major, { foreignKey: "id_edu_lev" });
-  Major.belongsTo(Educational_level, { foreignKey: "id_edu_lev" });
   try {
-    let majors = await Major.findAll({
-      include: {
-        model: Educational_level,
-        attributes: ["educational_level"],
-      },
-      attributes: {
-        include: [
-          [
-            fn("concat", col("educational_level"), " en ", col("major_name")),
-            "major_name",
-          ],
-        ],
-      },
-    });
-    majors = majors.map((major) => {
-      const { educational_level, ...restMajor } = major.toJSON();
-      return {
-        ...restMajor,
-        ...educational_level,
-      };
-    });
+    const majors = await getMajorsInfo();
     return res.status(200).json({
       ok: true,
       majors,
@@ -51,11 +30,12 @@ const createMajor = async (req, res) => {
         msg: `Ya existe una carrera con el nombre '${major_name}'`,
       });
     }
-    const newMajor = new Major({ major_name, id_edu_lev: edu_level });
-    await newMajor.save();
+    const newMajor = await Major.create({ major_name, id_edu_lev: edu_level });
+    const majorDB = await getMajorsInfo(newMajor.id_major);
     res.status(200).json({
       ok: true,
       msg: "La carrera se creo correctamente",
+      major: majorDB,
     });
   } catch (error) {
     printAndSendError(res, error);

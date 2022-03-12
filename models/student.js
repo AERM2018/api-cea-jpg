@@ -39,7 +39,7 @@ const Student = db.define(
     },
     mobile_back_number: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     start_date: {
       type: DataTypes.DATE,

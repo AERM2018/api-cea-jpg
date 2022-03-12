@@ -90,11 +90,11 @@ gradesRouter.get(
   getExtraCourseGrades
 );
 
-gradesRouter.get(
-  "/graduation_courses/:id_graduation_course",
-  [validateFields, validateJWT, checkGraduationCourseExistence],
-  getGraduationCourseGrades
-);
+// gradesRouter.get(
+//   "/graduation_courses/:id_graduation_course",
+//   [validateFields, validateJWT, checkGraduationCourseExistence],
+//   getGraduationCourseGrades
+// );
 
 gradesRouter.post(
   "/regular/:id_course",

@@ -55,6 +55,7 @@ const getAllStudents = async (req, res) => {
     students = await Promise.all(
       students.map(async (student) => await getStudentInfo(student.matricula))
     );
+    students = students.filter((student) => student.status === 1);
     return res.status(200).json({
       ok: true,
       students,
@@ -114,7 +115,7 @@ const createStudent = async (req, res = response) => {
           msg: `Ya existe un estudiante con la CURP ${curp}`,
         });
       } else {
-        const { id_student } = student;
+        const { id_student, matricula } = student;
         let currentStudentGroup = await Stu_gro.findOne({
           where: { [Op.and]: [{ id_student }, { status: 1 }] },
         });
@@ -200,10 +201,11 @@ const createStudent = async (req, res = response) => {
         if (studentUser.email !== email) {
           studentUser.update({ email });
         }
+        const studentDB = await getStudentInfo(matricula);
         return res.status(200).json({
           ok: true,
           msg: "El estudiante se creo correctamente",
-          id_student,
+          student: studentDB,
         });
       }
     }
@@ -279,10 +281,11 @@ const createStudent = async (req, res = response) => {
     //campus
     const cam_use = new Cam_use({ id_campus, id_user });
     await cam_use.save();
+    const studentDB = await getStudentInfo(matricula);
     return res.status(201).json({
       ok: true,
       msg: "Estudiante creado correctamente",
-      id_student,
+      student: studentDB,
     });
   } catch (err) {
     printAndSendError(res, err);

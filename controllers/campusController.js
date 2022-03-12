@@ -1,4 +1,5 @@
 const { QueryTypes, Op } = require("sequelize");
+const { getCampusInfo } = require("../helpers/getDataSavedFromEntities");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Campus = require("../models/campus");
 
@@ -44,12 +45,12 @@ const createCampus = async (req, res) => {
       });
     }
     //  Create and save course
-    const campus = new Campus(body);
-    await campus.save();
-
+    const campus = await Campus.create(body);
+    const groupDB = await getCampusInfo(campus.id_campus);
     res.status(201).json({
       ok: true,
       msg: "Campus creado correctamente",
+      group: groupDB,
     });
   } catch (err) {
     printAndSendError(res, err);

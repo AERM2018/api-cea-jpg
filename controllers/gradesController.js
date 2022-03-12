@@ -177,53 +177,53 @@ const getExtraCourseGrades = async (req, res = response) => {
   }
 };
 
-const getGraduationCourseGrades = async (req, res = response) => {
-  const { id_graduation_course } = req.params;
-  try {
-    let graduationCourse = await getGraduationCourseInfo(id_graduation_course);
+// const getGraduationCourseGrades = async (req, res = response) => {
+//   const { id_graduation_course } = req.params;
+//   try {
+//     let graduationCourse = await getGraduationCourseInfo(id_graduation_course);
 
-    Stu_gracou.belongsTo(Student, { foreignKey: "id_student" });
-    Student.hasOne(Stu_gracou, { foreignKey: "id_student" });
-    Stu_gracou.belongsTo(Tesine, { foreignKey: "id_tesine" });
-    Tesine.hasOne(Stu_gracou, { foreignKey: "id_tesine" });
-    let grades = await Stu_gracou.findAll({
-      include: [
-        {
-          model: Student,
-          attributes: [
-            "id_student",
-            "matricula",
-            [
-              fn(
-                "concat",
-                col("name"),
-                " ",
-                col("surname_f"),
-                " ",
-                col("surname_m")
-              ),
-              "student_name",
-            ],
-          ],
-        },
-        {
-          model: Tesine,
-        },
-      ],
-      where: { id_graduation_course },
-      raw: true,
-      nest: true,
-    });
-    grades = grades.map(({ student, tesine }) => ({ ...student, ...tesine }));
-    return res.json({
-      ok: true,
-      ...graduationCourse,
-      grades,
-    });
-  } catch (error) {
-    printAndSendError(res, error);
-  }
-};
+//     Stu_gracou.belongsTo(Student, { foreignKey: "id_student" });
+//     Student.hasOne(Stu_gracou, { foreignKey: "id_student" });
+//     Stu_gracou.belongsTo(Tesine, { foreignKey: "id_tesine" });
+//     Tesine.hasOne(Stu_gracou, { foreignKey: "id_tesine" });
+//     let grades = await Stu_gracou.findAll({
+//       include: [
+//         {
+//           model: Student,
+//           attributes: [
+//             "id_student",
+//             "matricula",
+//             [
+//               fn(
+//                 "concat",
+//                 col("name"),
+//                 " ",
+//                 col("surname_f"),
+//                 " ",
+//                 col("surname_m")
+//               ),
+//               "student_name",
+//             ],
+//           ],
+//         },
+//         {
+//           model: Tesine,
+//         },
+//       ],
+//       where: { id_graduation_course },
+//       raw: true,
+//       nest: true,
+//     });
+//     grades = grades.map(({ student, tesine }) => ({ ...student, ...tesine }));
+//     return res.json({
+//       ok: true,
+//       ...graduationCourse,
+//       grades,
+//     });
+//   } catch (error) {
+//     printAndSendError(res, error);
+//   }
+// };
 // // It's not working
 // const getAllGroupsGrades = async ( req, res =  response)=>{
 //     const { edu_level, major, group_name = '',id_group = 0} = req.query
@@ -661,7 +661,6 @@ const deleteGradeByStudentId = async (req, res = response) => {
 module.exports = {
   getAllGradesByCourse,
   getExtraCourseGrades,
-  getGraduationCourseGrades,
   uploadCourseGrades,
   updateGrades,
   updateGradeByTest,
