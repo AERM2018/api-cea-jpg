@@ -188,7 +188,7 @@ const deleteTeacher = async (req, res) => {
     }
 
     await teacher.update({ active: 2 });
-    const result = getTeachersInfoWithTimeTable(teacher.id_teacher);
+    const result = await getTeachersInfoWithTimeTable(teacher.id_teacher);
     res.status(200).json({
       ok: true,
       msg: "El maestro se elimino correctamente",
