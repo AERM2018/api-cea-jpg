@@ -52,11 +52,11 @@ const createScholarship = async (req, res = response) => {
       id_student: student.id_student,
     });
 
-    const scholarshipDB = await getSchoolarshipsInfo(id_scholarship);
+    const result = await getSchoolarshipsInfo(id_scholarship);
     res.status(201).json({
       ok: true,
       msg: "La beca se creo correctamente.",
-      scholarship: scholarshipDB,
+      result,
     });
   } catch (err) {
     printAndSendError(res, err);

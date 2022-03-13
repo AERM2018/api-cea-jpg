@@ -16,51 +16,6 @@ const {
 const getAllCourses = async (req, res = response) => {
   let { courseName = "" } = req.query;
 
-  // Course.belongsTo(Major, { foreignKey: "id_major" });
-  // Major.hasMany(Course, { foreignKey: "id_major" });
-
-  // try {
-  //   let gro_cou = await Gro_cou.findAll();
-  //   await Promise.all(
-  //     gro_cou.map(async (gro_cou) => {
-  //       gro_cou = await setCourseInactivate(gro_cou);
-  //       return gro_cou.status;
-  //     })
-  //   );
-  //   let courses = await Course.findAll({
-  //     include: { model: Major, attributes: ["major_name"] },
-  //     where: {
-  //       [Op.or]: [
-  //         {
-  //           course_name: { [Op.like]: `%${courseName}%` },
-  //         },
-  //       ],
-  //     },
-  //   });
-
-  //   courses = await Promise.all(
-  //     courses.map(async (course) => {
-  //       const { major, ...restoCourse } = course.toJSON();
-  //       let restricted_by_course = "";
-  //       let restricted_by_extracourse = "";
-  //       const restriction = await Restriction.findOne({
-  //         restricted_course: restoCourse.id_course,
-  //       });
-  //       if (restriction) {
-  //         restricted_by_course = restriction.toJSON().mandatory_course;
-  //         restricted_by_extracourse =
-  //           restriction.toJSON().mandatory_extracourse;
-  //       }
-  //       return {
-  //         ...restoCourse,
-  //         restricted_by_course:
-  //           restricted_by_course === null ? "" : restricted_by_course,
-  //         restricted_by_extracourse:
-  //           restricted_by_extracourse === null ? "" : restricted_by_extracourse,
-  //         major_name: major.major_name,
-  //       };
-  //     })
-  //   );
   try {
     const courses = await getCoursesInfoWithRestrinctions(
       undefined,
@@ -134,11 +89,11 @@ const createCourse = async (req, res = response) => {
       });
       await restriction.save();
     }
-    const courseDB = await getCoursesInfoWithRestrinctions(id_course);
+    const result = await getCoursesInfoWithRestrinctions(id_course);
     res.status(201).json({
       ok: true,
       msg: "Curso creado correctamente",
-      course: courseDB,
+      result,
     });
   } catch (err) {
     console.log(err);
@@ -153,6 +108,7 @@ const updateCourse = async (req, res = response) => {
   const { id } = req.params;
   const { body } = req;
   const { id_major, course_name } = body;
+  let { restricted_by_course, restricted_by_extracourse } = body;
 
   try {
     // Check if the record exists before updating
@@ -178,8 +134,11 @@ const updateCourse = async (req, res = response) => {
     // Avoid duplicates
     const courseMajor = await Course.findOne({
       where: {
-        id_major,
-        course_name,
+        [Op.and]: [
+          { id_major },
+          { course_name },
+          { id_course: { [Op.ne]: id } },
+        ],
       },
     });
 
@@ -188,6 +147,50 @@ const updateCourse = async (req, res = response) => {
         ok: false,
         msg: "En la carrera ya esta registrado un curso con ese nombre",
       });
+    }
+    // Validate that the course restriction exists
+    if (restricted_by_course !== "") {
+      const course_restriction = await Course.findByPk(restricted_by_course);
+      if (!course_restriction) {
+        return res.status(400).json({
+          ok: false,
+          msg: `El curso con id ${restricted_by_course} de restricción para el curso a crear no existe.`,
+        });
+      }
+    } else {
+      restricted_by_course = null;
+    }
+    // Validate that the extracurricular course restriction exists
+    if (restricted_by_extracourse !== "") {
+      const extracourse_restriction = await ExtraCurricularCourses.findByPk(
+        restricted_by_extracourse
+      );
+      if (!extracourse_restriction) {
+        return res.status(400).json({
+          ok: false,
+          msg: `El curso extracurricular con id ${restricted_by_extracourse} de restricción para el curso a crear no existe.`,
+        });
+      }
+    } else {
+      restricted_by_extracourse = null;
+    }
+    // Create or replace course's restrictions
+    if (restricted_by_course !== null || restricted_by_extracourse !== null) {
+      const courseRestriction = await Restriction.findOne({
+        where: { restricted_course: id_course },
+      });
+      if (courseRestriction) {
+        await courseRestriction.update({
+          mandatory_course: restricted_by_course,
+          mandatory_extracourse: restricted_by_extracourse,
+        });
+      } else {
+        await Restriction.create({
+          restricted_course: id_course,
+          mandatory_course: restricted_by_course,
+          mandatory_extracourse: restricted_by_extracourse,
+        });
+      }
     }
     // Update record in the database
     await Course.update(body, {

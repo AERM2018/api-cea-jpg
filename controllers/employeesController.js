@@ -16,7 +16,8 @@ const {
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const getAllEmployees = async (req, res) => {
   try {
-    const employees = await getEmployeesInfoWithTimeTable();
+    let employees = await getEmployeesInfoWithTimeTable();
+    employees = employees.filter((employee) => employee.active === 1);
     return res.status(200).json({
       ok: true,
       employees,
@@ -170,11 +171,11 @@ const createEmployee = async (req, res) => {
 
     const cam_use = new Cam_use({ id_campus, id_user });
     await cam_use.save();
-    const employeeDB = await getEmployeesInfoWithTimeTable(id_employee);
+    const result = await getEmployeesInfoWithTimeTable(id_employee);
     res.status(201).json({
       ok: true,
       msg: `Empleado creado correctamente con id: ${id_employee}`,
-      employee: employeeDB,
+      result,
     });
   } catch (error) {
     console.log(error);
@@ -250,12 +251,19 @@ const updateEmployee = async (req, res) => {
         const current_time_table = employeeTimeTable.find(
           (time_table) => time_table.day === req_time_table.day
         );
-        if (
-          current_time_table &&
-          (current_time_table?.start_hour !== req_time_table.start_hour ||
-            current_time_table?.start_hour !== req_time_table.start_hour)
-        )
-          return;
+        if (current_time_table) {
+          if (
+            current_time_table.start_hour === req_time_table.start_hour &&
+            current_time_table.start_hour == req_time_table.start_hour
+          )
+            return;
+          await Emp_tim.destroy({
+            where: {
+              id_time_table: current_time_table.id_time_table,
+              id_employee: id,
+            },
+          });
+        }
 
         const possible_time_table = await Time_tables.findOne({
           where: {

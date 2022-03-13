@@ -55,7 +55,7 @@ const createExtraCurricularCourse = async (req, res = response) => {
     const extracurricular_course = await ExtraCurricularCourses.create({
       ...body,
     });
-    const extraCourseDB = await getExtraCoursesWithTimeTable(
+    const result = await getExtraCoursesWithTimeTable(
       extracurricular_course.id_ext_cou,
       true,
       "",
@@ -65,7 +65,7 @@ const createExtraCurricularCourse = async (req, res = response) => {
     res.status(201).json({
       ok: true,
       msg: "Curso extra curricular creado correctamente",
-      extracurricular_course: extraCourseDB,
+      result,
     });
   } catch (err) {
     printAndSendError(res, err);

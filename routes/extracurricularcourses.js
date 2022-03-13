@@ -123,13 +123,6 @@ extraCurricularCoursesRouter.put(
       .isDate()
       .not()
       .isEmpty(),
-    check(
-      "end_date",
-      "La fecha de fin del curso debe de ser en fromato YYYY-MM-DD y es obligatoria."
-    )
-      .isDate()
-      .not()
-      .isEmpty(),
     check("limit_participants", "El limíte de participantes es obligatorios")
       .isNumeric()
       .not()

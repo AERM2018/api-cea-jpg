@@ -13,7 +13,7 @@ const Stu_gro = require("../models/stu_gro");
 const Teacher = require("../models/teacher");
 const User = require("../models/user");
 
-const getGroupInfo = async (id_group = 0) => {
+const getGroupInfo = async (id_group) => {
   Cam_gro.belongsTo(Group, { foreignKey: "id_group" });
   Group.hasOne(Cam_gro, { foreignKey: "id_group" });
   Cam_gro.belongsTo(Campus, { foreignKey: "id_campus" });
@@ -67,7 +67,7 @@ const getGroupInfo = async (id_group = 0) => {
         ],
       },
     ],
-    where: { ...(id_group && { id_group }) },
+    where: id_group ? { id_group } : undefined,
   });
   groups = groups.map((group) => {
     let {
@@ -78,7 +78,7 @@ const getGroupInfo = async (id_group = 0) => {
     } = group.toJSON();
     return { ...campus, ...major, ...restGroupInfo, ...student };
   });
-  return id_group ? groups[0] : groups;
+  return groups;
 };
 
 const getTitularTeacherOfCourse = async (id_group = 0, id_course = 0) => {

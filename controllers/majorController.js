@@ -31,11 +31,11 @@ const createMajor = async (req, res) => {
       });
     }
     const newMajor = await Major.create({ major_name, id_edu_lev: edu_level });
-    const majorDB = await getMajorsInfo(newMajor.id_major);
+    const result = await getMajorsInfo(newMajor.id_major);
     res.status(200).json({
       ok: true,
       msg: "La carrera se creo correctamente",
-      major: majorDB,
+      result,
     });
   } catch (error) {
     printAndSendError(res, error);

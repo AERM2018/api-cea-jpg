@@ -98,8 +98,9 @@ groupsRouter.put(
       "time_table",
       "Es obligatorio seleccionar por lo menos un dia para el horario"
     ).isArray({ min: 1 }),
-    checkGroupExistence,
     validateFields,
+    checkGroupExistence,
+    checkMajorExistence,
     validateJWT,
   ],
   updateGroup

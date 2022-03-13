@@ -67,11 +67,11 @@ const createTeacher = async (req, res) => {
         mobile_number,
         active: 1,
       });
-      const teacherDB = await getTeachersInfoWithTimeTable(id_teacher);
+      const result = await getTeachersInfoWithTimeTable(id_teacher);
       return res.status(201).json({
         ok: true,
         msg: "Maestro creado correctamente",
-        teacher: teacherDB,
+        result,
       });
     }
 
@@ -113,11 +113,11 @@ const createTeacher = async (req, res) => {
     //campus
     const cam_use = new Cam_use({ id_campus, id_user });
     await cam_use.save();
-    const teacherDB = await getTeachersInfoWithTimeTable(id_teacher);
+    const result = await getTeachersInfoWithTimeTable(id_teacher);
     res.status(201).json({
       ok: true,
       msg: "Maestro creado correctamente",
-      teacher: teacherDB,
+      result,
     });
   } catch (error) {
     printAndSendError(res, err);

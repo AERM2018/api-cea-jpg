@@ -5,7 +5,7 @@ const Campus = require("../models/campus");
 
 const getAllCampus = async (req, res) => {
   try {
-    const campus = await Campus.findAll();
+    const campus = await getCampusInfo();
     return res.status(200).json({
       ok: true,
       campus,
@@ -46,11 +46,11 @@ const createCampus = async (req, res) => {
     }
     //  Create and save course
     const campus = await Campus.create(body);
-    const groupDB = await getCampusInfo(campus.id_campus);
+    const result = await getCampusInfo(campus.id_campus);
     res.status(201).json({
       ok: true,
       msg: "Campus creado correctamente",
-      group: groupDB,
+      result,
     });
   } catch (err) {
     printAndSendError(res, err);

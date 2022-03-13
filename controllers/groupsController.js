@@ -95,11 +95,11 @@ const createGroup = async (req, res) => {
       const gro_tim = new Gro_tim({ id_group, id_time_table });
       await gro_tim.save();
     });
-    const groupDB = await getGroupsInfoWithTimeTable(id_group);
+    const result = await getGroupsInfoWithTimeTable(id_group);
     res.status(201).json({
       ok: true,
       msg: "Grupo creado correctamente",
-      group: groupDB,
+      result,
     });
   } catch (error) {
     printAndSendError(res, error);
@@ -108,32 +108,102 @@ const createGroup = async (req, res) => {
 
 const updateGroup = async (req, res) => {
   const { id_group } = req.params;
-  const { name_group = "", id_campus } = req.body;
+  const {
+    group_name: name_group = "",
+    id_campus,
+    id_major,
+    entry_year,
+    end_year,
+    time_table,
+  } = req.body;
   try {
     const group = await Group.findByPk(id_group);
-    if (name_group != "") {
-      const groupCoincidence = await Group.findOne({
-        where: {
-          name_group,
-          id_group: { [Op.ne]: id_group },
-        },
+    const campus = await Campus.findByPk(id_campus);
+    if (!campus)
+      return res.status(404).json({
+        ok: false,
+        msg: `Campus con id ${id_campus} no encontrado.`,
       });
-      if (groupCoincidence)
-        return res.status(400).json({
-          ok: false,
-          msg: `Ya existe un grupo con el nombre ${name_group}`,
+    await Cam_gro.update({ id_campus }, { where: { id_group } });
+    const groupCoincidence = await Group.findOne({
+      where: {
+        name_group,
+        id_group: { [Op.ne]: id_group },
+      },
+    });
+    if (groupCoincidence)
+      return res.status(400).json({
+        ok: false,
+        msg: `Ya existe un grupo con el nombre ${name_group}`,
+      });
+    await group.update({ name_group, id_major, entry_year, end_year });
+    // Actualizar el horario del grupo
+    const groupTimeTable = await Time_tables.findAll({
+      where: {
+        id_time_table: {
+          [Op.in]: literal(
+            `(SELECT id_time_table FROM gro_tim WHERE id_group = '${id_group}')`
+          ),
+        },
+      },
+      nest: false,
+      raw: true,
+    });
+    await Promise.all(
+      time_table.map(async (req_time_table) => {
+        const current_time_table = groupTimeTable.find(
+          (time_table) => time_table.day === req_time_table.day
+        );
+        if (current_time_table) {
+          if (
+            current_time_table.start_hour === req_time_table.start_hour &&
+            current_time_table.start_hour === req_time_table.start_hour
+          )
+            return;
+          await Gro_tim.destroy({
+            where: {
+              id_time_table: current_time_table.id_time_table,
+              id_group,
+            },
+          });
+        }
+
+        const possible_time_table = await Time_tables.findOne({
+          where: {
+            day: req_time_table.day,
+            start_hour: req_time_table.start_hour,
+            finish_hour: req_time_table.finish_hour,
+          },
         });
-      await group.update({ name_group });
-    }
-    if (id_campus) {
-      const campus = await Campus.findByPk(id_campus);
-      if (!campus)
-        return res.status(404).json({
-          ok: false,
-          msg: `Campus con id ${id_campus} no encontrado.`,
-        });
-      await Cam_gro.update({ id_campus }, { where: { id_group } });
-    }
+        if (possible_time_table) {
+          await Gro_tim.create({
+            id_group,
+            id_time_table: possible_time_table.id_time_table,
+          });
+        } else {
+          const { id_time_table } = await Time_tables.create({
+            day: req_time_table.day,
+            start_hour: req_time_table.start_hour,
+            finish_hour: req_time_table.finish_hour,
+          });
+          await Gro_tim.create({
+            id_group,
+            id_time_table,
+          });
+        }
+      }),
+      groupTimeTable.map(async (time_table_db) => {
+        const time_table_days = time_table.map((time_table) => time_table.day);
+        if (!time_table_days.includes(time_table_db.day)) {
+          await Gro_tim.destroy({
+            where: {
+              id_time_table: time_table_db.id_time_table,
+              id_group,
+            },
+          });
+        }
+      })
+    );
     res.status(200).json({
       ok: true,
       msg: "El grupo se actualizo correctamente",

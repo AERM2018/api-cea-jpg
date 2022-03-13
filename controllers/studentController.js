@@ -201,11 +201,11 @@ const createStudent = async (req, res = response) => {
         if (studentUser.email !== email) {
           studentUser.update({ email });
         }
-        const studentDB = await getStudentInfo(matricula);
+        const result = await getStudentInfo(matricula);
         return res.status(200).json({
           ok: true,
           msg: "El estudiante se creo correctamente",
-          student: studentDB,
+          result,
         });
       }
     }
@@ -281,11 +281,11 @@ const createStudent = async (req, res = response) => {
     //campus
     const cam_use = new Cam_use({ id_campus, id_user });
     await cam_use.save();
-    const studentDB = await getStudentInfo(matricula);
+    const result = await getStudentInfo(matricula);
     return res.status(201).json({
       ok: true,
       msg: "Estudiante creado correctamente",
-      student: studentDB,
+      result,
     });
   } catch (err) {
     printAndSendError(res, err);

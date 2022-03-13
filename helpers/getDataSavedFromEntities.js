@@ -128,7 +128,7 @@ const getTeachersInfoWithTimeTable = async (id_teacher) => {
         ],
       ],
     },
-    where: { active: 1, ...condition },
+    where: { ...condition },
     raw: true,
     nest: true,
   });
@@ -142,7 +142,7 @@ const getTeachersInfoWithTimeTable = async (id_teacher) => {
       ...restTeacher
     } = teacher;
     return {
-      active: active ? "Activo" : "Inactivo",
+      active: active === 1 ? "Activo" : "Inactivo",
       ...restTeacher,
       email,
       ...campus,

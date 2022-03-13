@@ -29,91 +29,7 @@ const Gra_sec_ass = require("../models/gra_sec_ass");
 const getAllGraduationCourses = async (req = request, res = response) => {
   let { courseGradName = "", status = "all" } = req.query;
   let statusCondition = status == "all" ? undefined : { status };
-  Graduation_section.belongsTo(Graduation_courses, {
-    foreignKey: "id_graduation_course",
-  });
-  Graduation_courses.hasMany(Graduation_section, {
-    foreignKey: "id_graduation_course",
-  });
-  Graduation_section.belongsTo(Teacher, { foreignKey: "id_teacher" });
-  Teacher.hasOne(Graduation_section, { foreignKey: "id_teacher" });
-  Graduation_courses.belongsTo(Teacher, { foreignKey: "id_teacher" });
-  Teacher.hasOne(Graduation_courses, { foreignKey: "id_teacher" });
   try {
-    // let graduation_courses = await Graduation_courses.findAll({
-    //   where: {
-    //     [Object.keys(req.query).every((key) =>
-    //       ["courseGradName", "status"].includes(key)
-    //     )
-    //       ? Op.and
-    //       : Op.or]: [
-    //       { course_grad_name: { [Op.like]: `%${courseGradName}%` } },
-    //       statusCondition,
-    //     ],
-    //   },
-    //   include: [
-    //     {
-    //       model: Graduation_section,
-    //       attributes: { exclude: ["id_graduation_course"] },
-    //       required: false,
-    //       include: {
-    //         model: Teacher,
-    //         attributes: [
-    //           "id_teacher",
-    //           [
-    //             fn(
-    //               "concat",
-    //               col("graduation_sections.teacher.name"),
-    //               " ",
-    //               col("graduation_sections.teacher.surname_f"),
-    //               " ",
-    //               col("graduation_sections.teacher.surname_m")
-    //             ),
-    //             "teacher_name",
-    //           ],
-    //         ],
-    //       },
-    //     },
-    //     {
-    //       model: Teacher,
-    //       attributes: [
-    //         "id_teacher",
-    //         [
-    //           fn(
-    //             "concat",
-    //             col("teacher.name"),
-    //             " ",
-    //             col("teacher.surname_f"),
-    //             " ",
-    //             col("teacher.surname_m")
-    //           ),
-    //           "teacher_name",
-    //         ],
-    //       ],
-    //     },
-    //   ],
-    // });
-    // graduation_courses = await Promise.all(
-    //   graduation_courses.map(async (course) => {
-    //     let { teacher, ...coursesInfoJSON } = course.toJSON();
-    //     coursesInfoJSON.graduation_sections = await Promise.all(
-    //       course.graduation_sections.map(async (section) => {
-    //         section = await setSectionInactivate(section);
-    //         const { teacher, ...sectionInfo } = section.toJSON();
-    //         return { ...sectionInfo, ...teacher };
-    //       })
-    //     );
-    //     coursesInfoJSON.graduation_sections =
-    //       coursesInfoJSON.graduation_sections.filter((section) => section);
-    //     course = await setCourseInactivate(course);
-    //     if (!course.status && status == 1) return;
-    //     coursesInfoJSON.teacher_name = teacher.teacher_name;
-    //     return coursesInfoJSON;
-    //   })
-    // );
-    // graduation_courses = graduation_courses.filter(
-    //   (graduation_course) => graduation_course
-    // );
     const graduation_coursesDB = await getGraduationCourseInfoWithSections(
       undefined,
       courseGradName,
@@ -143,7 +59,7 @@ const createGraduationCourses = async (req, res = response) => {
       await graduation_section.save();
       sections.shift();
     }
-    const graduationCourseDB = await getGraduationCourseInfoWithSections(
+    const result = await getGraduationCourseInfoWithSections(
       id_graduation_course,
       undefined,
       undefined
@@ -151,7 +67,7 @@ const createGraduationCourses = async (req, res = response) => {
     res.status(201).json({
       ok: true,
       msg: "Curso de graduación creado correctamente",
-      graduation_course: graduationCourseDB,
+      result,
     });
   } catch (err) {
     printAndSendError(res, err);
