@@ -204,9 +204,11 @@ const updateGroup = async (req, res) => {
         }
       })
     );
+    const result = await getGroupsInfoWithTimeTable(group.id_group);
     res.status(200).json({
       ok: true,
       msg: "El grupo se actualizo correctamente",
+      result,
     });
   } catch (error) {
     printAndSendError(res, error);
@@ -388,47 +390,6 @@ const getStudentsFromGroup = async (req, res = response) => {
   }
 };
 
-const getCoursesGroupHasTaken = async (req, res = response) => {
-  const { id_group } = req.params;
-  let groupInfo = { ...(await getGroupInfo(id_group)) };
-  const gro_cous = await Gro_cou.findAll({ where: { id_group } });
-  const coursesId = await Promise.all(
-    gro_cous.map(async (gro_cou) => {
-      await setCourseInactivate(gro_cou);
-      return gro_cou.id_course;
-    })
-  );
-  const coursesTakenByGroup = await Courses.findAll({
-    where: { id_course: { [Op.in]: coursesId } },
-    raw: true,
-    nest: true,
-  });
-  groupInfo.coursesTaken = await Promise.all(
-    coursesTakenByGroup.map(async (course) => {
-      const { teacher } = await getTitularTeacherOfCourse(
-        id_group,
-        course.id_course
-      );
-      return { ...course, ...teacher };
-    })
-  );
-  const coursesNotTakenByGroup = await Courses.findAll({
-    where: {
-      [Op.and]: [
-        { id_course: { [Op.notIn]: coursesId } },
-        { id_major: groupInfo.id_major },
-      ],
-    },
-    raw: true,
-    nest: true,
-  });
-  groupInfo.coursesNotTaken = coursesNotTakenByGroup;
-  res.json({
-    ok: true,
-    group: groupInfo,
-  });
-};
-
 const assignGroupChief = async (req, res = response) => {
   const { id_group, matricula } = req.params;
   const { id_student } = req;
@@ -470,7 +431,6 @@ module.exports = {
   addCourseGroup,
   getStudentsFromGroup,
   removeCourseGroup,
-  getCoursesGroupHasTaken,
   assignGroupChief,
   removeGroupChief,
 };

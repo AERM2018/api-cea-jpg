@@ -31,8 +31,6 @@ const groupsRouter = Router();
 
 groupsRouter.get("/", [validateJWT], getAllGroups);
 
-groupsRouter.get("/:id_group/courses", [validateJWT], getCoursesGroupHasTaken);
-
 groupsRouter.post(
   "/",
   [

@@ -87,9 +87,15 @@ const updateGraduationCourses = async (req, res = response) => {
     await Graduation_courses.update(body, {
       where: { id_graduation_course },
     });
+    const result = await getGraduationCourseInfoWithSections(
+      id_graduation_course,
+      undefined,
+      undefined
+    );
     return res.status(200).json({
       ok: true,
       msg: "El curso de graduación ha sido actualizado correctamente",
+      result,
     });
   } catch (err) {
     printAndSendError(res, err);

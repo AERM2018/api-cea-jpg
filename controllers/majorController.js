@@ -1,7 +1,9 @@
 const { Op, fn, col } = require("sequelize");
 const { getMajorsInfo } = require("../helpers/getDataSavedFromEntities");
+const { getGroupCoursesTrack } = require("../helpers/groups");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Educational_level = require("../models/educational_level");
+const Group = require("../models/group");
 const Major = require("../models/major");
 
 const getAllMajors = async (req, res) => {
@@ -69,10 +71,11 @@ const updateMajor = async (req, res) => {
     }
 
     await major.update({ major_name, id_edu_lev: edu_level });
-
+    const result = await getMajorsInfo(major.id_major);
     res.status(200).json({
       ok: true,
       msg: "La carrera se actualizo correctamente",
+      result,
     });
   } catch (error) {
     printAndSendError(res, error);
@@ -102,9 +105,28 @@ const deleteMajor = async (req, res) => {
   }
 };
 
+const getMajorGroupsTrack = async (req, res) => {
+  const { id_major } = req.params;
+  try {
+    const majorGroups = await Group.findAll({ where: { id_major } });
+    let majorGroupsTrack = [];
+    majorGroupsTrack = await Promise.all(
+      majorGroups.map(
+        async (group) => await getGroupCoursesTrack(group.id_group)
+      )
+    );
+    res.json({
+      ok: true,
+      groupsTrack: majorGroupsTrack,
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 module.exports = {
   getAllMajors,
   createMajor,
   updateMajor,
   deleteMajor,
+  getMajorGroupsTrack,
 };

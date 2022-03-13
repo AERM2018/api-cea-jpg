@@ -5,14 +5,32 @@ const {
   deleteMajor,
   updateMajor,
   createMajor,
+  getMajorGroupsTrack,
 } = require("../controllers/majorController");
-const { isValidEduLevel } = require("../middlewares/dbValidations");
+const {
+  isValidEduLevel,
+  checkMajorExistence,
+} = require("../middlewares/dbValidations");
 const validateJWT = require("../middlewares/validar-jwt");
 const { validateFields } = require("../middlewares/validateFields");
 
 const majorsRouter = Router();
 
 majorsRouter.get("/", [validateJWT], getAllMajors);
+
+majorsRouter.get(
+  "/:id_major/groups/courses",
+  [
+    validateJWT,
+    param(
+      "id_major",
+      "El id de la carrera es obligatorio y debe de ser un numero entero"
+    ).isNumeric(),
+    validateFields,
+    checkMajorExistence,
+  ],
+  getMajorGroupsTrack
+);
 majorsRouter.post(
   "/",
   [

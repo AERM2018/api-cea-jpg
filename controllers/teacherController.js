@@ -153,9 +153,11 @@ const updateTeacher = async (req, res) => {
     }
 
     await teacher.update(body);
+    const result = await getStudentInfo(teacher.id_teacher);
     res.status(200).json({
       ok: true,
       msg: "El maestro se actualizo correctamente",
+      result,
     });
   } catch (error) {
     console.log(error);
@@ -186,10 +188,11 @@ const deleteTeacher = async (req, res) => {
     }
 
     await teacher.update({ active: 2 });
-
+    const result = getTeachersInfoWithTimeTable(teacher.id_teacher);
     res.status(200).json({
       ok: true,
       msg: "El maestro se elimino correctamente",
+      result,
     });
   } catch (error) {
     console.log(error);

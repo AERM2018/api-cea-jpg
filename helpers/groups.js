@@ -12,6 +12,7 @@ const Student = require("../models/student");
 const Stu_gro = require("../models/stu_gro");
 const Teacher = require("../models/teacher");
 const User = require("../models/user");
+const { setCourseInactivate } = require("./courses");
 
 const getGroupInfo = async (id_group) => {
   Cam_gro.belongsTo(Group, { foreignKey: "id_group" });
@@ -32,7 +33,7 @@ const getGroupInfo = async (id_group) => {
     include: [
       {
         model: Cam_gro,
-        include: { model: Campus, attributes: ["campus_name"] },
+        include: { model: Campus, attributes: ["id_campus", "campus_name"] },
       },
       {
         model: Major,
@@ -177,6 +178,43 @@ const studentGroupBelongsSameMajor = async (id_student, id_group) => {
   const { id_major } = await Group.findByPk(id_group);
   return id_current_major === id_major;
 };
+
+const getGroupCoursesTrack = async (id_group) => {
+  let groupInfo = { ...(await getGroupInfo(id_group))[0] };
+  const gro_cous = await Gro_cou.findAll({ where: { id_group } });
+  const coursesId = await Promise.all(
+    gro_cous.map(async (gro_cou) => {
+      await setCourseInactivate(gro_cou);
+      return gro_cou.id_course;
+    })
+  );
+  const coursesTakenByGroup = await Course.findAll({
+    where: { id_course: { [Op.in]: coursesId } },
+    raw: true,
+    nest: true,
+  });
+  groupInfo.coursesTaken = await Promise.all(
+    coursesTakenByGroup.map(async (course) => {
+      const { teacher } = await getTitularTeacherOfCourse(
+        id_group,
+        course.id_course
+      );
+      return { ...course, ...teacher };
+    })
+  );
+  const coursesNotTakenByGroup = await Course.findAll({
+    where: {
+      [Op.and]: [
+        { id_course: { [Op.notIn]: coursesId } },
+        { id_major: groupInfo.id_major },
+      ],
+    },
+    raw: true,
+    nest: true,
+  });
+  groupInfo.coursesNotTaken = coursesNotTakenByGroup;
+  return groupInfo;
+};
 module.exports = {
   getGroupInfo,
   getTitularTeacherOfCourse,
@@ -185,4 +223,5 @@ module.exports = {
   hasGroupAGroupChief,
   isStudentGroupChiefOfGroup,
   studentGroupBelongsSameMajor,
+  getGroupCoursesTrack,
 };

@@ -96,9 +96,11 @@ const updateScholarship = async (req, res = response) => {
       { ...rest },
       { where: { id_scholarship: id_scholarship } }
     );
+    const result = await getSchoolarshipsInfo(scholarship.id_scholarship);
     res.status(200).json({
       ok: true,
       msg: `La beca se actualizo correctamente.`,
+      result,
     });
   } catch (err) {
     console.log(err);

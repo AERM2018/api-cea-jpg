@@ -305,10 +305,11 @@ const updateEmployee = async (req, res) => {
     );
 
     await employee.update(body);
-
+    const result = await getEmployeesInfoWithTimeTable(employee.id_employee);
     res.status(200).json({
       ok: true,
       msg: "El empleado se actualizo correctamente",
+      result,
     });
   } catch (error) {
     console.log(error);

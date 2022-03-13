@@ -196,10 +196,11 @@ const updateCourse = async (req, res = response) => {
     await Course.update(body, {
       where: { id_course: id },
     });
-
+    const result = await getStudentInfo(course.id_course);
     return res.status(200).json({
       ok: true,
       msg: "Curso actualizado correctamente",
+      result,
     });
   } catch (err) {
     console.log(err);
@@ -215,7 +216,6 @@ const deleteCourse = async (req, res = response) => {
 
   try {
     const course = await Course.findByPk(id);
-
     // Check if the course exists
     if (!course) {
       return res.status(404).json({
@@ -224,6 +224,8 @@ const deleteCourse = async (req, res = response) => {
       });
     }
 
+    // Remove first the course's restrictions
+    await Restriction.destroy({ where: { restricted_course: id } });
     // Delete the record of the course
     await course.destroy();
 

@@ -105,10 +105,11 @@ const updateCampus = async (req, res) => {
     await Campus.update(body, {
       where: { id_campus: id },
     });
-
+    const result = await getCampusInfo(campus.id_campus);
     return res.status(200).json({
       ok: true,
       msg: "Campus actualizado correctamente",
+      result,
     });
   } catch (err) {
     printAndSendError(res, err);

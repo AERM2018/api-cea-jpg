@@ -371,9 +371,11 @@ const updateStudent = async (req, res) => {
     }
     await student.update(body);
     await User.update({ email }, { where: { id_user } });
+    const result = await getStudentInfo(student.matricula);
     res.status(200).json({
       ok: true,
       msg: "El estudiante se actualizo correctamente",
+      result,
     });
   } catch (err) {
     printAndSendError(res, err);

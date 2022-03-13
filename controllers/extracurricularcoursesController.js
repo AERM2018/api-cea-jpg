@@ -82,9 +82,17 @@ const updateExtraCurricularCourse = async (req, res = responde) => {
     );
     // Update record in the database
     await ExtraCurricularCourses.update(body, { where: { id_ext_cou } });
+    const result = await getExtraCoursesWithTimeTable(
+      extracurricular_course.id_ext_cou,
+      true,
+      "",
+      1,
+      false
+    );
     return res.status(200).json({
       ok: true,
       msg: "Curso extra curricular actualizado correctamente",
+      result,
     });
   } catch (err) {
     printAndSendError(res, err);
