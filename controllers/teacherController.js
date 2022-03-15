@@ -31,7 +31,9 @@ const {
 } = require("../helpers/getDataSavedFromEntities");
 
 const getAllTeachers = async (req, res) => {
-  const teachers = await getTeachersInfoWithTimeTable();
+  let teachers = await getTeachersInfoWithTimeTable();
+  console.log(teachers);
+  teachers = teachers.filter((teacher) => teacher.active === "Activo");
   return res.status(200).json({
     ok: true,
     teachers,
@@ -188,11 +190,9 @@ const deleteTeacher = async (req, res) => {
     }
 
     await teacher.update({ active: 2 });
-    const result = await getTeachersInfoWithTimeTable(teacher.id_teacher);
     res.status(200).json({
       ok: true,
       msg: "El maestro se elimino correctamente",
-      result,
     });
   } catch (error) {
     console.log(error);

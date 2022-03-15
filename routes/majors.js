@@ -64,7 +64,7 @@ majorsRouter.put(
       .isEmpty()
       .isLength({ max: 70 }),
     check("edu_level", "El nivel de eduación es obligatorio")
-      .isInt()
+      .notEmpty()
       .custom(isValidEduLevel),
     validateFields,
     validateJWT,

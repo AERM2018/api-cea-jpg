@@ -262,10 +262,14 @@ const isValidStartDate = (start_date) => {
   return true;
 };
 const isValidEduLevel = (edu_level) => {
-  if (![1, 2].includes(edu_level))
-    throw new Error("Nivel de eduación inválido");
+  try {
+    if (![1, 2].includes(parseInt(edu_level)))
+      throw new Error("Nivel de eduación inválido");
 
-  return true;
+    return true;
+  } catch (error) {
+    throw new Error("Nivel de eduación inválido");
+  }
 };
 
 const checkTeacherExistence = async (req, res = response, next) => {

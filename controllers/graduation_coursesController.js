@@ -83,6 +83,55 @@ const updateGraduationCourses = async (req, res = response) => {
     const graduation_course = await Graduation_courses.findByPk(
       id_graduation_course
     );
+    const sectionsFromGraduationCourse = await Graduation_section.findAll({
+      where: { id_graduation_course },
+      raw: true,
+    });
+    const sectionsIdsFromGraduationCourse = sectionsFromGraduationCourse.map(
+      (section) => section.id_graduation_section
+    );
+    const newSectionsIds = body.graduation_sections.map(
+      (section) => section.id_graduation_section
+    );
+    await Promise.all(
+      sectionsFromGraduationCourse.map(
+        async (section) => {
+          if (!newSectionsIds.includes(section.id_graduation_section)) {
+            await Graduation_section.destroy({
+              where: { id_graduation_section: section.id_graduation_section },
+            });
+          } else {
+            const newSectionData = body.graduation_sections.find(
+              (sectionReq) =>
+                sectionReq.id_graduation_section ===
+                section.id_graduation_section
+            );
+            await Graduation_section.update(
+              {
+                ...(newSectionData ? newSectionData : section),
+              },
+              {
+                where: { id_graduation_section: section.id_graduation_section },
+              }
+            );
+          }
+        },
+        body.graduation_sections.map(async (section) => {
+          if (!section.id_graduation_course) {
+            if (
+              !sectionsIdsFromGraduationCourse.includes(
+                section.id_graduation_section
+              )
+            ) {
+              await Graduation_section.create({
+                ...section,
+                id_graduation_course,
+              });
+            }
+          }
+        })
+      )
+    );
     // Update record in the database
     await Graduation_courses.update(body, {
       where: { id_graduation_course },

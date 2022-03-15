@@ -188,21 +188,21 @@ const getGroupCoursesTrack = async (id_group) => {
       return gro_cou.id_course;
     })
   );
-  const coursesTakenByGroup = await Course.findAll({
+  let coursesTakenByGroup = await Course.findAll({
     where: { id_course: { [Op.in]: coursesId } },
     raw: true,
     nest: true,
   });
-  groupInfo.coursesTaken = await Promise.all(
+  coursesTakenByGroup = await Promise.all(
     coursesTakenByGroup.map(async (course) => {
       const { teacher } = await getTitularTeacherOfCourse(
         id_group,
         course.id_course
       );
-      return { ...course, ...teacher };
+      return { ...course, ...teacher, isTaken: true };
     })
   );
-  const coursesNotTakenByGroup = await Course.findAll({
+  let coursesNotTakenByGroup = await Course.findAll({
     where: {
       [Op.and]: [
         { id_course: { [Op.notIn]: coursesId } },
@@ -212,7 +212,11 @@ const getGroupCoursesTrack = async (id_group) => {
     raw: true,
     nest: true,
   });
-  groupInfo.coursesNotTaken = coursesNotTakenByGroup;
+  coursesNotTakenByGroup = coursesNotTakenByGroup.map((course) => ({
+    ...course,
+    taken: false,
+  }));
+  groupInfo["courses"] = [...coursesTakenByGroup, ...coursesNotTakenByGroup];
   return groupInfo;
 };
 module.exports = {

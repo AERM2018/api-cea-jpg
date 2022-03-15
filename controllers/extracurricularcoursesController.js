@@ -75,11 +75,23 @@ const createExtraCurricularCourse = async (req, res = response) => {
 const updateExtraCurricularCourse = async (req, res = responde) => {
   const { id_ext_cou } = req.params;
   const { body } = req;
+  const { start_date, start_hour, finish_hour } = body;
   try {
     // Check if the record exists before updating
     const extracurricular_course = await ExtraCurricularCourses.findByPk(
       id_ext_cou
     );
+    const day = moment(start_date).day();
+    // Look for if there's coincidences in the time table chose
+    let time_table = await Time_tables.findOne({
+      where: { day, start_hour, finish_hour },
+    });
+    if (!time_table) {
+      const new_time_table = new Time_tables({ day, start_hour, finish_hour });
+      time_table = await new_time_table.save();
+      time_table = time_table.toJSON();
+    }
+    body.id_time_table = time_table.id_time_table;
     // Update record in the database
     await ExtraCurricularCourses.update(body, { where: { id_ext_cou } });
     const result = await getExtraCoursesWithTimeTable(
