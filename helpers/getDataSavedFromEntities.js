@@ -267,12 +267,10 @@ const getCoursesInfoWithRestrinctions = async (id_course, course_name) => {
     include: { model: Major, attributes: ["major_name"] },
     where: {
       [Op.or]: [
-        {
-          ...(course_name
-            ? { course_name: { [Op.like]: `%${course_name}%` } }
-            : undefined),
-          ...condition,
-        },
+        course_name !== undefined
+          ? { course_name: { [Op.like]: `%${course_name}%` } }
+          : undefined,
+        condition,
       ],
     },
   });
@@ -288,8 +286,6 @@ const getCoursesInfoWithRestrinctions = async (id_course, course_name) => {
       if (restriction) {
         restricted_by_course = restriction.toJSON().mandatory_course;
         restricted_by_extracourse = restriction.toJSON().mandatory_extracourse;
-        console.log("a", restricted_by_course);
-        console.log("b", restricted_by_extracourse);
       }
       return {
         ...restoCourse,

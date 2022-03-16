@@ -79,7 +79,7 @@ const createCourse = async (req, res = response) => {
       restricted_by_extracourse = null;
     }
     //  Create and save course
-    const course = new Course(body);
+    const course = new Course({ ...body });
     const courseSaved = await course.save();
     const { id_course } = courseSaved.toJSON();
     if (restricted_by_course !== null || restricted_by_extracourse !== null) {
