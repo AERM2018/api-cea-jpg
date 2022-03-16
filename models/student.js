@@ -88,9 +88,9 @@ const Student = db.define(
       allowNull: false,
     },
     regular: {
-      type: DataTypes.TINYINT,
+      type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: 1,
+      defaultValue: true,
     },
     gender: {
       type: DataTypes.ENUM("F", "M"),

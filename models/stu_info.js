@@ -116,6 +116,10 @@ const Stu_info = db.define(
       type: DataTypes.DOUBLE,
       allowNull: false,
     },
+    regular: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,

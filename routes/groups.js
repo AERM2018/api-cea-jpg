@@ -118,15 +118,12 @@ groupsRouter.delete(
   deleteGroup
 );
 
-//TODO: Definir start_date and end_date automaticamente dependiendo de los días de clase del grupo
+// Definir start_date and end_date automaticamente dependiendo de los días de clase del grupo
 groupsRouter.post(
   "/:id_group/courses/:id_course",
   [
     check("id_teacher", "El id del maestro es es obligatorio."),
-    check("start_date", "La fecha de inicio es obligatorio")
-      .notEmpty()
-      .isDate(),
-    check("end_date", "La fecha de fin es obligatorio").notEmpty().isDate(),
+
     checkTeacherExistence,
     checkCourseExistence,
     checkGroupExistence,

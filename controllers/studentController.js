@@ -50,12 +50,19 @@ const {
 } = require("../helpers/groups");
 
 const getAllStudents = async (req, res) => {
+  const { regular = true } = req.query;
   try {
     let students = await Student.findAll();
     students = await Promise.all(
       students.map(async (student) => await getStudentInfo(student.matricula))
     );
-    students = students.filter((student) => student.status === 1);
+    students = students.map((student) => ({
+      ...student,
+      regular: regular ? true : false,
+    }));
+    students = students.filter(
+      (student) => student.status === 1 && student.regular === regular
+    );
     return res.status(200).json({
       ok: true,
       students,
