@@ -251,7 +251,7 @@ const getEmployeesInfoWithTimeTable = async (id_employee) => {
   return id_employee ? employees_time[0] : employees_time;
 };
 
-const getCoursesInfoWithRestrinctions = async (id_course, course_name = "") => {
+const getCoursesInfoWithRestrinctions = async (id_course, course_name) => {
   const condition = id_course !== undefined ? { id_course } : undefined;
   Course.belongsTo(Major, { foreignKey: "id_major" });
   Major.hasMany(Course, { foreignKey: "id_major" });
@@ -268,7 +268,9 @@ const getCoursesInfoWithRestrinctions = async (id_course, course_name = "") => {
     where: {
       [Op.or]: [
         {
-          course_name: { [Op.like]: `%${course_name}%` },
+          ...(course_name
+            ? { course_name: { [Op.like]: `%${course_name}%` } }
+            : undefined),
           ...condition,
         },
       ],
@@ -281,11 +283,13 @@ const getCoursesInfoWithRestrinctions = async (id_course, course_name = "") => {
       let restricted_by_course = "";
       let restricted_by_extracourse = "";
       const restriction = await Restriction.findOne({
-        restricted_course: restoCourse.id_course,
+        where: { restricted_course: restoCourse.id_course },
       });
       if (restriction) {
         restricted_by_course = restriction.toJSON().mandatory_course;
         restricted_by_extracourse = restriction.toJSON().mandatory_extracourse;
+        console.log("a", restricted_by_course);
+        console.log("b", restricted_by_extracourse);
       }
       return {
         ...restoCourse,

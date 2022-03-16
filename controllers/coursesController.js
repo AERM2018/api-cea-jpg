@@ -12,6 +12,7 @@ const ExtraCurricularCourses = require("../models/extracurricularcourses");
 const {
   getCoursesInfoWithRestrinctions,
 } = require("../helpers/getDataSavedFromEntities");
+const { getStudentInfo } = require("../helpers/students");
 
 const getAllCourses = async (req, res = response) => {
   let { courseName = "" } = req.query;
@@ -157,6 +158,7 @@ const updateCourse = async (req, res = response) => {
           msg: `El curso con id ${restricted_by_course} de restricción para el curso a crear no existe.`,
         });
       }
+      restricted_by_course = course_restriction.id_course;
     } else {
       restricted_by_course = null;
     }
@@ -171,32 +173,31 @@ const updateCourse = async (req, res = response) => {
           msg: `El curso extracurricular con id ${restricted_by_extracourse} de restricción para el curso a crear no existe.`,
         });
       }
+      restricted_by_extracourse = extracourse_restriction.id_ext_cou;
     } else {
       restricted_by_extracourse = null;
     }
     // Create or replace course's restrictions
-    if (restricted_by_course !== null || restricted_by_extracourse !== null) {
-      const courseRestriction = await Restriction.findOne({
-        where: { restricted_course: id_course },
+    const courseRestriction = await Restriction.findOne({
+      where: { restricted_course: course.id_course },
+    });
+    if (courseRestriction) {
+      await courseRestriction.update({
+        mandatory_course: restricted_by_course,
+        mandatory_extracourse: restricted_by_extracourse,
       });
-      if (courseRestriction) {
-        await courseRestriction.update({
-          mandatory_course: restricted_by_course,
-          mandatory_extracourse: restricted_by_extracourse,
-        });
-      } else {
-        await Restriction.create({
-          restricted_course: id_course,
-          mandatory_course: restricted_by_course,
-          mandatory_extracourse: restricted_by_extracourse,
-        });
-      }
+    } else {
+      await Restriction.create({
+        restricted_course: course.id_course,
+        mandatory_course: restricted_by_course,
+        mandatory_extracourse: restricted_by_extracourse,
+      });
     }
     // Update record in the database
     await Course.update(body, {
       where: { id_course: id },
     });
-    const result = await getStudentInfo(course.id_course);
+    const result = await getCoursesInfoWithRestrinctions(course.id_course);
     return res.status(200).json({
       ok: true,
       msg: "Curso actualizado correctamente",
