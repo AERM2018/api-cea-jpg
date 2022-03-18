@@ -6,6 +6,7 @@ const {
   updateMajor,
   createMajor,
   getMajorGroupsTrack,
+  getMajorGroups,
 } = require("../controllers/majorController");
 const {
   isValidEduLevel,
@@ -31,6 +32,21 @@ majorsRouter.get(
   ],
   getMajorGroupsTrack
 );
+
+majorsRouter.get(
+  "/:id_major/groups",
+  [
+    validateJWT,
+    param(
+      "id_major",
+      "El id de la carrera es obligatorio y debe de ser un numero entero"
+    ).isNumeric(),
+    validateFields,
+    checkMajorExistence,
+  ],
+  getMajorGroups
+);
+
 majorsRouter.post(
   "/",
   [

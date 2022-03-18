@@ -1,6 +1,6 @@
 const { Op, fn, col } = require("sequelize");
 const { getMajorsInfo } = require("../helpers/getDataSavedFromEntities");
-const { getGroupCoursesTrack } = require("../helpers/groups");
+const { getGroupCoursesTrack, getGroupInfo } = require("../helpers/groups");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Educational_level = require("../models/educational_level");
 const Group = require("../models/group");
@@ -123,10 +123,24 @@ const getMajorGroupsTrack = async (req, res) => {
     printAndSendError(res, err);
   }
 };
+
+const getMajorGroups = async (req, res) => {
+  const { id_major } = req.params;
+  try {
+    const majorGroups = await Group.findAll({ where: { id_major } });
+    const groupsInfo = await Promise.all(
+      majorGroups.map(async (group) => await getGroupInfo(group.id_group))
+    );
+    res.json({ ok: true, groups: groupsInfo });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 module.exports = {
   getAllMajors,
   createMajor,
   updateMajor,
   deleteMajor,
   getMajorGroupsTrack,
+  getMajorGroups,
 };
