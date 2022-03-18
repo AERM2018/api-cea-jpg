@@ -49,24 +49,28 @@ const getGroupDaysAndOverdue = async (
 
   // Find the last day in which the stdent attends class
   last_day_date = first_day_date.clone().add(weeks_missing_month, "weeks");
-  if (time_table_days.length > 1) {
-    // const pre_last_day = first_day_date.clone().add(weeks_missing_month, "weeks");
-    [{ date }] = time_table_days
-      .map((day) =>
-        last_day_date
-          .clone()
-          .day(last_day_date.clone().day() >= day ? day + 7 : day)
-      )
-      .map((date) => ({
-        date,
-        diffFromEndMonth: end_of_month.diff(date.clone(), "days"),
-      }))
-      .filter((possibleDate) => possibleDate.diffFromEndMonth >= 0)
-      .sort((a, b) => a.diffFromEndMonth - b.diffFromEndMonth);
-    last_day_date = date;
+  if (last_day_date.day() !== end_of_month.day()) {
+    if (time_table_days.length > 1) {
+      // const pre_last_day = first_day_date.clone().add(weeks_missing_month, "weeks");
+      const [{ date }] = time_table_days
+        .map((day) =>
+          last_day_date
+            .clone()
+            .day(last_day_date.clone().day() >= day ? day + 7 : day)
+        )
+        .map((date) => ({
+          date,
+          diffFromEndMonth: end_of_month.diff(date.clone(), "days"),
+        }))
+        .filter((possibleDate) => possibleDate.diffFromEndMonth >= 0)
+        .sort((a, b) => a.diffFromEndMonth - b.diffFromEndMonth);
+      last_day_date = date;
+    }
   }
   first_day_date = first_day_date.format().substr(0, 10);
   last_day_date = last_day_date.format().substr(0, 10);
+  console.log(first_day_date);
+  console.log(last_day_date);
 
   let overdue;
   if (
