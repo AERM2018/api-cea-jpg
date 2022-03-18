@@ -73,6 +73,7 @@ const getStudentInfo = async (matricula = "") => {
     },
   });
   student.group_chief = is_group_chief ? true : false;
+  student.regular = student.regular ? true : false;
   return student;
 };
 

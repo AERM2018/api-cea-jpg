@@ -60,9 +60,8 @@ const getAllStudents = async (req, res) => {
       ...student,
       regular: regular ? true : false,
     }));
-    students = students.filter(
-      (student) => student.status === 1 && student.regular === regular
-    );
+    students = students.filter((student) => student.status === 1);
+    students = students.filter((student) => student.regular === regular);
     return res.status(200).json({
       ok: true,
       students,
