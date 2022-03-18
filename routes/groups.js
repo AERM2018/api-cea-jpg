@@ -12,6 +12,7 @@ const {
   getAssistanceDays,
   assignGroupChief,
   removeGroupChief,
+  getCoursesAGroupCanTake,
 } = require("../controllers/groupsController");
 const {
   checkGroupExistence,
@@ -30,6 +31,20 @@ const { validateFields } = require("../middlewares/validateFields");
 const groupsRouter = Router();
 
 groupsRouter.get("/", [validateJWT], getAllGroups);
+
+groupsRouter.get(
+  "/:id_group/courses",
+  [
+    validateJWT,
+    param(
+      "id_group",
+      "El id del grupo es obligatorio y debe ser un numero entero"
+    ).isNumeric(),
+    validateFields,
+    checkGroupExistence,
+  ],
+  getCoursesAGroupCanTake
+);
 
 groupsRouter.post(
   "/",

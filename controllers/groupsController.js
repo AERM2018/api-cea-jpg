@@ -335,6 +335,32 @@ const removeCourseGroup = async (req, res) => {
   }
 };
 
+const getCoursesAGroupCanTake = async (req, res) => {
+  const { id_group } = req.params;
+  try {
+    const [groupInfo] = await getGroupInfo(id_group);
+    console.log(groupInfo);
+    let coursesCanTake = await Courses.findAll({
+      where: { id_major: groupInfo.id_major },
+    });
+    const coursesAGroupHasTaken = await Gro_cou.findAll({
+      where: { id_group },
+    });
+    coursesCanTake = coursesCanTake.filter((course) => {
+      const coursesIdTaken = coursesAGroupHasTaken.map(
+        (courseHasTaken) => courseHasTaken.id_course
+      );
+      return !coursesIdTaken.includes(course.id_course) ? true : false;
+    });
+    res.json({
+      ok: true,
+      courses: coursesCanTake,
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
+
 const getStudentsFromGroup = async (req, res = response) => {
   const { id_group } = req.params;
   try {
@@ -433,4 +459,5 @@ module.exports = {
   removeCourseGroup,
   assignGroupChief,
   removeGroupChief,
+  getCoursesAGroupCanTake,
 };
