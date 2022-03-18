@@ -129,7 +129,7 @@ const getMajorGroups = async (req, res) => {
   try {
     const majorGroups = await Group.findAll({ where: { id_major } });
     const groupsInfo = await Promise.all(
-      majorGroups.map(async (group) => await getGroupInfo(group.id_group))
+      majorGroups.map(async (group) => (await getGroupInfo(group.id_group))[0])
     );
     res.json({ ok: true, groups: groupsInfo });
   } catch (err) {
