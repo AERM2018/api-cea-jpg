@@ -2,6 +2,11 @@ const { QueryTypes, Op } = require("sequelize");
 const { getCampusInfo } = require("../helpers/getDataSavedFromEntities");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Campus = require("../models/campus");
+const Cam_gro = require("../models/cam_gro");
+const Cam_use = require("../models/cam_use");
+const Employees = require("../models/employee");
+const Student = require("../models/student");
+const Teacher = require("../models/teacher");
 
 const getAllCampus = async (req, res) => {
   try {
@@ -160,7 +165,57 @@ const deleteCampus = async (req, res) => {
     }
 
     // Delete the record of the campus
-    // await campus.destroy();
+    // Checar los grupos asociados al campus
+    const groupsCampus = await Cam_gro.findAndCountAll({
+      where: { id_campus: id },
+    });
+    if (groupsCampus.count > 0) {
+      return res.status(400).json({
+        ok: false,
+        msg: "Existen grupos relacionados al campus, remuevalos antes de eliminar el campus.",
+      });
+    }
+    const campusUsers = await Cam_use.findAll({ where: { id_campus: id } });
+    const campusUserIds = campusUsers.map((cam_gro) => cam_gro.id_user);
+
+    // Checar si hay estudiantes activos en el campus
+    const studetsCampus = await Student.findAndCountAll({
+      where: {
+        [Op.and]: [{ status: 1 }, { id_user: { [Op.in]: campusUserIds } }],
+      },
+    });
+    if (studetsCampus.count > 0) {
+      return res.status(400).json({
+        ok: false,
+        msg: "Existen alumnos relacionados al campus, remuevalos antes de eliminar el campus.",
+      });
+    }
+
+    // Checar si hay trabajadores activos en el campus
+    const employeesCampus = await Employees.findAndCountAll({
+      where: {
+        [Op.and]: [{ active: 1 }, { id_user: { [Op.in]: campusUserIds } }],
+      },
+    });
+    if (employeesCampus.count > 0) {
+      return res.status(400).json({
+        ok: false,
+        msg: "Existen colaboradores relacionados al campus, remuevalos antes de eliminar el campus.",
+      });
+    }
+
+    // Checar si hay maestros activos en el campus
+    const teachersCampus = await Teacher.findAndCountAll({
+      where: {
+        [Op.and]: [{ active: 1 }, { id_user: { [Op.in]: campusUserIds } }],
+      },
+    });
+    if (teachersCampus.count > 0) {
+      return res.status(400).json({
+        ok: false,
+        msg: "Existen maestros relacionados al campus, remuevalos antes de eliminar el campus.",
+      });
+    }
     await campus.update({ active: 2 });
 
     res.status(200).json({

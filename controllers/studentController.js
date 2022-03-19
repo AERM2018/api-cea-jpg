@@ -431,7 +431,7 @@ const deleteStudent = async (req, res) => {
       msg: "El alumno se elimino correctamente",
     });
   } catch (error) {
-    printAndSendError(res, err);
+    printAndSendError(res, error);
   }
 };
 
