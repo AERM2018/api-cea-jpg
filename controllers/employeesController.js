@@ -333,7 +333,6 @@ const updateEmployee = async (req, res) => {
 
 const deleteEmployee = async (req, res) => {
   const { id } = req.params;
-  const { active } = req.body;
   try {
     const employee = await Employee.findByPk(id);
     if (!employee) {
@@ -349,7 +348,7 @@ const deleteEmployee = async (req, res) => {
       });
     }
 
-    await employee.update({ active });
+    await employee.update({ active: 2 });
 
     res.status(200).json({
       ok: true,
