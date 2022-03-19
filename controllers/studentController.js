@@ -48,6 +48,7 @@ const {
   isStudentGroupChiefOfGroup,
   studentGroupBelongsSameMajor,
 } = require("../helpers/groups");
+const Rol_use = require("../models/rol_use");
 
 const getAllStudents = async (req, res) => {
   let { regular = "" } = req.query;
@@ -256,6 +257,8 @@ const createStudent = async (req, res = response) => {
         await assingStudentAsGroupChief(id_student, id_group);
       }
     }
+    // Asignar rol al estudiante
+    await Rol_use.create({ id_role: 8, id_user });
 
     const newStudent = new Student({
       id_student,

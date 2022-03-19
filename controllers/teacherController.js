@@ -29,6 +29,7 @@ const {
 const {
   getTeachersInfoWithTimeTable,
 } = require("../helpers/getDataSavedFromEntities");
+const Rol_use = require("../models/rol_use");
 
 const getAllTeachers = async (req, res) => {
   let teachers = await getTeachersInfoWithTimeTable();
@@ -107,6 +108,8 @@ const createTeacher = async (req, res) => {
 
     const inst_email = `${id_teacher}@alejandria.edu.mx`;
     await user.update({ email: inst_email });
+    // Asignar role al maestro
+    await Rol_use.create({ id_role: 9, id_user });
   } catch (error) {
     printAndSendError(res, err);
   }

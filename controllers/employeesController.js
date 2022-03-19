@@ -14,6 +14,8 @@ const {
   getEmployeesInfoWithTimeTable,
 } = require("../helpers/getDataSavedFromEntities");
 const { printAndSendError } = require("../helpers/responsesOfReq");
+const Rol_use = require("../models/rol_use");
+const Role = require("../models/role");
 const getAllEmployees = async (req, res) => {
   try {
     let employees = await getEmployeesInfoWithTimeTable();
@@ -133,7 +135,16 @@ const createEmployee = async (req, res) => {
     const pass = bcrypt.hashSync(id_employee, salt);
 
     await user.update({ password: pass });
-
+    // Buscar el departamento
+    const department = await Department.findOne({
+      where: { id_department },
+    });
+    // Buscar el rol dependiendo del departamento
+    const rol_department = await Role.findOne({
+      where: { role_type: department.department_name },
+    });
+    // Asignar rol al usuario
+    await Rol_use.create({ id_role: rol_department.id_role, id_user });
     const inst_email = `${id_employee}@alejandria.edu.mx`;
     await user.update({ email: inst_email });
   } catch (error) {
