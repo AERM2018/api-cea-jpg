@@ -5,7 +5,8 @@ const Campus = require("../models/campus");
 
 const getAllCampus = async (req, res) => {
   try {
-    const campus = await getCampusInfo();
+    let campus = await getCampusInfo();
+    campus = campus.filter((campus) => campus.active === 1);
     return res.status(200).json({
       ok: true,
       campus,
@@ -26,32 +27,60 @@ const createCampus = async (req, res) => {
     });
 
     if (campusMun) {
-      return res.status(400).json({
-        ok: false,
-        msg: `Ya se encuentra registrado un campus con el nombre de ${campus_name}`,
+      const { id_campus } = campusMun.toJSON();
+      if (campusMun.active === 1) {
+        return res.status(400).json({
+          ok: false,
+          msg: `Ya se encuentra registrado un campus con el nombre de ${campus_name}`,
+        });
+      } else {
+        const campusZip = await Campus.findOne({
+          where: {
+            [Op.and]: [
+              {
+                zip,
+              },
+              { id_campus: { [Op.ne]: id_campus } },
+            ],
+          },
+        });
+
+        if (campusZip) {
+          return res.status(400).json({
+            ok: false,
+            msg: `Ya se encuentra registrado un campus con el codigo postal ${zip}`,
+          });
+        }
+        await campusMun.update({ ...body, active: 1 });
+        const result = await getCampusInfo(campusMun.id_campus);
+        res.status(201).json({
+          ok: true,
+          msg: "Campus creado correctamente",
+          result,
+        });
+      }
+    } else {
+      const campusZip = await Campus.findOne({
+        where: {
+          zip,
+        },
+      });
+
+      if (campusZip) {
+        return res.status(400).json({
+          ok: false,
+          msg: `Ya se encuentra registrado un campus con el codigo postal ${zip}`,
+        });
+      }
+      //  Create and save course
+      const campus = await Campus.create(body);
+      const result = await getCampusInfo(campus.id_campus);
+      res.status(201).json({
+        ok: true,
+        msg: "Campus creado correctamente",
+        result,
       });
     }
-
-    const campusZip = await Campus.findOne({
-      where: {
-        zip,
-      },
-    });
-
-    if (campusZip) {
-      return res.status(400).json({
-        ok: false,
-        msg: `Ya se encuentra registrado un campus con el codigo postal ${zip}`,
-      });
-    }
-    //  Create and save course
-    const campus = await Campus.create(body);
-    const result = await getCampusInfo(campus.id_campus);
-    res.status(201).json({
-      ok: true,
-      msg: "Campus creado correctamente",
-      result,
-    });
   } catch (err) {
     printAndSendError(res, err);
   }
@@ -131,7 +160,8 @@ const deleteCampus = async (req, res) => {
     }
 
     // Delete the record of the campus
-    await campus.destroy();
+    // await campus.destroy();
+    await campus.update({ active: 2 });
 
     res.status(200).json({
       ok: true,
