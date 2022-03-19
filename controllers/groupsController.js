@@ -220,7 +220,7 @@ const deleteGroup = async (req, res) => {
   try {
     const group = await Group.findByPk(id_group);
     const studentFromGroup = await Stu_gro.findAndCountAll({
-      where: { [Op.and]: [{ id_group }, { status: 1 }] },
+      where: { [Op.and]: [{ id_group }] },
     });
     if (studentFromGroup.count > 0) {
       return res.status(400).json({
