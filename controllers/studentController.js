@@ -202,6 +202,11 @@ const createStudent = async (req, res = response) => {
           birthplace,
           age,
         });
+        // Asignar grupo al estudiante
+        await Stu_gro.create({
+          id_group: group.id_group,
+          id_student: student.id_student,
+        });
         const studentUser = await User.findByPk(student.id_user);
         // Cambiar email del usuario si es necesario
         if (studentUser.email !== email) {
