@@ -51,9 +51,117 @@ const createEmployee = async (req, res) => {
       where: { rfc },
     });
     if (employee) {
-      return res.status(400).json({
-        ok: false,
-        msg: "Ya existe un empleado con ese rfc",
+      if (employee.active === 1) {
+        return res.status(400).json({
+          ok: false,
+          msg: "Ya existe un empleado con ese rfc",
+        });
+      } else {
+        // Actualizar departamento
+        const employeeDepartment = await Department.findOne({
+          where: { id_department },
+        });
+        if (!employeeDepartment) {
+          return res.status(400).json({
+            ok: false,
+            msg: `El departamento con el id ${id_department} no existe`,
+          });
+        }
+        await Emp_dep.update(
+          { id_department },
+          { where: { id_employee: employee.id_employee } }
+        );
+        // Actualizar curp
+        const employeeCurp = await Employee.findOne({
+          where: {
+            [Op.and]: [
+              { curp },
+              { id_employee: { [Op.ne]: employee.id_employee } },
+            ],
+          },
+        });
+        if (employeeCurp) {
+          return res.status(400).json({
+            ok: false,
+            msg: "Ya existe un empleado con ese curp",
+          });
+        }
+        // Actualizar horario
+        const employeeTimeTable = await Time_tables.findAll({
+          where: {
+            id_time_table: {
+              [Op.in]: literal(
+                `(SELECT id_time_table FROM emp_tim WHERE id_employee = '${employee.id_employee}')`
+              ),
+            },
+          },
+          nest: false,
+          raw: true,
+        });
+        await Promise.all(
+          body.time_table.map(async (req_time_table) => {
+            const current_time_table = employeeTimeTable.find(
+              (time_table) => time_table.day === req_time_table.day
+            );
+            if (current_time_table) {
+              if (
+                current_time_table.start_hour === req_time_table.start_hour &&
+                current_time_table.start_hour == req_time_table.start_hour
+              )
+                return;
+              await Emp_tim.destroy({
+                where: {
+                  id_time_table: current_time_table.id_time_table,
+                  id_employee: employee.id_employee,
+                },
+              });
+            }
+
+            const possible_time_table = await Time_tables.findOne({
+              where: {
+                day: req_time_table.day,
+                start_hour: req_time_table.start_hour,
+                finish_hour: req_time_table.finish_hour,
+              },
+            });
+            if (possible_time_table) {
+              await Emp_tim.create({
+                id_employee: employee.id_employee,
+                id_time_table: possible_time_table.id_time_table,
+              });
+            } else {
+              const { id_time_table } = await Time_tables.create({
+                day: req_time_table.day,
+                start_hour: req_time_table.start_hour,
+                finish_hour: req_time_table.finish_hour,
+              });
+              await Emp_tim.create({
+                id_employee: employee.id_employee,
+                id_time_table,
+              });
+            }
+          }),
+          employeeTimeTable.map(async (time_table_db) => {
+            const time_table_days = body.time_table.map(
+              (time_table) => time_table.day
+            );
+            if (!time_table_days.includes(time_table_db.day)) {
+              await Emp_tim.destroy({
+                where: {
+                  id_time_table: time_table_db.id_time_table,
+                  id_employee: employee.id_employee,
+                },
+              });
+            }
+          })
+        );
+      }
+      await employee.update({ ...body, active: 1 });
+      const result = await getEmployeesInfoWithTimeTable(employee.id_employee);
+      return res.status(200).json({
+        ok: true,
+        msg: "El empleado se actualizo correctamente",
+        result,
       });
     }
     const employee2 = await Department.findOne({

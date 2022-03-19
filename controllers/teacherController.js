@@ -70,6 +70,10 @@ const createTeacher = async (req, res) => {
         mobile_number,
         active: 1,
       });
+      await Cam_use.update(
+        { id_campus },
+        { where: { id_user: teacher.id_user } }
+      );
       const result = await getTeachersInfoWithTimeTable(id_teacher);
       return res.status(201).json({
         ok: true,
