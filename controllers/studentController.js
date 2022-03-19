@@ -419,9 +419,7 @@ const deleteStudent = async (req, res) => {
     if (await isStudentGroupChiefOfGroup(student.id_student)) {
       await removeStudentAsGroupChief(stu_gro.id_group);
     }
-    if (stu_gro) {
-      await stu_gro.destroy();
-    }
+    await Stu_gro.destroy({ where: { id_student: student.id_student } });
 
     res.status(200).json({
       ok: true,
