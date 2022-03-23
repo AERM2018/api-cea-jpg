@@ -162,7 +162,7 @@ const updateTeacher = async (req, res) => {
     }
 
     await teacher.update(body);
-    const result = await getStudentInfo(teacher.id_teacher);
+    const result = await getTeachersInfoWithTimeTable(teacher.id_teacher);
     res.status(200).json({
       ok: true,
       msg: "El maestro se actualizo correctamente",
