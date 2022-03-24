@@ -87,10 +87,10 @@ const Student = db.define(
       type: DataTypes.STRING(50),
       allowNull: false,
     },
-    regular: {
+    irregular: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: true,
+      defaultValue: false,
     },
     gender: {
       type: DataTypes.ENUM("F", "M"),

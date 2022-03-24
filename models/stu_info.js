@@ -116,7 +116,7 @@ const Stu_info = db.define(
       type: DataTypes.DOUBLE,
       allowNull: false,
     },
-    regular: {
+    irregular: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
     },
