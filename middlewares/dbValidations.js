@@ -95,7 +95,7 @@ const hasStudentTakenCourse = async (req, res = response, next) => {
 };
 
 const checkEmployeeExistence = async (req, res = response, next) => {
-  const id_user = req.body.id_user || req.params.id_user;
+  const id_user = req.body.id_user || req.params.id_user || req.id_user;
   const employee = await Employees.findOne({
     where: { id_user },
   });
