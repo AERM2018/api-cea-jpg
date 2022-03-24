@@ -6,6 +6,7 @@ const Expenses_types = require("../models/expenses_type");
 const { db } = require("../database/connection");
 const { expenses_type } = require("../types/dictionaries");
 const Employees = require("../models/employee");
+const { printAndSendError } = require("../helpers/responsesOfReq");
 
 const getAllTheExpenses = async (req, res) => {
   try {
@@ -85,50 +86,25 @@ const createExpense = async (req, res) => {
     observation,
     date = moment().local().format("YYYY-MM-DD"),
   } = req.body;
-  let id_expense;
 
   try {
     // Creando un gasto y obteniendo su id
-    const expense = Expense.create({ amount, date });
+    const expense = await Expense.create({ amount, date });
     const { id_expense } = expense;
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      ok: false,
-      msg: "Hable con el administrador",
-    });
-  }
-  try {
     // Llenando la tabla expenses_types
-    const expense_types = new Expenses_types({
+    await Expenses_types.create({
       id_expense,
       expense_type,
       observation,
     });
-    await expense_types.save();
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      ok: false,
-      msg: "Hable con el administrador",
-    });
-  }
-
-  try {
     // Llenando la tabla de emp_exo
-    const emp_exp = new Emp_exp({ id_employee, id_expense });
-    await emp_exp.save();
-
+    await Emp_exp.create({ id_employee, id_expense });
     return res.status(201).json({
       ok: true,
       msg: "Gasto creado correctamente",
     });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      ok: false,
-      msg: "Hable con el administrador",
-    });
+    printAndSendError(res, error);
   }
 };
 
