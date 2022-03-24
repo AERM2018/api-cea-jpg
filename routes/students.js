@@ -55,13 +55,13 @@ studentsRouter.post(
       .not()
       .isEmpty()
       .isLength({ max: 45 }),
-    check(
-      "surname_m",
-      "El apellido materno es obligatorio y debe de tener como maximo 45 caracteres"
-    )
-      .not()
-      .isEmpty()
-      .isLength({ max: 45 }),
+    // check(
+    //   "surname_m",
+    //   "El apellido materno es obligatorio y debe de tener como maximo 45 caracteres"
+    // )
+    //   .not()
+    //   .isEmpty()
+    //   .isLength({ max: 45 }),
     check("group_chief", "El campo de jefe de grupo es obligatorio")
       .notEmpty()
       .isBoolean(),

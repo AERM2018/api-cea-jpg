@@ -66,7 +66,7 @@ const Student = db.define(
       },
     },
     colony: {
-      type: DataTypes.STRING(30),
+      type: DataTypes.STRING(100),
       allowNull: false,
       validate: {
         notEmpty: true,
