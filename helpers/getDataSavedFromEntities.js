@@ -38,8 +38,16 @@ const getMajorsInfo = async (id_major) => {
   Major.belongsTo(Educational_level, { foreignKey: "id_edu_lev" });
   let majors = await Major.findAll({
     include: {
-      model: Educational_level,
       attributes: ["educational_level"],
+      model: Educational_level,
+      attributes: {
+        include: [
+          [
+            fn("concat", col("educational_level"), " en ", col("major_name")),
+            "major_name",
+          ],
+        ],
+      },
     },
     where: condition,
   });
@@ -299,7 +307,7 @@ const getCoursesInfoWithRestrinctions = async (id_course, course_name) => {
           restricted_by_course === null ? "" : restricted_by_course,
         restricted_by_extracourse:
           restricted_by_extracourse === null ? "" : restricted_by_extracourse,
-        major_name: major.major_name,
+        major_name: major.educational_level.major_name,
       };
     })
   );
