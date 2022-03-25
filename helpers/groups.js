@@ -59,9 +59,9 @@ const getGroupInfo = async (id_group) => {
               "concat",
               col("student.name"),
               " ",
-              col("student.surname_f"),
+              col("student.surname_m"),
               " ",
-              col("student.surname_m")
+              col("student.surname_f")
             ),
             "group_chief_student_name",
           ],

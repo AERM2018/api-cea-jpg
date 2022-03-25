@@ -45,9 +45,9 @@ const getStudentInfo = async (matricula = "") => {
             "concat",
             col("name"),
             " ",
-            col("surname_f"),
+            col("surname_m"),
             " ",
-            col("surname_m")
+            col("surname_f")
           ),
           "student_name",
         ],
@@ -606,12 +606,15 @@ const getCourseStudentIsTaking = async (id_group = 0) => {
               " ",
               col("surname_m")
             ),
-            "name",
+            "teacher_name",
           ],
         ],
       },
     });
-    course = { ...course, teacher: courseTeacher.toJSON().teacher.name };
+    course = {
+      ...course,
+      teacher_name: courseTeacher.toJSON().teacher.teacher_name,
+    };
   } else {
     course = { course_name: "Materia no asignada" };
   }

@@ -59,7 +59,7 @@ const getAllAssistance = async (req, res) => {
       "id_student",
       "matricula",
       [
-        fn("concat", col("name"), " ", col("surname_f"), " ", col("surname_m")),
+        fn("concat", col("name"), " ", col("surname_m"), " ", col("surname_f")),
         "name",
       ],
     ],
@@ -329,9 +329,9 @@ const getCourseAssistance = async (req, res) => {
                 "concat",
                 col("name"),
                 " ",
-                col("surname_f"),
+                col("surname_m"),
                 " ",
-                col("surname_m")
+                col("surname_f")
               ),
               "student_name",
             ],
@@ -529,9 +529,9 @@ const getExtrCourAssistance = async (req, res = response) => {
                 "concat",
                 col("student.name"),
                 " ",
-                col("student.surname_f"),
+                col("student.surname_m"),
                 " ",
-                col("student.surname_m")
+                col("student.surname_f")
               ),
               "student_name",
             ],
@@ -689,9 +689,9 @@ const getGraSecAssistance = async (req, res = response) => {
                 "concat",
                 col("student.name"),
                 " ",
-                col("student.surname_f"),
+                col("student.surname_m"),
                 " ",
-                col("student.surname_m")
+                col("student.surname_f")
               ),
               "student_name",
             ],

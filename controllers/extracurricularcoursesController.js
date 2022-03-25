@@ -140,11 +140,11 @@ const getStudentsFromExtraCourse = async (req, res = response) => {
             "concat",
             col("name"),
             " ",
-            col("surname_f"),
+            col("surname_m"),
             " ",
-            col("surname_m")
+            col("surname_f")
           ),
-          "name",
+          "student_name",
         ],
       ],
     },

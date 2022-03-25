@@ -44,9 +44,9 @@ const getRequests = async (opts = { matricula: "", status: 0, date: "" }) => {
                   "concat",
                   col("name"),
                   " ",
-                  col("surname_f"),
+                  col("surname_m"),
                   " ",
-                  col("surname_m")
+                  col("surname_f")
                 ),
                 "student_name",
               ],

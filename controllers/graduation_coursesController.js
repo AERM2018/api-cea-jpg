@@ -213,9 +213,9 @@ const getStudentsFromGradCourse = async (req, res) => {
                 "concat",
                 col("name"),
                 " ",
-                col("surname_f"),
+                col("surname_m"),
                 " ",
-                col("surname_m")
+                col("surname_f")
               ),
               "student_name",
             ],

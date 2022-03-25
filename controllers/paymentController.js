@@ -35,7 +35,12 @@ const { getExtraCourseInfo } = require("../helpers/courses");
 const Stu_extracou = require("../models/stu_extracou");
 
 const getAllPayments = async (req, res = response) => {
-  const { major_name = "", name_group = "", order_money = 'asc',order_money_exp = 'asc' } = req.query;
+  const {
+    major_name = "",
+    name_group = "",
+    order_money = "asc",
+    order_money_exp = "asc",
+  } = req.query;
   try {
     Group.belongsTo(Major, { foreignKey: "id_major" });
     Major.hasMany(Group, { foreignKey: "id_major" });
@@ -44,58 +49,86 @@ const getAllPayments = async (req, res = response) => {
     const groups = await Group.findAll({
       include: {
         model: Major,
-        attributes: [[fn('concat',col('educational_level')," en ",col('major_name')),'major_name']],
-        include :{model:Educational_level,attributes:[]}
+        attributes: [
+          [
+            fn("concat", col("educational_level"), " en ", col("major_name")),
+            "major_name",
+          ],
+        ],
+        include: { model: Educational_level, attributes: [] },
       },
-      ...(Object.keys(req.query).includes('major_name') || (Object.keys(req.query).includes('name_group')))?
-      {where:{[(Object.keys(req.query).includes('major_name') && (Object.keys(req.query).includes('name_group')))?Op.and:Op.or]:[
-        (major_name!='')&&where(fn('concat',col('major.educational_level.educational_level')," en ",col('major_name')),{[Op.like]:`%${major_name}%`}),
-        (name_group!='')?[{name_group : {[Op.like]:`%${name_group}%`}}]:[]
-      ]}}:{},
+      ...(Object.keys(req.query).includes("major_name") ||
+      Object.keys(req.query).includes("name_group")
+        ? {
+            where: {
+              [Object.keys(req.query).includes("major_name") &&
+              Object.keys(req.query).includes("name_group")
+                ? Op.and
+                : Op.or]: [
+                major_name != "" &&
+                  where(
+                    fn(
+                      "concat",
+                      col("major.educational_level.educational_level"),
+                      " en ",
+                      col("major_name")
+                    ),
+                    { [Op.like]: `%${major_name}%` }
+                  ),
+                name_group != ""
+                  ? [{ name_group: { [Op.like]: `%${name_group}%` } }]
+                  : [],
+              ],
+            },
+          }
+        : {}),
     });
 
-    let pay_group = await Promise.all(groups.map(async ({ id_group, name_group, major }) => {
-      const stu_gro = await Stu_gro.findAll({
-        where: {
-          id_group: id_group,
-        },
-      });
+    let pay_group = await Promise.all(
+      groups.map(async ({ id_group, name_group, major }) => {
+        const stu_gro = await Stu_gro.findAll({
+          where: {
+            id_group: id_group,
+          },
+        });
 
-      const payments = stu_gro.map(
-        async ({ id_student }) => await getPaymentStudent(id_student, false)
-      );
+        const payments = stu_gro.map(
+          async ({ id_student }) => await getPaymentStudent(id_student, false)
+        );
 
-      const gro_pay_info = await Promise.all(payments);
+        const gro_pay_info = await Promise.all(payments);
 
-      let money_exp = 0,
-        money = 0;
+        let money_exp = 0,
+          money = 0;
         gro_pay_info.forEach((pay_info) => {
-        if (!pay_info.money_exp && !pay_info.money) return;
-        money_exp += pay_info.money_exp;
-        money += pay_info.money;
-      });
-      return {
-        id_group,
-        name_group,
-        ...major.toJSON(),
-        money_exp,
-        money,
-        missing: money_exp - money,
-      };
-    }));
-    if(Object.keys(req.query).includes('order_money'))
-      pay_group = pay_group.sort((a,b) => (order_money=='asc')
-        ?a.money - b.money
-        :b.money - a.money)
-    if(Object.keys(req.query).includes('order_money_exp'))
-      pay_group = pay_group.sort((a,b) => (order_money_exp=='asc')
-        ?a.money_exp - b.money_exp
-        :b.money - a.money_exp)
+          if (!pay_info.money_exp && !pay_info.money) return;
+          money_exp += pay_info.money_exp;
+          money += pay_info.money;
+        });
+        return {
+          id_group,
+          name_group,
+          ...major.toJSON(),
+          money_exp,
+          money,
+          missing: money_exp - money,
+        };
+      })
+    );
+    if (Object.keys(req.query).includes("order_money"))
+      pay_group = pay_group.sort((a, b) =>
+        order_money == "asc" ? a.money - b.money : b.money - a.money
+      );
+    if (Object.keys(req.query).includes("order_money_exp"))
+      pay_group = pay_group.sort((a, b) =>
+        order_money_exp == "asc"
+          ? a.money_exp - b.money_exp
+          : b.money - a.money_exp
+      );
     res.status(200).json({
-        ok: true,
-        payments: pay_group,
-    })
-  
+      ok: true,
+      payments: pay_group,
+    });
   } catch (err) {
     printAndSendError(res, err);
   }
@@ -121,7 +154,7 @@ const createPayment = async (req, res = response) => {
     id_card,
     amount,
     payment_type,
-    id_ext_cou
+    id_ext_cou,
   } = req.body;
   let { start_date } = req.body;
   const { id_employee, id_student, enroll } = req;
@@ -155,7 +188,11 @@ const createPayment = async (req, res = response) => {
       case "documento":
         // Verify if the doc_type was sent
         total_to_pay = document_types[document_type]["price"];
-        const doc_info = new Document({ document_type, cost: total_to_pay, id_student });
+        const doc_info = new Document({
+          document_type,
+          cost: total_to_pay,
+          id_student,
+        });
         const doc = await doc_info.save();
         id_document = doc.toJSON()["id_document"];
         status_payment = amount >= total_to_pay ? 1 : 0;
@@ -274,13 +311,13 @@ const createPayment = async (req, res = response) => {
               .add(15, "days")
               .format()
               .substr(0, 10);
-              msg = "Pago de materia del mes anterior."
+            msg = "Pago de materia del mes anterior.";
           } else {
             start_date = moment(start_date).add(1, "y");
           }
 
           if (amount >= total_to_pay) {
-            if(moment(start_date).year() > moment().year()) msg = ""
+            if (moment(start_date).year() > moment().year()) msg = "";
             status_payment = 1;
           }
           // advance and current payments
@@ -331,28 +368,34 @@ const createPayment = async (req, res = response) => {
           });
         }
 
-      case 'curso extracurricular':
-        if(!id_ext_cou)  return res.status(400).json({
-          ok : false,
-          msg:`El id del curso extracurrcular es obligatorio`
-        })
-        const [extraCourse] = await getExtraCourseInfo({id_ext_cou})
-        if(!extraCourse) return res.status(404).json({
-          ok : false,
-          msg:`El curso extra curricular con id ${id_ext_cou} no existe.`
-        })
-        if(extraCourse.spot_left < 1) return res.status(400).json({
-          ok : false,
-          msg:`No hay espacios disponibles para inscribir al curso extra curricular con id ${id_ext_cou}.`
-        })
-        const timesStudentInCourse = await Stu_extracou.count({where:{[Op.and]:[{id_ext_cou},{id_student}]}})
-        if(timesStudentInCourse > 1) return res.status(400).json({
-          ok : false,
-          msg:`El alumno ya se encuentra inscrito al curso extra curricular con id ${id_ext_cou}.`
-        })
-        total_to_pay = extraCourse.cost
+      case "curso extracurricular":
+        if (!id_ext_cou)
+          return res.status(400).json({
+            ok: false,
+            msg: `El id del curso extracurrcular es obligatorio`,
+          });
+        const [extraCourse] = await getExtraCourseInfo({ id_ext_cou });
+        if (!extraCourse)
+          return res.status(404).json({
+            ok: false,
+            msg: `El curso extra curricular con id ${id_ext_cou} no existe.`,
+          });
+        if (extraCourse.spot_left < 1)
+          return res.status(400).json({
+            ok: false,
+            msg: `No hay espacios disponibles para inscribir al curso extra curricular con id ${id_ext_cou}.`,
+          });
+        const timesStudentInCourse = await Stu_extracou.count({
+          where: { [Op.and]: [{ id_ext_cou }, { id_student }] },
+        });
+        if (timesStudentInCourse > 1)
+          return res.status(400).json({
+            ok: false,
+            msg: `El alumno ya se encuentra inscrito al curso extra curricular con id ${id_ext_cou}.`,
+          });
+        total_to_pay = extraCourse.cost;
         cutoff_date = moment().local().endOf("month").format().substr(0, 10);
-        break
+        break;
     }
 
     const payment_date =
@@ -369,11 +412,16 @@ const createPayment = async (req, res = response) => {
     const payment = await new_payment.save();
     const { id_payment } = payment.toJSON();
     const stu_pay = new Stu_pay({ id_payment, id_student });
-    const {id_stu_pay} = await stu_pay.save();
-    if(payment_type.toLowerCase() == 'curso extracurricular'){
-      msg = ''
-      const student_extra = new Stu_extracou({id_student,id_ext_cou,grade:0,id_stu_pay})
-      await student_extra.save()
+    const { id_stu_pay } = await stu_pay.save();
+    if (payment_type.toLowerCase() == "curso extracurricular") {
+      msg = "";
+      const student_extra = new Stu_extracou({
+        id_student,
+        id_ext_cou,
+        grade: 0,
+        id_stu_pay,
+      });
+      await student_extra.save();
     }
 
     const partial_pay = new Partial_pay({
@@ -430,9 +478,9 @@ const getAllPaymentsByGroup = async (req, res = response) => {
               "concat",
               col("name"),
               " ",
-              col("surname_f"),
+              col("surname_m"),
               " ",
-              col("surname_m")
+              col("surname_f")
             ),
             "student_name",
           ],
@@ -465,13 +513,29 @@ const getAllPaymentsByStudent = async (req, res = response) => {
   const { status = null } = req.query;
   const status_payment = status != null ? { status_payment: status } : {};
 
-  const [student] = await db.query(getStuInfo,{replacements : {'id':id_student}, type : QueryTypes.SELECT})
-  const {student_name, educational_level} = student
+  const [student] = await db.query(getStuInfo, {
+    replacements: { id: id_student },
+    type: QueryTypes.SELECT,
+  });
+  const { student_name, educational_level } = student;
 
   try {
-    let paymentsInfo = await getPaymentStudent(id_student, true, status_payment, educational_level);
-    paymentsInfo = { ...paymentsInfo, matricula, id_student, student_name, educational_level};
-    paymentsInfo.payments = paymentsInfo.payments.filter( pay => pay.missing > 0)
+    let paymentsInfo = await getPaymentStudent(
+      id_student,
+      true,
+      status_payment,
+      educational_level
+    );
+    paymentsInfo = {
+      ...paymentsInfo,
+      matricula,
+      id_student,
+      student_name,
+      educational_level,
+    };
+    paymentsInfo.payments = paymentsInfo.payments.filter(
+      (pay) => pay.missing > 0
+    );
     return res.status(200).json({
       ok: true,
       student: paymentsInfo,
@@ -492,10 +556,10 @@ const deletePayment = async (req, res = response) => {
     const stu_pay = await Stu_pay.findOne({
       where: { id_payment },
     });
-    if (payment_type == "Curso extracurricular"){
-      await Stu_extracou.destroy({where:{id_stu_pay:stu_pay.id_stu_pay}})
+    if (payment_type == "Curso extracurricular") {
+      await Stu_extracou.destroy({ where: { id_stu_pay: stu_pay.id_stu_pay } });
     }
-    await stu_pay.destroy()
+    await stu_pay.destroy();
 
     const partial_pays = await Partial_pay.findAll({
       where: { id_payment },
@@ -662,7 +726,7 @@ const updatePayment = async (req, res = response) => {
     }
 
     if (moment(cutoff_date).isSameOrAfter(cuttoff_date_pay)) {
-      await payment.update({ cutoff_date, status_payment : 0 });
+      await payment.update({ cutoff_date, status_payment: 0 });
     } else {
       return res.status(400).json({
         ok: false,

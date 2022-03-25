@@ -101,9 +101,9 @@ const getAllGradesByCourse = async (req, res = response) => {
                 "concat",
                 col("name"),
                 " ",
-                col("surname_f"),
+                col("surname_m"),
                 " ",
-                col("surname_m")
+                col("surname_f")
               ),
               "student_name",
             ],
@@ -154,9 +154,9 @@ const getExtraCourseGrades = async (req, res = response) => {
               "concat",
               col("name"),
               " ",
-              col("surname_f"),
+              col("surname_m"),
               " ",
-              col("surname_m")
+              col("surname_f")
             ),
             "student_name",
           ],
@@ -324,16 +324,16 @@ const searchAverageByStudent = async (req, res = response) => {
             "concat",
             col("name"),
             " ",
-            col("surname_f"),
+            col("surname_m"),
             " ",
-            col("surname_m")
+            col("surname_f")
           ),
           "name",
         ],
       ],
       where: {
         [Op.or]: [
-          where(fn("concat", col("name"), col("surname_f"), col("surname_m")), {
+          where(fn("concat", col("name"), col("surname_m"), col("surname_f")), {
             [Op.like]: `%${name}%`,
           }),
         ],
