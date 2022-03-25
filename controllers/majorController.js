@@ -45,32 +45,33 @@ const createMajor = async (req, res) => {
 };
 
 const updateMajor = async (req, res) => {
-  const { id } = req.params;
+  const { id_major } = req.params;
   const { body } = req;
-  const { major_name, edu_level } = body;
+  const { major_name, id_edu_lev } = body;
   try {
-    const major = await Major.findByPk(id);
-    if (!major) {
-      return res.status(404).json({
-        ok: false,
-        msg: "No existe una carrera con el id " + id,
-      });
-    }
+    const major = await Major.findByPk(id_major);
     const majorName = await Major.findOne({
       where: {
         major_name,
-        id_major: { [Op.ne]: id },
+        id_major: { [Op.ne]: id_major },
       },
     });
-
     if (majorName) {
       return res.status(400).json({
         ok: false,
         msg: `Ya existe una carrera con el nombre ${major_name}`,
       });
     }
-
-    await major.update({ major_name, id_edu_lev: edu_level });
+    const educationalLevel = await Educational_level.findByPk(
+      parseInt(id_edu_lev)
+    );
+    if (!educationalLevel) {
+      return res.status(400).json({
+        ok: false,
+        msg: `El nivel de eduación con id ${id_edu_lev} no existe`,
+      });
+    }
+    await major.update({ major_name, id_edu_lev });
     const result = await getMajorsInfo(major.id_major);
     res.status(200).json({
       ok: true,
@@ -83,15 +84,15 @@ const updateMajor = async (req, res) => {
 };
 
 const deleteMajor = async (req, res) => {
-  const { id } = req.params;
+  const { id_major } = req.params;
   const { body } = req;
 
   try {
-    const major = await Major.findByPk(id);
+    const major = await Major.findByPk(id_major);
     if (!major) {
       return res.status(404).json({
         ok: false,
-        msg: "No existe una carrera con el id " + id,
+        msg: "No existe una carrera con el id " + id_major,
       });
     }
 

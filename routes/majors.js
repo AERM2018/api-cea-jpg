@@ -66,10 +66,10 @@ majorsRouter.post(
   createMajor
 );
 majorsRouter.put(
-  "/:id",
+  "/:id_major",
   [
     param(
-      "id",
+      "id_major",
       "El id de la carrera es obligatorio y debe de ser un numero entero"
     ).isNumeric(),
     check(
@@ -79,24 +79,26 @@ majorsRouter.put(
       .not()
       .isEmpty()
       .isLength({ max: 70 }),
-    check("edu_level", "El nivel de eduación es obligatorio")
+    check("id_edu_lev", "El nivel de eduación es obligatorio")
       .notEmpty()
       .custom(isValidEduLevel),
     validateFields,
     validateJWT,
+    checkMajorExistence,
   ],
   updateMajor
 );
 
 majorsRouter.delete(
-  "/:id",
+  "/:id_major",
   [
     param(
-      "id",
+      "id_major",
       "El id de la carrera es obligatorio y debe de ser un numero entero"
     ).isNumeric(),
     validateFields,
     validateJWT,
+    checkMajorExistence,
   ],
   deleteMajor
 );

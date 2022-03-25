@@ -41,14 +41,6 @@ const getMajorsInfo = async (id_major) => {
       model: Educational_level,
       attributes: ["educational_level"],
     },
-    attributes: {
-      include: [
-        [
-          fn("concat", col("educational_level"), " en ", col("major_name")),
-          "major_name",
-        ],
-      ],
-    },
     where: condition,
   });
   majors = majors.map((major) => {
@@ -255,7 +247,8 @@ const getCoursesInfoWithRestrinctions = async (id_course, course_name) => {
   const condition = id_course !== undefined ? { id_course } : undefined;
   Course.belongsTo(Major, { foreignKey: "id_major" });
   Major.hasMany(Course, { foreignKey: "id_major" });
-
+  Educational_level.hasOne(Major, { foreignKey: "id_edu_lev" });
+  Major.belongsTo(Educational_level, { foreignKey: "id_edu_lev" });
   let gro_cou = await Gro_cou.findAll();
   await Promise.all(
     gro_cou.map(async (gro_cou) => {
@@ -264,7 +257,20 @@ const getCoursesInfoWithRestrinctions = async (id_course, course_name) => {
     })
   );
   let courses = await Course.findAll({
-    include: { model: Major, attributes: ["major_name"] },
+    include: {
+      model: Major,
+      include: {
+        model: Educational_level,
+        attributes: {
+          include: [
+            [
+              fn("concat", col("educational_level"), " en ", col("major_name")),
+              "major_name",
+            ],
+          ],
+        },
+      },
+    },
     where: {
       [Op.or]: [
         course_name !== undefined
