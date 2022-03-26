@@ -47,19 +47,49 @@ const createMajor = async (req, res) => {
 const updateMajor = async (req, res) => {
   const { id_major } = req.params;
   const { body } = req;
-  const { major_name, id_edu_lev } = body;
+  const { id_edu_lev } = body;
+  let { major_name } = body;
+  let major_name_fixed = "";
+  Educational_level.hasOne(Major, { foreignKey: "id_edu_lev" });
+  Major.belongsTo(Educational_level, { foreignKey: "id_edu_lev" });
   try {
     const major = await Major.findByPk(id_major);
-    const majorName = await Major.findOne({
+    major_name = major_name.split(" ").filter((word) => word !== "");
+    major_name.map((word, i) => {
+      if (i !== major_name.length - 1) {
+        major_name_fixed += word + " ";
+      } else {
+        major_name_fixed += word;
+      }
+    });
+    const major_name_fixed_split = major_name_fixed.split(" ");
+    while (
+      ["licenciatura en", "maestría en", "maestria en"].includes(
+        "".concat(
+          major_name_fixed_split[0].toLowerCase(),
+          " ",
+          major_name_fixed_split[1].toLowerCase()
+        )
+      )
+    ) {
+      major_name_fixed_split.shift();
+      major_name_fixed_split.shift();
+      major_name_fixed = major_name_fixed_split.join(" ");
+    }
+    const isMajorWithName = await Major.findOne({
+      include: {
+        model: Educational_level,
+        where: { id_edu_lev },
+      },
       where: {
-        major_name,
+        major_name: major_name_fixed,
         id_major: { [Op.ne]: id_major },
       },
     });
-    if (majorName) {
+    if (isMajorWithName) {
       return res.status(400).json({
         ok: false,
-        msg: `Ya existe una carrera con el nombre ${major_name}`,
+        msg: `Ya existe una carrera con el nombre ${isMajorWithName.educational_level.educational_level} en ${major_name_fixed}`,
       });
     }
     const educationalLevel = await Educational_level.findByPk(
@@ -71,7 +101,7 @@ const updateMajor = async (req, res) => {
         msg: `El nivel de eduación con id ${id_edu_lev} no existe`,
       });
     }
-    await major.update({ major_name, id_edu_lev });
+    await major.update({ major_name: major_name_fixed, id_edu_lev });
     const result = await getMajorsInfo(major.id_major);
     res.status(200).json({
       ok: true,
