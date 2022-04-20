@@ -207,7 +207,7 @@ const isValidDocument = (document_type = null, req) => {
 
 const isValidDocumentType = (req, res, next) => {
   const { document_type } = req.body;
-  if (document_type !== undefined) {
+  if (document_type !== null) {
     if (
       !document_types
         .map((document_type) => document_type.id)
