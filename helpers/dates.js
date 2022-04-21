@@ -62,15 +62,17 @@ const getGroupDaysAndOverdue = async (
           date,
           diffFromEndMonth: end_of_month.diff(date.clone(), "days"),
         }))
-        .filter((possibleDate) => possibleDate.diffFromEndMonth >= 0)
+        .filter(
+          (possibleDate) =>
+            possibleDate.diffFromEndMonth >= 0 &&
+            moment(possibleDate.date).month() === moment(first_day_date).month()
+        )
         .sort((a, b) => a.diffFromEndMonth - b.diffFromEndMonth);
       last_day_date = date;
     }
   }
-  first_day_date = first_day_date.format().substr(0, 10);
-  last_day_date = last_day_date.format().substr(0, 10);
-  console.log(first_day_date);
-  console.log(last_day_date);
+  first_day_date = first_day_date.format().slice(0, 10);
+  last_day_date = last_day_date.format().slice(0, 10);
 
   let overdue;
   if (

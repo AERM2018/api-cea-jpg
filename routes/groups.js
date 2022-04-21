@@ -45,6 +45,17 @@ groupsRouter.get(
   ],
   getCoursesAGroupCanTake
 );
+groupsRouter.get(
+  "/:id_group/courses/taken",
+  [
+    validateJWT,
+    param(
+      "id_group",
+      "El id del grupo es obligatorio y debe ser un numero entero"
+    ).isNumeric(),
+  ],
+  getCoursesGroupHasTaken
+);
 
 groupsRouter.post(
   "/",
