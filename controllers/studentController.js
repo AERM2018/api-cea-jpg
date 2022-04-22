@@ -107,6 +107,7 @@ const createStudent = async (req, res = response) => {
     end_date,
     gender,
     group_chief,
+    irregular,
   } = req.body;
   let id_user, id_student, user;
   try {
@@ -201,6 +202,7 @@ const createStudent = async (req, res = response) => {
           birthdate,
           birthplace,
           age,
+          irregular,
         });
         // Asignar grupo al estudiante
         await Stu_gro.create({
@@ -282,6 +284,7 @@ const createStudent = async (req, res = response) => {
       birthplace,
       age,
       gender,
+      irregular,
     });
     await newStudent.save();
     // password
@@ -308,7 +311,7 @@ const createStudent = async (req, res = response) => {
 const updateStudent = async (req, res) => {
   const { id } = req.params;
   const { body } = req;
-  const { curp, id_group, group_chief, email } = body;
+  const { curp, id_group, group_chief, email, irregular } = body;
   try {
     const student = await Student.findByPk(id);
     if (!student) {
