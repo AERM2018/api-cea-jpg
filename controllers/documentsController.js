@@ -58,13 +58,13 @@ const createDocument = async (req, res = response) => {
     if (document_types.map((type) => type.id).includes(document_type)) {
       if (![11].includes(document_type)) {
         toolsForMakingDoc.student = await getStudentInfo(matricula);
-        if ([0, 1, 5, 6, 10].includes(document_type)) {
-          let { grades, generalAvg } =
+        if ([0, 1, 10].includes(document_type)) {
+          let { grades, generalAvg = 0 } =
             (await getGradesStudent(toolsForMakingDoc.student.id_student, {
               withAvg: true,
               forKardex: true,
             })) || [];
-          if (grades.length === 0)
+          if (document_type != 0 && grades.length === 0)
             return res.status(400).json({
               ok: false,
               msg: `No se ha podido generar un documento con id ${document_type} debido a que el estudiante con matricula ${matricula} no tiene calificiaciones cargadas.`,
@@ -109,7 +109,7 @@ const createDocument = async (req, res = response) => {
     );
   } catch (error) {
     console.log(error);
-    printAndSendError(res, error);
+    return printAndSendError(res, error);
   }
 };
 
