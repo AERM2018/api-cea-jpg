@@ -181,9 +181,8 @@ const createPayment = async (req, res = response) => {
 
     start_date =
       start_date === null
-        ? moment().startOf("month").format().substr(0, 10)
-        : moment().month(start_date).startOf("month").format().substr(0, 10);
-
+        ? moment().startOf("month").format().slice(0, 10)
+        : moment().month(start_date).startOf("month").format().slice(0, 10);
     switch (payment_type.toLowerCase()) {
       case "documento":
         // Verify if the doc_type was sent
@@ -282,6 +281,7 @@ const createPayment = async (req, res = response) => {
         } else {
           // Set to the start date the inscription's year if any payment of the specified month is found
           // Avoid payments with date before inscription's date
+          console.log("ins-date--------", ins_date);
           start_date = moment({
             month: moment(start_date).month(),
             year: moment(ins_date).year(),
@@ -293,7 +293,8 @@ const createPayment = async (req, res = response) => {
         }
         const { first_day, last_day, overdue } = await getGroupDaysAndOverdue(
           id_group,
-          start_date
+          moment(start_date).month(),
+          moment(start_date).year()
         );
         cutoff_date = moment().format().substr(0, 10);
         // Payments of the previous month including december
@@ -367,7 +368,7 @@ const createPayment = async (req, res = response) => {
             msg: "Pago de materia denegado, no se pueden pagar materias de meses anteriores al actual con diferencia de mas de 15 días.",
           });
         }
-
+        break;
       case "curso extracurricular":
         if (!id_ext_cou)
           return res.status(400).json({
@@ -852,7 +853,11 @@ const checkPricePayment = async (req, res = response) => {
             start_date = moment(start_date).add(1, "y");
           }
         }
-        const { overdue } = await getGroupDaysAndOverdue(id_group, start_date);
+        const { overdue } = await getGroupDaysAndOverdue(
+          id_group,
+          moment(start_date).month(),
+          moment(start_date).year()
+        );
         // Payments of the previous month including december
         if (
           moment().month() > moment(start_date).month() ||

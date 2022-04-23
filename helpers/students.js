@@ -350,12 +350,13 @@ const getGradesStudent = async (
   });
 
   if (opts.onlyAvg || opts.withAvg) {
-    gradesStudent.forEach((grade) => {
+    const gradesNoNP = gradesStudent.filter((grade) => grade !== "NP");
+    gradesNoNP.forEach((grade) => {
       avgStudent += grade.toJSON().grade;
     });
 
-    avgStudent /= gradesStudent.length;
-    avgStudent = avgStudent.toFixed(1);
+    avgStudent = gradesNoNP.length > 0 ? avgStudent / gradesNoNP.length : 0;
+    avgStudent = avgStudent > 0 ? avgStudent.toFixed(1) : 0;
 
     if (opts.onlyAvg) return avgStudent;
   }
@@ -406,7 +407,6 @@ const getGradesStudent = async (
           where: { id_grade, applied: true },
           raw: true,
         });
-        console.log(testInfo);
       }
       return {
         id_grade,

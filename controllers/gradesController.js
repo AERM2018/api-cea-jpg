@@ -463,17 +463,19 @@ const uploadCourseGrades = async (req, res = response) => {
           const { id_gro_cou } = await Gro_cou.findOne({
             where: { [Op.and]: [{ id_group }, { id_course }] },
           });
-          const testGrade = new Test({
-            id_student: grade.id_student,
-            id_gro_cou,
-            folio: 3,
-            type: "Ordinario",
-            application_date: moment().format("YYYY-MM-DD"),
-            assigned_test_date: null,
-            applied: true,
-            id_grade: studentGrade.id_grade,
-          });
-          await testGrade.save();
+          if (grade.grade !== "NP") {
+            const testGrade = new Test({
+              id_student: grade.id_student,
+              id_gro_cou,
+              folio: 3,
+              type: "Ordinario",
+              application_date: moment().format("YYYY-MM-DD"),
+              assigned_test_date: null,
+              applied: true,
+              id_grade: studentGrade.id_grade,
+            });
+            await testGrade.save();
+          }
         } catch (err) {
           console.log(err);
         }

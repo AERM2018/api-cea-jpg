@@ -137,6 +137,14 @@ const completeARequest = async (req, res = response) => {
         msg: "La petición ya esta completada.",
       });
     }
+    const { id_payment } = request;
+    const payment = await Payment.findByPk(id_payment);
+    if (!payment.status_payment) {
+      return res.status(400).json({
+        ok: false,
+        msg: `El pago del documento solicitado no se ha liquidado, liquedelo antes de continuar.`,
+      });
+    }
     await Request.update(
       { status_request: 1 },
       { where: { id_request: request.id_request } }
@@ -145,14 +153,6 @@ const completeARequest = async (req, res = response) => {
       { creation_date: moment().format("YYYY-MM-DD").toString() },
       { where: { id_document: request.id_document } }
     );
-    const { id_payment } = request;
-    const payment = await Payment.findByPk(id_payment);
-    if (payment.status_payment) {
-      return res.status(200).json({
-        ok: true,
-        msg: `La solicitud se completo correctamente, pero el pago todavia no se ha completado`,
-      });
-    }
     const { matricula, document_type } = request.document;
     res.redirect(
       307,

@@ -108,10 +108,15 @@ gradesRouter.post(
     check("id_group", "El id del grupo es obligatorio")
       .isNumeric()
       .exists({ checkNull: true }),
-    check(
-      "students",
-      "Las calificaciones de los estudiantes son obligatorias"
-    ).isArray({ min: 1 }),
+    check("students", "Las calificaciones de los estudiantes son obligatorias")
+      .isArray({ min: 1 })
+      .customSanitizer((students) => {
+        return students.map((student) => ({
+          ...student,
+          grade: student.grade.toLowerCase() === "np" ? "NP" : student.grade,
+        }));
+      }),
+
     validateFields,
     checkGroupCourseExistence,
     isAllowedToUploadGrades,

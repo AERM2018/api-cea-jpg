@@ -64,7 +64,9 @@ studentsRouter.post(
     //   .isLength({ max: 45 }),
     check("group_chief", "El campo de jefe de grupo es obligatorio")
       .notEmpty()
-      .isBoolean(),
+      .customSanitizer((group_chief) =>
+        group_chief === "1" || group_chief === "true" ? true : false
+      ),
     check(
       "curp",
       "El CURP es obligatorio y tiene que tener como maximo 18 caracteres"
@@ -120,6 +122,11 @@ studentsRouter.post(
       .not()
       .isEmpty()
       .isLength({ max: 50 }),
+    check("irregular", "Debe de espicificar si el alumno es irregular o no.")
+      .notEmpty()
+      .customSanitizer((irregular) =>
+        irregular === "1" || irregular === "true" ? true : false
+      ),
     validateFields,
     validateJWT,
   ],
@@ -158,7 +165,9 @@ studentsRouter.put(
       .isLength({ max: 45 }),
     check("group_chief", "El campo de jefe de grupo se tiene que llenar")
       .notEmpty()
-      .isBoolean(),
+      .customSanitizer((group_chief) =>
+        group_chief === "1" || group_chief === "true" ? true : false
+      ),
     check(
       "birthdate",
       "La fecha de nacimiento del estudiante es obligatoria"
@@ -212,6 +221,11 @@ studentsRouter.put(
     )
       .isInt()
       .exists({ checkNull: true }),
+    check("irregular", "Debe de espicificar si el alumno es irregular o no.")
+      .notEmpty()
+      .customSanitizer((irregular) =>
+        irregular === "1" || irregular === "true" ? true : false
+      ),
     //check('address','El domicilio es obligatorio y tiene que tener 50 caracteres como maximo').not().isEmpty().isLength({max:50}),
 
     // check('complete_documents','Falta el campo de los documentos del alumno').isInt().exists({checkNull:true}),

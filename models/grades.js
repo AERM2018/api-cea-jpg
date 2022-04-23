@@ -1,4 +1,4 @@
-const { DataTypes } = require("sequelize");
+const { DataTypes, literal } = require("sequelize");
 const { db } = require("../database/connection");
 
 const Grades = db.define(
@@ -18,13 +18,13 @@ const Grades = db.define(
       allowNull: false,
     },
     grade: {
-      type: DataTypes.FLOAT(4),
+      type: DataTypes.STRING,
       allowNull: false,
     },
     creation_date: {
       type: DataTypes.DATEONLY,
       allowNull: false,
-      defaultValue: new Date(),
+      defaultValue: literal("now()"),
     },
   },
   {
