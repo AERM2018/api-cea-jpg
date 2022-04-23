@@ -182,14 +182,15 @@ const studentGroupBelongsSameMajor = async (id_student, id_group) => {
 
 const getGroupCoursesTrack = async (id_group) => {
   let groupInfo = { ...(await getGroupInfo(id_group))[0] };
-  const groupStudents = await Stu_gro.findAll({
-    where: { id_group, status: 1 },
-  });
+  // const groupStudents = await Stu_gro.findAll({
+  //   where: { id_group, status: 1 },
+  // });
   const gro_cous = await Gro_cou.findAll({ where: { id_group } });
   let coursesId = await Promise.all(
     gro_cous.map(async (gro_cou) => {
       gro_cou = await setCourseInactivate(gro_cou);
       if (!gro_cou.status) return null;
+      return gro_cou.id_course;
       // const gradeStudentsGroup = await Grades.findAll({
       //   where: {
       //     [Op.and]: [
@@ -243,6 +244,51 @@ const getGroupCoursesTrack = async (id_group) => {
   groupInfo["courses"] = [...coursesTakenByGroup, ...coursesNotTakenByGroup];
   return groupInfo;
 };
+
+const getStudentsFromGroup = async (id_group) => {
+  Stu_gro.belongsTo(Student, { foreignKey: "id_student" });
+  Student.hasOne(Stu_gro, { foreignKey: "id_student" });
+
+  Stu_gro.belongsTo(Group, { foreignKey: "id_group" });
+  Group.hasMany(Stu_gro, { foreignKey: "id_group" });
+
+  let studentsGroup = await Stu_gro.findAll({
+    include: [
+      {
+        model: Student,
+        attributes: [
+          "id_student",
+          "matricula",
+          [
+            fn(
+              "concat",
+              col("name"),
+              " ",
+              col("surname_m"),
+              " ",
+              col("surname_f")
+            ),
+            "student_name",
+          ],
+        ],
+      },
+      {
+        model: Group,
+        attributes: ["id_group", "name_group"],
+      },
+    ],
+    where: { [Op.and]: [{ id_group }, { status: 1 }] },
+  });
+
+  return studentsGroup.map((studentGro) => {
+    const { student, groupss, ...restoStudentGro } = studentGro.toJSON();
+    return {
+      ...restoStudentGro,
+      ...student,
+      ...groupss,
+    };
+  });
+};
 module.exports = {
   getGroupInfo,
   getTitularTeacherOfCourse,
@@ -252,4 +298,5 @@ module.exports = {
   isStudentGroupChiefOfGroup,
   studentGroupBelongsSameMajor,
   getGroupCoursesTrack,
+  getStudentsFromGroup,
 };

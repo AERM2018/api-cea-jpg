@@ -179,19 +179,19 @@ groupsRouter.delete(
   removeCourseGroup
 );
 
-groupsRouter.get(
-  "/:id_group/students",
-  [
-    check(
-      "id_group",
-      "El id del grupo es obligatorio y debe de ser un numero entero"
-    ).isNumeric(),
-    checkGroupExistence,
-    validateFields,
-    validateJWT,
-  ],
-  getStudentsFromGroup
-);
+// groupsRouter.get(
+//   "/:id_group/students",
+//   [
+//     check(
+//       "id_group",
+//       "El id del grupo es obligatorio y debe de ser un numero entero"
+//     ).isNumeric(),
+//     checkGroupExistence,
+//     validateFields,
+//     validateJWT,
+//   ],
+//   getStudentsFromGroup
+// );
 
 groupsRouter.patch(
   "/:id_group/student/:matricula",

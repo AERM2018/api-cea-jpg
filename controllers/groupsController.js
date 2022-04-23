@@ -17,6 +17,7 @@ const {
   assingStudentAsGroupChief,
   removeStudentAsGroupChief,
   hasGroupAGroupChief,
+  getStudentsFromGroup,
 } = require("../helpers/groups");
 const { setCourseInactivate } = require("../helpers/courses");
 const Cam_gro = require("../models/cam_gro");
@@ -29,6 +30,8 @@ const Gro_cou_ass = require("../models/gro_cou_ass");
 const {
   getGroupsInfoWithTimeTable,
 } = require("../helpers/getDataSavedFromEntities");
+const Grades = require("../models/grades");
+const Test = require("../models/test");
 
 const getAllGroups = async (req, res) => {
   try {
@@ -294,6 +297,14 @@ const addCourseGroup = async (req, res) => {
       end_date,
     });
     await cou_tea.save();
+    const studentsFromGroup = (await getStudentsFromGroup(id_group)).map(
+      ({ id_student }) => id_student
+    );
+    await Promise.all(
+      studentsFromGroup.map(async (id_student) => {
+        await Grades.create({ id_course, id_student, grade: "-" });
+      })
+    );
     res.status(200).json({
       ok: true,
       msg: "La materia se añadio al grupo correctamente",
@@ -326,6 +337,18 @@ const removeCourseGroup = async (req, res) => {
     }
     await cou_tea.destroy();
     await gro_cou.destroy();
+    const studentsFromGroup = (await getStudentsFromGroup(id_group)).map(
+      ({ id_student }) => id_student
+    );
+    await Promise.all(
+      studentsFromGroup.map(async (id_student) => {
+        const grade = await Grades.findOne({
+          where: { id_course, id_student },
+        });
+        await Test.destroy({ where: { id_grade: grade.id_grade } });
+        await grade.destroy();
+      })
+    );
     return res.json({
       ok: true,
       msg: `La asociación entre el grupo con id ${id_group} y el curso con id ${id_course} se ha eliminado correctamente.`,
@@ -355,61 +378,6 @@ const getCoursesAGroupCanTake = async (req, res) => {
     res.json({
       ok: true,
       courses: coursesCanTake,
-    });
-  } catch (err) {
-    printAndSendError(res, err);
-  }
-};
-
-const getStudentsFromGroup = async (req, res = response) => {
-  const { id_group } = req.params;
-  try {
-    Stu_gro.belongsTo(Student, { foreignKey: "id_student" });
-    Student.hasOne(Stu_gro, { foreignKey: "id_student" });
-
-    Stu_gro.belongsTo(Group, { foreignKey: "id_group" });
-    Group.hasMany(Stu_gro, { foreignKey: "id_group" });
-
-    let studentsGroup = await Stu_gro.findAll({
-      include: [
-        {
-          model: Student,
-          attributes: [
-            "id_student",
-            "matricula",
-            [
-              fn(
-                "concat",
-                col("name"),
-                " ",
-                col("surname_m"),
-                " ",
-                col("surname_f")
-              ),
-              "student_name",
-            ],
-          ],
-        },
-        {
-          model: Group,
-          attributes: ["id_group", "name_group"],
-        },
-      ],
-      where: { [Op.and]: [{ id_group }, { status: 1 }] },
-    });
-
-    studentsGroup = studentsGroup.map((studentGro) => {
-      const { student, groupss, ...restoStudentGro } = studentGro.toJSON();
-      return {
-        ...restoStudentGro,
-        ...student,
-        ...groupss,
-      };
-    });
-
-    res.json({
-      ok: true,
-      students: studentsGroup,
     });
   } catch (err) {
     printAndSendError(res, err);
@@ -497,7 +465,6 @@ module.exports = {
   updateGroup,
   deleteGroup,
   addCourseGroup,
-  getStudentsFromGroup,
   removeCourseGroup,
   assignGroupChief,
   removeGroupChief,
