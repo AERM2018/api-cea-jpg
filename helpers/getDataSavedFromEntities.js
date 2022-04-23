@@ -1,4 +1,5 @@
 const { Op, fn, col } = require("sequelize");
+const moment = require("moment");
 const Campus = require("../models/campus");
 const Cam_use = require("../models/cam_use");
 const Course = require("../models/courses");
@@ -6,7 +7,10 @@ const Department = require("../models/department");
 const Educational_level = require("../models/educational_level");
 const Employees = require("../models/employee");
 const Emp_dep = require("../models/emp_dep");
+const Emp_exp = require("../models/emp_exp");
 const Emp_tim = require("../models/emp_tim");
+const Expense = require("../models/expense");
+const Expenses_types = require("../models/expenses_type");
 const Graduation_courses = require("../models/graduation_courses");
 const Graduation_section = require("../models/graduation_section");
 const Gro_cou = require("../models/gro_cou");
@@ -19,6 +23,7 @@ const Student = require("../models/student");
 const Teacher = require("../models/teacher");
 const Time_tables = require("../models/time_tables");
 const User = require("../models/user");
+const { expenses_type } = require("../types/dictionaries");
 const {
   setCourseInactivate,
   getExtraCourseInfo,
@@ -483,6 +488,62 @@ const getSchoolarshipsInfo = async (id_scholarship) => {
   });
   return id_scholarship ? scholarships[0] : scholarships;
 };
+
+const getExpensesInfo = async (id_expense, date) => {
+  const condition = id_expense !== undefined ? { id_expense } : true;
+  const dateCondition = date === "all" || !date ? true : { date };
+
+  Expenses_types.belongsTo(Expense, { foreignKey: "id_expense" });
+  Expense.hasOne(Expenses_types, { foreignKey: "id_expense" });
+
+  Emp_exp.belongsTo(Expense, { foreignKey: "id_expense" });
+  Expense.hasOne(Emp_exp, { foreignKey: "id_expense" });
+
+  Emp_exp.belongsTo(Employees, { foreignKey: "id_employee" });
+  Employees.hasMany(Emp_exp, { foreignKey: "id_employee" });
+
+  let expenses = await Expense.findAll({
+    include: [
+      {
+        model: Expenses_types,
+        attributes: ["expense_type", "observation"],
+      },
+      {
+        model: Emp_exp,
+        include: {
+          model: Employees,
+          attributes: ["id_employee"],
+        },
+      },
+    ],
+    where: { [Op.and]: [condition, dateCondition] },
+  });
+
+  if (!expenses) {
+    return res.status(400).json({
+      ok: false,
+      msg: "No existen gastos de la fecha " + fecha,
+    });
+  }
+
+  expenses = expenses.map((expense) => {
+    const {
+      expenses_type: expense_type,
+      emp_exp,
+      date,
+      ...restoExpense
+    } = expense.toJSON();
+    const [d, m, y] = moment(date).format(`D MMMM YYYY`).split(" ");
+    return {
+      ...restoExpense,
+      date: `${d} de ${m} de ${y}`,
+      expenses_type: expenses_type[expense_type.expense_type],
+      observation: expense_type.observation,
+      id_employee: emp_exp.employee.id_employee,
+    };
+  });
+  return id_expense !== undefined ? expenses[0] : expenses;
+};
 module.exports = {
   getEmployeesInfoWithTimeTable,
   getSchoolarshipsInfo,
@@ -493,5 +554,6 @@ module.exports = {
   getMajorsInfo,
   getExtraCoursesWithTimeTable,
   getGraduationCourseInfoWithSections,
+  getExpensesInfo,
 };
 // employees, courses

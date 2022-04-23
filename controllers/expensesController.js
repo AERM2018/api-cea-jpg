@@ -7,64 +7,13 @@ const { db } = require("../database/connection");
 const { expenses_type } = require("../types/dictionaries");
 const Employees = require("../models/employee");
 const { printAndSendError } = require("../helpers/responsesOfReq");
+const { getExpensesInfo } = require("../helpers/getDataSavedFromEntities");
 
 const getAllTheExpenses = async (req, res) => {
   try {
     let { fecha = moment().local().format("YYYY-MM-DD") } = req.query;
-    let expenses;
-    let condition;
+    const expenses = await getExpensesInfo(undefined, fecha);
 
-    condition = (date = "all") ? {} : { date };
-
-    Expenses_types.belongsTo(Expense, { foreignKey: "id_expense" });
-    Expense.hasOne(Expenses_types, { foreignKey: "id_expense" });
-
-    Emp_exp.belongsTo(Expense, { foreignKey: "id_expense" });
-    Expense.hasOne(Emp_exp, { foreignKey: "id_expense" });
-
-    Emp_exp.belongsTo(Employees, { foreignKey: "id_employee" });
-    Employees.hasMany(Emp_exp, { foreignKey: "id_employee" });
-
-    expenses = await Expense.findAll({
-      include: [
-        {
-          model: Expenses_types,
-          attributes: ["expense_type", "observation"],
-        },
-        {
-          model: Emp_exp,
-          include: {
-            model: Employees,
-            attributes: ["id_employee"],
-          },
-        },
-      ],
-      where: condition,
-    });
-
-    if (!expenses) {
-      return res.status(400).json({
-        ok: false,
-        msg: "No existen gastos de la fecha " + fecha,
-      });
-    }
-
-    expenses = expenses.map((expense) => {
-      const {
-        expenses_type: expense_type,
-        emp_exp,
-        date,
-        ...restoExpense
-      } = expense.toJSON();
-      const [d, m, y] = moment(date).format(`D MMMM YYYY`).split(" ");
-      return {
-        ...restoExpense,
-        date: `${d} de ${m} de ${y}`,
-        expenses_type: expenses_type[expense_type.expense_type],
-        observation: expense_type.observation,
-        id_employee: emp_exp.employee.id_employee,
-      };
-    });
     return res.status(200).json({
       ok: true,
       expenses,
@@ -99,9 +48,11 @@ const createExpense = async (req, res) => {
     });
     // Llenando la tabla de emp_exo
     await Emp_exp.create({ id_employee, id_expense });
+    const result = await getExpensesInfo(id_expense);
     return res.status(201).json({
       ok: true,
       msg: "Gasto creado correctamente",
+      result,
     });
   } catch (error) {
     printAndSendError(res, error);
@@ -124,10 +75,11 @@ const updateExpense = async (req, res) => {
     });
     await expense_details.update({ expense_type, observation });
     await expense.update({ amount });
-
+    const result = await getExpensesInfo(id);
     return res.status(200).json({
       ok: true,
       msg: `El gasto se actualizo correctamente`,
+      result,
     });
   } catch (error) {
     console.log(error);
