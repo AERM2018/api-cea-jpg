@@ -5,6 +5,7 @@ const Cam_use = require("../models/cam_use");
 const Course = require("../models/courses");
 const Cou_tea = require("../models/cou_tea");
 const Educational_level = require("../models/educational_level");
+const Grades = require("../models/grades");
 const Group = require("../models/group");
 const Gro_cou = require("../models/gro_cou");
 const Major = require("../models/major");
@@ -181,13 +182,36 @@ const studentGroupBelongsSameMajor = async (id_student, id_group) => {
 
 const getGroupCoursesTrack = async (id_group) => {
   let groupInfo = { ...(await getGroupInfo(id_group))[0] };
+  const groupStudents = await Stu_gro.findAll({
+    where: { id_group, status: 1 },
+  });
   const gro_cous = await Gro_cou.findAll({ where: { id_group } });
-  const coursesId = await Promise.all(
+  let coursesId = await Promise.all(
     gro_cous.map(async (gro_cou) => {
-      await setCourseInactivate(gro_cou);
-      return gro_cou.id_course;
+      gro_cou = await setCourseInactivate(gro_cou);
+      if (!gro_cou.status) return null;
+      const gradeStudentsGroup = await Grades.findAll({
+        where: {
+          [Op.and]: [
+            {
+              id_student: {
+                [Op.in]: groupStudents.map(
+                  (groupStudent) => groupStudent.toJSON().id_student
+                ),
+              },
+            },
+            { id_course: gro_cou.id_course },
+            { creation_date: { [Op.gte]: gro_cou.start_date } },
+            { creation_date: { [Op.lte]: gro_cou.end_date } },
+          ],
+        },
+      });
+      return gradeStudentsGroup.length < groupStudents.length
+        ? null
+        : gro_cou.id_course;
     })
   );
+  coursesId = coursesId.filter((course) => course);
   let coursesTakenByGroup = await Course.findAll({
     where: { id_course: { [Op.in]: coursesId } },
     raw: true,

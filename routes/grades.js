@@ -18,6 +18,7 @@ const {
   getGraduationSectionGrades,
   getGraduationCourseGrades,
   updateGradeByTest,
+  deleteGrade,
 } = require("../controllers/gradesController");
 const {
   checkStudentExistence,
@@ -32,8 +33,9 @@ const {
   isItPermitted,
   checkRoles,
   checkGraduationCourseExistence,
+  isUserAllowedToUpdateGrade,
 } = require("../middlewares/dbValidations");
-const checkGrades = require("../middlewares/grades");
+const checkGradeOrGrades = require("../middlewares/grades");
 const validateJWT = require("../middlewares/validar-jwt");
 const { validateFields } = require("../middlewares/validateFields");
 
@@ -113,7 +115,7 @@ gradesRouter.post(
     validateFields,
     checkGroupCourseExistence,
     isAllowedToUploadGrades,
-    checkGrades,
+    checkGradeOrGrades,
   ],
   uploadCourseGrades
 );
@@ -128,7 +130,7 @@ gradesRouter.post(
       .isNumeric()
       .exists({ checkNull: true }),
     validateFields,
-    checkGrades,
+    checkGradeOrGrades,
     validateJWT,
   ],
   uploadExtraCurCourGrades
@@ -139,13 +141,14 @@ gradesRouter.post(
 //     check('',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
 //     check('',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
 //     validateFields,
-//     checkGrades,
+//     checkGradeOrGrades,
 //     validateJWT
 // ], uploadTesineGrade);
 
 gradesRouter.put(
   "/regular/:id_grade",
   [
+    validateJWT,
     param("id_grade", "El id de la calificación es un numero y es obligatorio")
       .not()
       .isEmpty()
@@ -153,9 +156,10 @@ gradesRouter.put(
     check("grade", "Calificación es de tipo float obligatoria")
       .isFloat()
       .notEmpty(),
-    checkGradeCourseExistence,
     validateFields,
-    validateJWT,
+    checkGradeCourseExistence,
+    isUserAllowedToUpdateGrade,
+    checkGradeOrGrades,
   ],
   updateGrades
 );
@@ -237,6 +241,20 @@ gradesRouter.delete(
     validateJWT,
   ],
   deleteGradeByStudentId
+);
+
+gradesRouter.delete(
+  "/regular/:id_grade",
+  [
+    validateJWT,
+    check(
+      "id_grade",
+      "El id de la calificación del curso es obligatorio."
+    ).notEmpty(),
+    validateFields,
+    checkGradeCourseExistence,
+  ],
+  deleteGrade
 );
 
 module.exports = gradesRouter;

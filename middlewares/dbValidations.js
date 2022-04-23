@@ -27,6 +27,8 @@ const User = require("../models/user");
 const Request = require("../models/request");
 const { document_types } = require("../types/dictionaries");
 const Stu_gro = require("../models/stu_gro");
+const { printAndSendError } = require("../helpers/responsesOfReq");
+const Rol_use = require("../models/rol_use");
 
 const checkCampusExistence = async (req, res, next) => {
   const id_campus = req.body.id_campus | req.params.id_campus;
@@ -516,6 +518,76 @@ const isStudentPartOfAGroup = async (req, res, next) => {
   }
   next();
 };
+
+const isUserAllowedToUpdateGrade = async (req, res, next) => {
+  const { id_user } = req;
+  const { id_grade } = req.params;
+  Grades.belongsTo(Student, { foreignKey: "id_student" });
+  Student.hasOne(Grades, { foreignKey: "id_student" });
+  try {
+    // Get user's type
+    const user = await User.findByPk(id_user);
+    const user_roles = await Rol_use.findAll({
+      where: { id_user },
+      attributes: ["id_role"],
+    });
+    const grade = await Grades.findByPk(id_grade, {
+      include: { model: Student, attributes: ["matricula"] },
+    });
+    const {
+      id_student,
+      id_course,
+      student: { matricula },
+    } = grade.toJSON();
+    const studentGroup = await Stu_gro.findOne({
+      where: { [Op.and]: [{ id_student }, { status: 1 }] },
+    });
+    if (!studentGroup) {
+      return res.status(400).json({
+        ok: false,
+        msg: `Acción denegada. El estudiante con matricula ${matricula} está dado de baja, por lo tanto no se puede actualizar ninguna calificación correspondiente a él.`,
+      });
+    }
+    const gro_cou = await Gro_cou.findOne({
+      where: { [Op.and]: [{ id_course }, { id_group: studentGroup.id_group }] },
+    });
+    if (moment(gro_cou.end_date).isBefore(moment())) {
+      if (user.user_type === "teacher") {
+        return res.status(400).json({
+          ok: false,
+          msg: `Acción denegada. La calificacíon no puede ser actualizada por el maestro después de la fecha de fin del curso.`,
+        });
+      } else {
+        // Verify if user has permission to upload grade
+        // Role 4 is for administrative users
+        if (
+          !user_roles
+            .map((user_role) => user_role.id_role)
+            .some((user_role) => [1, 2, 4].includes(user_role))
+        ) {
+          return res.status(400).json({
+            ok: false,
+            msg: `Acción denegada. El usuario no cuenta con los permisos necesarios para actualizar la calificación.`,
+          });
+        }
+      }
+    } else {
+      if (
+        !user_roles
+          .map((user_role) => user_role.id_role)
+          .some((user_role) => [1, 2, 4, 9].includes(user_role))
+      ) {
+        return res.status(400).json({
+          ok: false,
+          msg: `Acción denegada. El usuario no cuenta con los permisos necesarios para actualizar la calificación.`,
+        });
+      }
+    }
+    next();
+  } catch (error) {
+    printAndSendError(res, error);
+  }
+};
 module.exports = {
   checkCampusExistence,
   checkStudentExistence,
@@ -552,4 +624,5 @@ module.exports = {
   isRestrictionValid,
   isValidRestrictionCourseOrExtraCourse,
   isStudentPartOfAGroup,
+  isUserAllowedToUpdateGrade,
 };

@@ -413,17 +413,6 @@ const uploadCourseGrades = async (req, res = response) => {
       where: { id_group: id_group },
     });
     const idstudents_group = stu_gro.map((e) => e["id_student"]);
-    let students_grades = students.map(async (student) => {
-      const { id_student } = await Student.findOne({
-        where: { matricula: student.matricula },
-        attributes: ["id_student"],
-      });
-      if (!idstudents_group.includes(id_student)) {
-        except.push(id_student);
-        return {};
-      }
-      return { ...student, id_student };
-    });
     // Check if there are grades for the course already to avoid duplicates
     const gradesCourse = await Grades.findAll({
       where: {
@@ -431,13 +420,25 @@ const uploadCourseGrades = async (req, res = response) => {
         id_student: { [Op.in]: idstudents_group },
       },
     });
-
     if (gradesCourse.length > 0) {
       return res.status(500).json({
         ok: false,
         msg: `No se ha podido cargar las calificaciones para el grupo con id ${id_group} debido a que ya existen. Si desea modificarlas, actualize las calificaciones`,
       });
     }
+    let students_grades = await Promise.all(
+      students.map(async (student) => {
+        const { id_student } = await Student.findOne({
+          where: { matricula: student.matricula },
+          attributes: ["id_student"],
+        });
+        if (!idstudents_group.includes(id_student)) {
+          except.push(id_student);
+          return {};
+        }
+        return { ...student, id_student };
+      })
+    );
 
     // Check if all the students given belong to the group given
 
@@ -450,8 +451,8 @@ const uploadCourseGrades = async (req, res = response) => {
     }
 
     // // iterate array to get every student and create his grade voiding dupliactes
-    Promise.all(students_grades).then((grades) => {
-      grades.map(async (grade) => {
+    await Promise.all(
+      students_grades.map(async (grade) => {
         try {
           const studentGrade = new Grades({
             id_course,
@@ -476,8 +477,8 @@ const uploadCourseGrades = async (req, res = response) => {
         } catch (err) {
           console.log(err);
         }
-      });
-    });
+      })
+    );
 
     res.status(200).json({
       ok: true,
@@ -658,6 +659,19 @@ const deleteGradeByStudentId = async (req, res = response) => {
   }
 };
 
+const deleteGrade = async (req, res) => {
+  const { id_grade } = req.params;
+  try {
+    await Test.destroy({ where: { id_grade } });
+    await Grades.destroy({ where: { id_grade } });
+    res.json({
+      ok: true,
+      msg: "Califcación del curso eliminada correctamente.",
+    });
+  } catch (error) {
+    printAndSendError(res, error);
+  }
+};
 module.exports = {
   getAllGradesByCourse,
   getExtraCourseGrades,
@@ -674,4 +688,5 @@ module.exports = {
   updateTesineGrades,
   uploadExtraCurCourGrades,
   // uploadTesineGrade
+  deleteGrade,
 };
