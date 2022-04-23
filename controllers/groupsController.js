@@ -288,6 +288,30 @@ const addCourseGroup = async (req, res) => {
       start_date = first_day;
       end_date = last_day;
     }
+    const groupCourseSameMonth = await Gro_cou.findAll({
+      where: {
+        [Op.and]: [
+          {
+            id_group,
+          },
+        ],
+      },
+    });
+    if (
+      groupCourseSameMonth.find(
+        (gro_cou) =>
+          (moment(gro_cou.start_date).month() === moment(start_date).month() &&
+            moment(gro_cou.start_date).year() === moment(start_date).year()) ||
+          (moment(gro_cou.end_date).month() === moment(start_date).month() &&
+            moment(gro_cou.end_date).year() === moment(start_date).year() &&
+            moment(start_date).date() < moment(gro_cou.end_date).date())
+      )
+    ) {
+      return res.status(400).json({
+        ok: false,
+        msg: `El grupo ya cuenta con una materia asignada para el periodo especificado`,
+      });
+    }
     const gro_cou = new Gro_cou({ id_group, id_course, start_date, end_date });
     await gro_cou.save();
     const cou_tea = new Cou_tea({
