@@ -102,13 +102,14 @@ const getRegularCourseInfo = async (
       major: { major_name },
       ...restGroup
     },
-    course: { course_name, cou_tea },
+    course: { course_name, cou_tea, clave },
     ...restCourse
   } = course;
 
   return {
     id_course,
     course_name,
+    clave,
     id_group,
     ...restGroup,
     major_name,

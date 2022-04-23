@@ -189,8 +189,9 @@ const getGroupCoursesTrack = async (id_group) => {
   let coursesId = await Promise.all(
     gro_cous.map(async (gro_cou) => {
       gro_cou = await setCourseInactivate(gro_cou);
-      if (!gro_cou.status) return null;
+      if (!moment(gro_cou.end_date).isBefore()) return null;
       return gro_cou.id_course;
+
       // const gradeStudentsGroup = await Grades.findAll({
       //   where: {
       //     [Op.and]: [
