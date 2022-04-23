@@ -51,16 +51,16 @@ const {
 const Rol_use = require("../models/rol_use");
 
 const getAllStudents = async (req, res) => {
-  let { regular = "" } = req.query;
+  let { irregular = "" } = req.query;
   try {
     let students = await Student.findAll();
     students = await Promise.all(
       students.map(async (student) => await getStudentInfo(student.matricula))
     );
     students = students.filter((student) => student.status === 1);
-    if (regular !== "") {
-      regular = regular === "true" ? true : false;
-      students = students.filter((student) => student.regular === regular);
+    if (irregular !== "") {
+      irregular = irregular === "true" ? true : false;
+      students = students.filter((student) => student.irregular === irregular);
     }
     return res.status(200).json({
       ok: true,
