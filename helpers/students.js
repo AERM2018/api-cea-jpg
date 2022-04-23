@@ -72,8 +72,8 @@ const getStudentInfo = async (matricula = "") => {
       },
     },
   });
-  student.group_chief = is_group_chief ? true : false;
-  student.irregular = student.irregular ? true : false;
+  student.group_chief = is_group_chief ? "1" : "0";
+  student.irregular = student.irregular ? "1" : "0";
   return student;
 };
 

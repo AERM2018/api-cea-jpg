@@ -238,7 +238,7 @@ const getGroupCoursesTrack = async (id_group) => {
   });
   coursesNotTakenByGroup = coursesNotTakenByGroup.map((course) => ({
     ...course,
-    taken: false,
+    isTaken: false,
   }));
   groupInfo["courses"] = [...coursesTakenByGroup, ...coursesNotTakenByGroup];
   return groupInfo;

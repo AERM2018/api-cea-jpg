@@ -59,7 +59,7 @@ const getAllStudents = async (req, res) => {
     );
     students = students.filter((student) => student.status === 1);
     if (irregular !== "") {
-      irregular = irregular === "true" ? true : false;
+      irregular = irregular === "true" ? "1" : "0";
       students = students.filter((student) => student.irregular === irregular);
     }
     return res.status(200).json({
