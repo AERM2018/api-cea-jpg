@@ -190,25 +190,25 @@ const getGroupCoursesTrack = async (id_group) => {
     gro_cous.map(async (gro_cou) => {
       gro_cou = await setCourseInactivate(gro_cou);
       if (!gro_cou.status) return null;
-      const gradeStudentsGroup = await Grades.findAll({
-        where: {
-          [Op.and]: [
-            {
-              id_student: {
-                [Op.in]: groupStudents.map(
-                  (groupStudent) => groupStudent.toJSON().id_student
-                ),
-              },
-            },
-            { id_course: gro_cou.id_course },
-            { creation_date: { [Op.gte]: gro_cou.start_date } },
-            { creation_date: { [Op.lte]: gro_cou.end_date } },
-          ],
-        },
-      });
-      return gradeStudentsGroup.length < groupStudents.length
-        ? null
-        : gro_cou.id_course;
+      // const gradeStudentsGroup = await Grades.findAll({
+      //   where: {
+      //     [Op.and]: [
+      //       {
+      //         id_student: {
+      //           [Op.in]: groupStudents.map(
+      //             (groupStudent) => groupStudent.toJSON().id_student
+      //           ),
+      //         },
+      //       },
+      //       { id_course: gro_cou.id_course },
+      //       { creation_date: { [Op.gte]: gro_cou.start_date } },
+      //       { creation_date: { [Op.lte]: gro_cou.end_date } },
+      //     ],
+      //   },
+      // });
+      // return gradeStudentsGroup.length < groupStudents.length
+      //   ? null
+      //   : gro_cou.id_course;
     })
   );
   coursesId = coursesId.filter((course) => course);
