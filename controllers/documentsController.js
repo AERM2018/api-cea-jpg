@@ -64,7 +64,8 @@ const createDocument = async (req, res = response) => {
               withAvg: true,
               forKardex: true,
             })) || [];
-          if (document_type != 0 && grades.length === 0)
+          grades = grades.filter((grade) => grade !== "NP" && grade !== "-");
+          if ([1, 10].includes(document_type) && grades.length === 0)
             return res.status(400).json({
               ok: false,
               msg: `No se ha podido generar un documento con id ${document_type} debido a que el estudiante con matricula ${matricula} no tiene calificiaciones cargadas.`,
