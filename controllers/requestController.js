@@ -19,6 +19,8 @@ const getAllTheRequests = async (req, res) => {
   try {
     let { date = moment().local().format("YYYY-MM-DD"), status = "all" } =
       req.query;
+    const estado =
+      status !== undefined ? (status ? "finalizado" : "no finalizada") : "";
     const requestsFound = await getRequests({ status, date });
     if (!requestsFound) {
       return res.status(400).json({
