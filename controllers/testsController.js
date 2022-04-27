@@ -27,7 +27,7 @@ const assignTestToStudent = async (req, res) => {
         attributes: ["folio"],
         order: [["folio", "DESC"]],
         raw: true,
-      })) || 1;
+      })) || 0;
     const { id_grade } = await Grades.findOne({
       where: { [Op.and]: [{ id_student }, { id_course }] },
       attributes: ["id_grade"],
@@ -43,6 +43,7 @@ const assignTestToStudent = async (req, res) => {
       },
       { where: { id_grade } }
     );
+    await Grades.update({ grade: "-" }, { where: { id_grade } });
     return res.json({
       ok: true,
       msg: "Examen asignado correctamente.",

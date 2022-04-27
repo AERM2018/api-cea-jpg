@@ -566,23 +566,20 @@ const updateGradeByTest = async (req, res = response) => {
         msg: "Acutilización de calificación denegada, primero necesita asignar un exámen.",
       });
     }
-    console.log(
-      moment(test.application_date).add(5, "days").diff(moment({}), "days")
-    );
     // Set date limit to update grade by test (5 days more)
-    if (
-      moment(test.application_date).diff(moment({}), "days") === 0 ||
-      moment(test.application_date).add(5, "days").diff(moment({}), "days") >
-        6 ||
-      moment(test.application_date).add(5, "days").diff(moment({}), "days") <
-        0 ||
-      test.applied
-    ) {
-      return res.status(403).json({
-        ok: false,
-        msg: "Acutilización de calificación denegada, no está permitido actualizar calificación antes de la fecha indicada.",
-      });
-    }
+    // if (
+    //   moment(test.application_date).diff(moment({}), "days") !== 0 ||
+    //   moment(test.application_date).add(5, "days").diff(moment({}), "days") >
+    //     6 ||
+    //   moment(test.application_date).add(5, "days").diff(moment({}), "days") <
+    //     0 ||
+    //   test.applied
+    // ) {
+    //   return res.status(403).json({
+    //     ok: false,
+    //     msg: "Acutilización de calificación denegada, no está permitido actualizar calificación antes de la fecha indicada.",
+    //   });
+    // }
     // const testGrade = await Test.findOne({
     //   where: where(
     //     literal(
