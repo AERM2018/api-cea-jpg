@@ -47,7 +47,8 @@ const createRequest = async (req, res) => {
   try {
     const doc_info = new Document({
       document_type,
-      cost: document_types[document_type]["price"],
+      cost: document_types.find((doc_type) => doc_type.id === document_type)
+        .price,
       id_student,
     });
     const doc = await doc_info.save();
