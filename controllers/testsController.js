@@ -17,11 +17,17 @@ const assignTestToStudent = async (req, res) => {
       attributes: ["id_group"],
       raw: true,
     });
-    const { id_gro_cou } = await Gro_cou.findOne({
+    const gro_cou = await Gro_cou.findOne({
       where: { [Op.and]: [{ id_group }, { id_course }] },
       attributes: ["id_gro_cou"],
       raw: true,
     });
+    if (!gro_cou) {
+      return res.status(404).json({
+        ok: false,
+        msg: "El grupo actual de él estudiante no se le ha asignado la materia correspondiente al exámen que se quiere asignar",
+      });
+    }
     const { folio: lastFolio } =
       (await Test.findOne({
         attributes: ["folio"],
@@ -43,7 +49,7 @@ const assignTestToStudent = async (req, res) => {
       },
       { where: { id_grade } }
     );
-    await Grades.update({ grade: "-" }, { where: { id_grade } });
+    // await Grades.update({ grade: "-" }, { where: { id_grade } });
     return res.json({
       ok: true,
       msg: "Examen asignado correctamente.",

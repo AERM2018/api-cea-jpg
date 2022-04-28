@@ -49,6 +49,8 @@ const {
   studentGroupBelongsSameMajor,
 } = require("../helpers/groups");
 const Rol_use = require("../models/rol_use");
+const Grades = require("../models/grades");
+const Test = require("../models/test");
 
 const getAllStudents = async (req, res) => {
   let { irregular = "" } = req.query;
@@ -468,7 +470,25 @@ const moveStudentFromGroup = async (req, res) => {
   stu_gro.update({ status: 0 });
   const new_stu_gro = new Stu_gro({ id_group, id_student });
   await new_stu_gro.save();
-  await removeStudentAsGroupChief(stu_gro.toJSON().id_group);
+  if (await isStudentGroupChiefOfGroup(id_student)) {
+    await removeStudentAsGroupChief(stu_gro.toJSON().id_group);
+  }
+  const studentGrades = await Grades.findAll({
+    where: { [Op.and]: [{ id_student }, { grade: { [Op.in]: ["-"] } }] },
+  });
+  await Promise.all(
+    studentGrades.map(async ({ id_course, id_grade }) => {
+      const { id_gro_cou: new_gro_cou } = (await Gro_cou.findOne({
+        where: { [Op.and]: [{ id_group }, { id_course }] },
+      })) || { id_gro_cou: undefined };
+      if (new_gro_cou) {
+        await Test.update({ id_gro_cou: new_gro_cou }, { where: { id_grade } });
+      } else {
+        await Test.destroy({ where: { id_grade } });
+        await Grades.destroy({ where: { id_grade } });
+      }
+    })
+  );
   return res.json({
     ok: true,
     msg: `El estudiante con matricula ${matricula} fue cambiado correctamente.`,

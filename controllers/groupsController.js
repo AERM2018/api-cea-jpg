@@ -332,31 +332,33 @@ const addCourseGroup = async (req, res) => {
     );
 
     for (const id_student of studentsFromGroup) {
-      const { id_grade } = await Grades.create({
-        id_course,
-        id_student,
-        grade: "-",
+      const studentHasGrade = await Grades.findOne({
+        where: { [Op.and]: [{ id_student }, { id_course }] },
       });
-      const { id_gro_cou } = await Gro_cou.findOne({
-        where: { [Op.and]: [{ id_group }, { id_course }] },
-      });
-      const last_folio =
-        (
-          await Test.findOne({
-            order: [["folio", "desc"]],
-          })
-        )?.folio || 0;
-      const testGrade = new Test({
-        id_student,
-        id_gro_cou,
-        folio: last_folio + 1,
-        type: "Ordinario",
-        application_date: moment().format("YYYY-MM-DD"),
-        assigned_test_date: null,
-        applied: false,
-        id_grade: id_grade,
-      });
-      await testGrade.save();
+      if (!studentHasGrade) {
+        const { id_grade } = await Grades.create({
+          id_course,
+          id_student,
+          grade: "-",
+        });
+        const last_folio =
+          (
+            await Test.findOne({
+              order: [["folio", "desc"]],
+            })
+          )?.folio || 0;
+        const testGrade = new Test({
+          id_student,
+          id_gro_cou,
+          folio: last_folio + 1,
+          type: "Ordinario",
+          application_date: moment().format("YYYY-MM-DD"),
+          assigned_test_date: null,
+          applied: false,
+          id_grade: id_grade,
+        });
+        await testGrade.save();
+      }
     }
 
     res.status(200).json({
@@ -369,6 +371,8 @@ const addCourseGroup = async (req, res) => {
 };
 
 const removeCourseGroup = async (req, res) => {
+  Test.belongsTo(Grades, { foreignKey: "id_grade" });
+  Grades.hasOne(Test, { foreignKey: "id_grade" });
   const { id_group, id_course } = req.params;
   try {
     const gro_cou = await Gro_cou.findOne({
@@ -387,17 +391,26 @@ const removeCourseGroup = async (req, res) => {
       });
     }
     await gro_tea_cou.destroy();
-    const studentsFromGroup = (await getStudentsFromGroup(id_group)).map(
-      ({ id_student }) => id_student
-    );
+    // const studentsFromGroup = (await getStudentsFromGroup(id_group)).map(
+    //   ({ id_student }) => id_student
+    // );
+    const grades = await Grades.findAll({
+      include: {
+        required: true,
+        model: Test,
+        where: { id_gro_cou: gro_cou.id_gro_cou },
+      },
+    });
     await Promise.all(
-      studentsFromGroup.map(async (id_student) => {
-        const grade = await Grades.findOne({
-          where: { id_course, id_student },
-        });
+      grades.map(async (grade) => {
         await Test.destroy({ where: { id_grade: grade.id_grade } });
         await grade.destroy();
       })
+      // if (grade) {
+      //   await Test.destroy({ where: { id_grade: grade.id_grade } });
+      //   await grade.destroy();
+      // }
+      // })
     );
     await cou_tea.destroy();
     await gro_cou.destroy();

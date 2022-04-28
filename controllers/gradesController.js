@@ -82,6 +82,9 @@ const getAllGradesByCourse = async (req, res = response) => {
     Grades.belongsTo(Student, { foreignKey: "id_student" });
     Student.hasMany(Grades, { foreignKey: "id_student" });
 
+    Test.belongsTo(Grades, { foreignKey: "id_grade" });
+    Grades.hasOne(Test, { foreignKey: "id_grade" });
+
     const gro_cou = await Gro_cou.findOne({
       where: { [Op.and]: [{ id_course }, { id_group }] },
       raw: true,
@@ -109,6 +112,10 @@ const getAllGradesByCourse = async (req, res = response) => {
             ],
           ],
         },
+        {
+          model: Test,
+          attributes: [],
+        },
       ],
       attributes: { exclude: ["id_course"] },
       where: {
@@ -118,6 +125,10 @@ const getAllGradesByCourse = async (req, res = response) => {
             `(SELECT id_student FROM stu_gro WHERE id_group = ${id_group})`
           ),
         },
+        [Op.or]: [
+          { "$test.id_gro_cou$": gro_cou.id_gro_cou },
+          // { grade: { [Op.eq]: "NP" } },
+        ],
       },
     });
     grades = grades.map((grade) => {
@@ -535,7 +546,14 @@ const updateGrades = async (req, res = response) => {
   const { grade } = req.body;
 
   try {
-    await Grades.update({ grade }, { where: { id_grade } });
+    const gradeRef = await Grades.findByPk(id_grade);
+    if (["NP", "NC"].includes(gradeRef.grade)) {
+      return res.status(400).json({
+        ok: false,
+        msg: "Las calificaciones con valor NP no se pueden actualizar sin antes presentar un exámen.",
+      });
+    }
+    await gradeRef.update({ grade });
     await Test.update(
       {
         applied: true,
@@ -559,6 +577,15 @@ const updateGradeByTest = async (req, res = response) => {
   try {
     const test = await Test.findOne({
       where: { [Op.and]: [{ id_grade }, { type: "Extraordinario" }] },
+    });
+    const gradeRef = await Grades.findOne({ where: { id_grade } });
+    const { id_group } = await Stu_gro.findOne({
+      where: { [Op.and]: [{ id_student: gradeRef.id_student }, { status: 1 }] },
+      attributes: ["id_group"],
+      raw: true,
+    });
+    const gro_cou = await Gro_cou.findOne({
+      where: { id_group, id_course: gradeRef.id_course },
     });
     if (!test) {
       return res.status(400).json({
@@ -597,8 +624,8 @@ const updateGradeByTest = async (req, res = response) => {
     //   ),
     // });
 
-    await test.update({ applied: true });
-    await Grades.update({ grade }, { where: { id_grade } });
+    await test.update({ applied: true, id_gro_cou: gro_cou.id_gro_cou });
+    await gradeRef.update({ grade });
     res.json({
       ok: true,
       msg: "Calificación de materia actualizada correctamente.",
