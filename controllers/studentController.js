@@ -474,16 +474,16 @@ const moveStudentFromGroup = async (req, res) => {
     await removeStudentAsGroupChief(stu_gro.toJSON().id_group);
   }
   const studentGrades = await Grades.findAll({
-    where: { [Op.and]: [{ id_student }, { grade: { [Op.in]: ["-"] } }] },
+    where: { [Op.and]: [{ id_student }, { grade: { [Op.in]: ["-", "NP"] } }] },
   });
   await Promise.all(
-    studentGrades.map(async ({ id_course, id_grade }) => {
+    studentGrades.map(async ({ id_course, id_grade, grade }) => {
       const { id_gro_cou: new_gro_cou } = (await Gro_cou.findOne({
         where: { [Op.and]: [{ id_group }, { id_course }] },
       })) || { id_gro_cou: undefined };
       if (new_gro_cou) {
         await Test.update({ id_gro_cou: new_gro_cou }, { where: { id_grade } });
-      } else {
+      } else if (grade !== "NP") {
         await Test.destroy({ where: { id_grade } });
         await Grades.destroy({ where: { id_grade } });
       }

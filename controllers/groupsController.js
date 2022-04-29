@@ -332,10 +332,10 @@ const addCourseGroup = async (req, res) => {
     );
 
     for (const id_student of studentsFromGroup) {
-      const studentHasGrade = await Grades.findOne({
+      const studentGradeWithCourse = await Grades.findOne({
         where: { [Op.and]: [{ id_student }, { id_course }] },
       });
-      if (!studentHasGrade) {
+      if (!studentGradeWithCourse) {
         const { id_grade } = await Grades.create({
           id_course,
           id_student,
@@ -358,6 +358,11 @@ const addCourseGroup = async (req, res) => {
           id_grade: id_grade,
         });
         await testGrade.save();
+      } else if (studentGradeWithCourse.grade === "NP") {
+        await Test.update(
+          { id_gro_cou },
+          { where: { id_grade: studentGradeWithCourse.id_grade } }
+        );
       }
     }
 

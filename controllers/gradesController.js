@@ -547,10 +547,10 @@ const updateGrades = async (req, res = response) => {
 
   try {
     const gradeRef = await Grades.findByPk(id_grade);
-    if (["NP", "NC"].includes(gradeRef.grade)) {
+    if (["NC"].includes(gradeRef.grade)) {
       return res.status(400).json({
         ok: false,
-        msg: "Las calificaciones con valor NP no se pueden actualizar sin antes presentar un exámen.",
+        msg: "Las calificaciones con valor NC no se pueden actualizar sin antes presentar un exámen.",
       });
     }
     await gradeRef.update({ grade });
@@ -577,15 +577,6 @@ const updateGradeByTest = async (req, res = response) => {
   try {
     const test = await Test.findOne({
       where: { [Op.and]: [{ id_grade }, { type: "Extraordinario" }] },
-    });
-    const gradeRef = await Grades.findOne({ where: { id_grade } });
-    const { id_group } = await Stu_gro.findOne({
-      where: { [Op.and]: [{ id_student: gradeRef.id_student }, { status: 1 }] },
-      attributes: ["id_group"],
-      raw: true,
-    });
-    const gro_cou = await Gro_cou.findOne({
-      where: { id_group, id_course: gradeRef.id_course },
     });
     if (!test) {
       return res.status(400).json({
@@ -624,7 +615,7 @@ const updateGradeByTest = async (req, res = response) => {
     //   ),
     // });
 
-    await test.update({ applied: true, id_gro_cou: gro_cou.id_gro_cou });
+    await test.update({ applied: true });
     await gradeRef.update({ grade });
     res.json({
       ok: true,
