@@ -143,7 +143,7 @@ const createTeacher = async (req, res) => {
 const updateTeacher = async (req, res) => {
   const { id } = req.params;
   const { body } = req;
-  const { rfc } = body;
+  const { rfc = "" } = body;
 
   try {
     const teacher = await Teacher.findByPk(id);
@@ -154,18 +154,20 @@ const updateTeacher = async (req, res) => {
       });
     }
 
-    const teacherRfc = await Teacher.findOne({
-      where: {
-        rfc,
-        id_teacher: { [Op.ne]: id },
-      },
-    });
-
-    if (teacherRfc) {
-      return res.status(400).json({
-        ok: false,
-        msg: `Ya existe un maestro con el RFC ${rfc}`,
+    if (rfc !== "") {
+      const teacherRfc = await Teacher.findOne({
+        where: {
+          rfc,
+          id_teacher: { [Op.ne]: id },
+        },
       });
+
+      if (teacherRfc) {
+        return res.status(400).json({
+          ok: false,
+          msg: `Ya existe un maestro con el RFC ${rfc}`,
+        });
+      }
     }
 
     await teacher.update(body);
