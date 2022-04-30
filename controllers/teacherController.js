@@ -54,9 +54,6 @@ const createTeacher = async (req, res) => {
   } = body;
   let id_user, id_teacher, user;
   try {
-    const teacher = await Teacher.findOne({
-      where: { rfc },
-    });
     const campus = await Campus.findOne({
       where: { id_campus },
     });
@@ -66,27 +63,39 @@ const createTeacher = async (req, res) => {
         msg: "No existe un campus con ese id " + id_campus,
       });
     }
-    if (teacher) {
-      //Reactivate teacher
-      const { id_teacher } = teacher.toJSON();
-      await teacher.update({
-        name,
-        surname_f,
-        surname_m,
-        rfc,
-        mobile_number,
-        active: 1,
+    if (rfc !== "") {
+      const teacher = await Teacher.findOne({
+        where: { rfc },
       });
-      await Cam_use.update(
-        { id_campus },
-        { where: { id_user: teacher.id_user } }
-      );
-      const result = await getTeachersInfoWithTimeTable(id_teacher);
-      return res.status(201).json({
-        ok: true,
-        msg: "Maestro creado correctamente",
-        result,
-      });
+      if (teacher) {
+        if (teacher.active === 2) {
+          //Reactivate teacher
+          const { id_teacher } = teacher.toJSON();
+          await teacher.update({
+            name,
+            surname_f,
+            surname_m,
+            rfc,
+            mobile_number,
+            active: 1,
+          });
+          await Cam_use.update(
+            { id_campus },
+            { where: { id_user: teacher.id_user } }
+          );
+          const result = await getTeachersInfoWithTimeTable(id_teacher);
+          return res.status(201).json({
+            ok: true,
+            msg: "Maestro creado correctamente",
+            result,
+          });
+        } else {
+          return res.status(400).json({
+            ok: false,
+            msg: `Existe un maestro activo con el RFC ${rfc}`,
+          });
+        }
+      }
     }
 
     const usern = new User({ user_type: "teacher", password: "123456" });
