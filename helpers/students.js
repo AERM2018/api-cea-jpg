@@ -133,8 +133,7 @@ const getPaymentStudent = async (
         break;
       case "Materia":
         const { first_day, last_day, overdue } = await getGroupDaysAndOverdue(
-          id_group,
-          start_date
+          id_group
         );
         const amount_origin = getFeeCourseByMajor(educational_level);
         // Change the payment's amount in case it's necessary
