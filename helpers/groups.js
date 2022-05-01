@@ -15,6 +15,7 @@ const Stu_gro = require("../models/stu_gro");
 const Teacher = require("../models/teacher");
 const User = require("../models/user");
 const { setCourseInactivate } = require("./courses");
+const Gro_tea_cou = require("../models/gro_tea_cou");
 
 const getGroupInfo = async (id_group) => {
   Cam_gro.belongsTo(Group, { foreignKey: "id_group" });
@@ -89,11 +90,15 @@ const getTitularTeacherOfCourse = async (id_group = 0, id_course = 0) => {
   // Course.hasOne(Gro_cou,{foreignKey:'id_course'})
   // Cou_tea.belongsTo(Course,{foreignKey:'id_course'})
   // Course.hasOne(Cou_tea,{foreignKey:'id_course'})
+  const gro_cou = await Gro_cou.findOne({
+    where: { [Op.and]: [{ id_course }, { id_group }] },
+  });
+  const gro_tea_cou = await Gro_tea_cou.findOne({
+    where: { id_gro_cou: gro_cou.id_gro_cou },
+  });
   Cou_tea.belongsTo(Teacher, { foreignKey: "id_teacher" });
   Teacher.hasOne(Cou_tea, { foreignKey: "id_teacher" });
   const course = await Cou_tea.findOne({
-    // where : {[Op.and] : [{id_course},{id_group}]},
-
     include: {
       model: Teacher,
       attributes: [
@@ -111,18 +116,19 @@ const getTitularTeacherOfCourse = async (id_group = 0, id_course = 0) => {
         ],
       ],
     },
-    where: where(
-      literal(
-        `((${
-          col("start_date").col
-        } = (SELECT start_date FROM gro_cou WHERE id_course = ${id_course} AND id_group = ${id_group})) AND (${
-          col("end_date").col
-        } = (SELECT end_date FROM gro_cou WHERE id_course = ${id_course} AND id_group = ${id_group})) AND ${
-          col("id_course").col
-        } = ${id_course})`
-      ),
-      true
-    ),
+    where: { id_sub_tea: gro_tea_cou.id_cou_tea },
+    // where: where(
+    //   literal(
+    //     `((${
+    //       col("start_date").col
+    //     } = (SELECT start_date FROM gro_cou WHERE id_course = ${id_course} AND id_group = ${id_group})) AND (${
+    //       col("end_date").col
+    //     } = (SELECT end_date FROM gro_cou WHERE id_course = ${id_course} AND id_group = ${id_group})) AND ${
+    //       col("id_course").col
+    //     } = ${id_course})`
+    //   ),
+    //   true
+    // ),
     raw: true,
     nest: true,
   });

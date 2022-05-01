@@ -32,6 +32,7 @@ const {
 } = require("../helpers/getDataSavedFromEntities");
 const Grades = require("../models/grades");
 const Test = require("../models/test");
+const Gro_tea_cou = require("../models/gro_tea_cou");
 
 const getAllGroups = async (req, res) => {
   try {
@@ -297,6 +298,7 @@ const addCourseGroup = async (req, res) => {
         ],
       },
     });
+    // Validate that a group can't take more than a course in a period
     if (
       groupCourseSameMonth.find(
         (gro_cou) =>
@@ -312,23 +314,51 @@ const addCourseGroup = async (req, res) => {
         msg: `El grupo ya cuenta con una materia asignada para el periodo especificado`,
       });
     }
-    const gro_cou = new Gro_cou({ id_group, id_course, start_date, end_date });
-    await gro_cou.save();
-    const cou_tea = new Cou_tea({
+    const { id_gro_cou } = await Gro_cou.create({
+      id_group,
+      id_course,
+      start_date,
+      end_date,
+    });
+    const { id_sub_tea: id_cou_tea } = await Cou_tea.create({
       id_course,
       id_teacher,
       start_date,
       end_date,
     });
-    await cou_tea.save();
+    await Gro_tea_cou.create({ id_gro_cou, id_cou_tea });
     const studentsFromGroup = (await getStudentsFromGroup(id_group)).map(
       ({ id_student }) => id_student
     );
-    await Promise.all(
-      studentsFromGroup.map(async (id_student) => {
-        await Grades.create({ id_course, id_student, grade: "-" });
-      })
-    );
+
+    for (const id_student of studentsFromGroup) {
+      const { id_grade } = await Grades.create({
+        id_course,
+        id_student,
+        grade: "-",
+      });
+      const { id_gro_cou } = await Gro_cou.findOne({
+        where: { [Op.and]: [{ id_group }, { id_course }] },
+      });
+      const last_folio =
+        (
+          await Test.findOne({
+            order: [["folio", "desc"]],
+          })
+        )?.folio || 0;
+      const testGrade = new Test({
+        id_student,
+        id_gro_cou,
+        folio: last_folio + 1,
+        type: "Ordinario",
+        application_date: moment().format("YYYY-MM-DD"),
+        assigned_test_date: null,
+        applied: false,
+        id_grade: id_grade,
+      });
+      await testGrade.save();
+    }
+
     res.status(200).json({
       ok: true,
       msg: "La materia se añadio al grupo correctamente",
@@ -344,14 +374,11 @@ const removeCourseGroup = async (req, res) => {
     const gro_cou = await Gro_cou.findOne({
       where: { [Op.and]: [{ id_course }, { id_group }] },
     });
+    const gro_tea_cou = await Gro_tea_cou.findOne({
+      where: { id_gro_cou: gro_cou.id_gro_cou },
+    });
     const cou_tea = await Cou_tea.findOne({
-      where: {
-        [Op.and]: [
-          { id_course },
-          { start_date: { [Op.eq]: gro_cou.start_date } },
-          { end_date: { [Op.eq]: gro_cou.end_date } },
-        ],
-      },
+      where: { id_sub_tea: gro_tea_cou.id_cou_tea },
     });
     if (!cou_tea) {
       return res.json({
@@ -359,8 +386,7 @@ const removeCourseGroup = async (req, res) => {
         msg: `El curso con id ${id_course} no se encuentra asociado con ningun maestro.`,
       });
     }
-    await cou_tea.destroy();
-    await gro_cou.destroy();
+    await gro_tea_cou.destroy();
     const studentsFromGroup = (await getStudentsFromGroup(id_group)).map(
       ({ id_student }) => id_student
     );
@@ -373,6 +399,8 @@ const removeCourseGroup = async (req, res) => {
         await grade.destroy();
       })
     );
+    await cou_tea.destroy();
+    await gro_cou.destroy();
     return res.json({
       ok: true,
       msg: `La asociación entre el grupo con id ${id_group} y el curso con id ${id_course} se ha eliminado correctamente.`,
@@ -445,7 +473,10 @@ const removeGroupChief = async (req, res = response) => {
 const getCoursesGroupHasTaken = async (req, res = response) => {
   const { id_group } = req.params;
   let groupInfo = { ...(await getGroupInfo(id_group))[0] };
-  const gro_cous = await Gro_cou.findAll({ where: { id_group } });
+  const gro_cous = await Gro_cou.findAll({
+    where: { id_group },
+    order: [["start_date", "asc"]],
+  });
   const coursesId = await Promise.all(
     gro_cous.map(async (gro_cou) => {
       await setCourseInactivate(gro_cou);
