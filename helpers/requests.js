@@ -1,6 +1,7 @@
 const moment = require("moment");
 const { fn, col } = require("sequelize");
 const Document = require("../models/document");
+const Partial_pay = require("../models/partial_pay");
 const Payment = require("../models/payment");
 const Request = require("../models/request");
 const Student = require("../models/student");
@@ -67,21 +68,46 @@ const getRequests = async (opts = { matricula: "", status: 0, date: "" }) => {
     },
   });
   return requests.length > 0
-    ? requests.map((request) => {
-        const { payment, document, ...restoRequest } = request.toJSON();
-        const student = payment.stu_pay.student;
-        return {
-          ...restoRequest,
-          creation_date: moment(restoRequest.creation_date).format(
-            "D,MMMM,YYYY"
-          ),
-          ...student,
-          document_type: document.document_type,
-          document_name: document_types.find(
-            (documentType) => documentType.id === document.document_type
-          ).name,
-        };
-      })
+    ? await Promise.all(
+        requests.map(async (request) => {
+          const {
+            payment,
+            document,
+            status_request: old_status_request,
+            ...restoRequest
+          } = request.toJSON();
+          let { status_request } = request.toJSON();
+          status_request = payment.status_payment ? "Pagado" : undefined;
+          if (!status_request) {
+            const [{ accumulate }] = await Partial_pay.findAll({
+              where: { id_payment: payment.id_payment },
+              attributes: [[fn("sum", col("amount_p")), "accumulate"]],
+              group: ["id_payment"],
+              nest: true,
+              raw: true,
+            });
+            status_request =
+              accumulate === 0
+                ? "No pagado"
+                : `Adeudo: $${parseFloat(payment.amount - accumulate).toFixed(
+                    2
+                  )}`;
+          }
+          const student = payment.stu_pay.student;
+          return {
+            ...restoRequest,
+            status_request,
+            creation_date: moment(restoRequest.creation_date).format(
+              "D,MMMM,YYYY"
+            ),
+            ...student,
+            document_type: document.document_type,
+            document_name: document_types.find(
+              (documentType) => documentType.id === document.document_type
+            ).name,
+          };
+        })
+      )
     : [];
 };
 
