@@ -158,9 +158,11 @@ gradesRouter.put(
       .not()
       .isEmpty()
       .isInt(),
-    check("grade", "Calificación es de tipo float obligatoria")
-      .isFloat()
-      .notEmpty(),
+    check("grade", "La calificación es obligatoria")
+      .notEmpty()
+      .customSanitizer((grade) => {
+        return grade.toLowerCase() === "np" ? "NP" : student.grade;
+      }),
     validateFields,
     checkGradeCourseExistence,
     isUserAllowedToUpdateGrade,
