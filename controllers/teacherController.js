@@ -43,8 +43,15 @@ const getAllTeachers = async (req, res) => {
 
 const createTeacher = async (req, res) => {
   const { body } = req;
-  const { name, surname_f, surname_m, rfc, mobile_number, email, id_campus } =
-    body;
+  const {
+    name,
+    surname_f,
+    surname_m,
+    rfc = "",
+    mobile_number,
+    email,
+    id_campus,
+  } = body;
   let id_user, id_teacher, user;
   try {
     const teacher = await Teacher.findOne({
