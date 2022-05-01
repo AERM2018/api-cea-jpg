@@ -451,36 +451,41 @@ const uploadCourseGrades = async (req, res = response) => {
     }
 
     // // iterate array to get every student and create his grade voiding dupliactes
-    await Promise.all(
-      students_grades.map(async (grade) => {
-        try {
-          const studentGrade = new Grades({
-            id_course,
-            id_student: grade.id_student,
-            grade: grade.grade,
-          });
-          await studentGrade.save();
-          const { id_gro_cou } = await Gro_cou.findOne({
-            where: { [Op.and]: [{ id_group }, { id_course }] },
-          });
-          if (grade.grade !== "NP") {
-            const testGrade = new Test({
-              id_student: grade.id_student,
-              id_gro_cou,
-              folio: 3,
-              type: "Ordinario",
-              application_date: moment().format("YYYY-MM-DD"),
-              assigned_test_date: null,
-              applied: true,
-              id_grade: studentGrade.id_grade,
-            });
-            await testGrade.save();
-          }
-        } catch (err) {
-          console.log(err);
-        }
-      })
-    );
+    // await Promise.all(
+    // students_grades.map(async (grade) => {
+    for (const grade of students_grades) {
+      try {
+        const studentGrade = new Grades({
+          id_course,
+          id_student: grade.id_student,
+          grade: grade.grade,
+        });
+        await studentGrade.save();
+        // const { id_gro_cou } = await Gro_cou.findOne({
+        //   where: { [Op.and]: [{ id_group }, { id_course }] },
+        // });
+        // if (grade.grade !== "NP") {
+        //   const { folio: last_folio } = await Test.findOne({
+        //     order: [["folio", "desc"]],
+        //   });
+        //   const testGrade = new Test({
+        //     id_student: grade.id_student,
+        //     id_gro_cou,
+        //     folio: last_folio + 1,
+        //     type: "Ordinario",
+        //     application_date: moment().format("YYYY-MM-DD"),
+        //     assigned_test_date: null,
+        //     applied: true,
+        //     id_grade: studentGrade.id_grade,
+        //   });
+        //   await testGrade.save();
+        // }
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    // })
+    // );
 
     res.status(200).json({
       ok: true,
@@ -531,7 +536,13 @@ const updateGrades = async (req, res = response) => {
 
   try {
     await Grades.update({ grade }, { where: { id_grade } });
-
+    await Test.update(
+      {
+        applied: true,
+        application_date: moment().format("YYYY-MM-DD"),
+      },
+      { where: { id_grade } }
+    );
     res.json({
       ok: true,
       msg: "Calificación de materia corregida correctamente.",
@@ -546,31 +557,51 @@ const updateGradeByTest = async (req, res = response) => {
   const { grade } = req.body;
 
   try {
-    const testGrade = await Test.findOne({
-      where: where(
-        literal(
-          `(id_grade = ${id_grade} AND (${moment().format(
-            "YYYY-MM-DD"
-          )} = ${moment(col("application_date")).format(
-            "YYYY-MM-DD"
-          )} OR ${moment().format("YYYY-MM-DD")} <= ${moment(
-            col("application_date")
-          )
-            .add(5, "days")
-            .format("YYYY-MM-DD")}) AND ${col("applied").col} = 0)`
-        ),
-        true
-      ),
+    const test = await Test.findOne({
+      where: { [Op.and]: [{ id_grade }, { type: "Extraordinario" }] },
     });
-    if (!testGrade) {
-      return res.status(403).json({
+    if (!test) {
+      return res.status(400).json({
         ok: false,
         msg: "Acutilización de calificación denegada, primero necesita asignar un exámen.",
       });
     }
-    await testGrade.update({ applied: true });
-    await Grades.update({ grade }, { where: { id_grade } });
+    console.log(
+      moment(test.application_date).add(5, "days").diff(moment({}), "days")
+    );
+    // Set date limit to update grade by test (5 days more)
+    if (
+      moment(test.application_date).diff(moment({}), "days") === 0 ||
+      moment(test.application_date).add(5, "days").diff(moment({}), "days") >
+        6 ||
+      moment(test.application_date).add(5, "days").diff(moment({}), "days") <
+        0 ||
+      test.applied
+    ) {
+      return res.status(403).json({
+        ok: false,
+        msg: "Acutilización de calificación denegada, no está permitido actualizar calificación antes de la fecha indicada.",
+      });
+    }
+    // const testGrade = await Test.findOne({
+    //   where: where(
+    //     literal(
+    //       `(id_grade = ${id_grade} AND (${moment().format(
+    //         "YYYY-MM-DD"
+    //       )} = ${moment(col("application_date")).format(
+    //         "YYYY-MM-DD"
+    //       )} OR ${moment().format("YYYY-MM-DD")} <= ${moment(
+    //         col("application_date")
+    //       )
+    //         .add(5, "days")
+    //         .format("YYYY-MM-DD")}) AND ${col("applied").col} = 0)`
+    //     ),
+    //     true
+    //   ),
+    // });
 
+    await test.update({ applied: true });
+    await Grades.update({ grade }, { where: { id_grade } });
     res.json({
       ok: true,
       msg: "Calificación de materia actualizada correctamente.",

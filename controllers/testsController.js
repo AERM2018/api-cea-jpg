@@ -13,7 +13,7 @@ const assignTestToStudent = async (req, res) => {
   const { application_date, id_course } = req.body;
   try {
     const { id_group } = await Stu_gro.findOne({
-      where: { id_student },
+      where: { [Op.and]: [{ id_student }, { status: 1 }] },
       attributes: ["id_group"],
       raw: true,
     });
