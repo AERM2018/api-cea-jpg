@@ -50,7 +50,7 @@ const getAllGrades = async (req, res = response) => {
       return {
         id_student: student.id_student,
         matricula: student.matricula,
-        student_name: `${student.name} ${student.surname_f} ${student.surname_m}`,
+        student_name: `${student.name} ${student.surname_m} ${student.surname_f}`,
         campus_name: student.campus_name,
         group_name: student.name_group,
         major_name: `${student.educational_level} en ${student.major_name}`,
