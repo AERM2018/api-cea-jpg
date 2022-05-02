@@ -66,7 +66,8 @@ class Kardex extends AlePDFDocument {
           this.student.generalAvg
         } y ${this.student.grades
           .map((gradeInfo) => (gradeInfo.grade != "NP" ? gradeInfo.credits : 0))
-          .reduce((cur, pre) => pre + cur)} créditos cubiertos.`
+          .reduce((cur, pre) => pre + cur)
+          .toFixed(2)} créditos cubiertos.`
       )
       .moveDown(8);
     this.drawLineToSign(

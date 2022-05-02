@@ -42,7 +42,7 @@ coursesRouter.post(
     )
       .not()
       .isEmpty()
-      .isInt(),
+      .isFloat(),
     check(
       "clave",
       "La clave del curso es obligatoria y debe tener como máximo 5 caracteres"

@@ -161,7 +161,7 @@ gradesRouter.put(
     check("grade", "La calificación es obligatoria")
       .notEmpty()
       .customSanitizer((grade) => {
-        return grade.toLowerCase() === "np" ? "NP" : student.grade;
+        return grade.toLowerCase() === "np" ? "NP" : grade;
       }),
     validateFields,
     checkGradeCourseExistence,

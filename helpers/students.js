@@ -328,7 +328,7 @@ const getGradesStudent = async (
         model: Payment,
         attributes: ["start_date", "status_payment", "payment_type"],
         where: {
-          start_date: moment(start_date).format("YYYY-MMM-DD"),
+          start_date: moment(start_date).format("YYYY-MM-DD"),
           status_payment: 1,
           payment_type: "Materia",
         },
