@@ -64,7 +64,9 @@ const createDocument = async (req, res = response) => {
               withAvg: true,
               forKardex: true,
             })) || [];
-          grades = grades.filter((grade) => grade !== "NP" && grade !== "-");
+          grades = grades.filter(
+            ({ grade }) => grade !== "NP" && grade !== "-"
+          );
           if ([1, 10].includes(document_type) && grades.length === 0)
             return res.status(400).json({
               ok: false,
