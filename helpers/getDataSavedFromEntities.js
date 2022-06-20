@@ -125,9 +125,9 @@ const getTeachersInfoWithTimeTable = async (id_teacher) => {
             "concat",
             col("name"),
             " ",
-            col("surname_f"),
+            col("surname_m"),
             " ",
-            col("surname_m")
+            col("surname_f")
           ),
           "teacher_name",
         ],
@@ -386,9 +386,9 @@ const getGraduationCourseInfoWithSections = async (
                 "concat",
                 col("graduation_sections.teacher.name"),
                 " ",
-                col("graduation_sections.teacher.surname_f"),
+                col("graduation_sections.teacher.surname_m"),
                 " ",
-                col("graduation_sections.teacher.surname_m")
+                col("graduation_sections.teacher.surname_f")
               ),
               "teacher_name",
             ],
@@ -404,9 +404,9 @@ const getGraduationCourseInfoWithSections = async (
               "concat",
               col("teacher.name"),
               " ",
-              col("teacher.surname_f"),
+              col("teacher.surname_m"),
               " ",
-              col("teacher.surname_m")
+              col("teacher.surname_f")
             ),
             "teacher_name",
           ],

@@ -76,9 +76,9 @@ const getRegularCourseInfo = async (
                     "concat",
                     col("course.cou_tea.teacher.name"),
                     " ",
-                    col("course.cou_tea.teacher.surname_f"),
+                    col("course.cou_tea.teacher.surname_m"),
                     " ",
-                    col("course.cou_tea.teacher.surname_m")
+                    col("course.cou_tea.teacher.surname_f")
                   ),
                   "teacher_name",
                 ],
@@ -188,9 +188,9 @@ const getExtraCourseInfo = async (
             "concat",
             col("name"),
             " ",
-            col("surname_f"),
+            col("surname_m"),
             " ",
-            col("surname_m")
+            col("surname_f")
           ),
           "teacher_name",
         ],
@@ -272,9 +272,9 @@ const getGraduationSectionInfo = async (id_graduation_section) => {
               "concat",
               col("name"),
               " ",
-              col("surname_f"),
+              col("surname_m"),
               " ",
-              col("surname_m")
+              col("surname_f")
             ),
             "teacher_name",
           ],
@@ -391,9 +391,9 @@ const getCoursesGiveTeachersOrTeacher = async (
           "CONCAT",
           col("teacher.name"),
           " ",
-          col("teacher.surname_f"),
+          col("teacher.surname_m"),
           " ",
-          col("teacher.surname_m")
+          col("teacher.surname_f")
         ),
         "teacher_name",
       ],
@@ -494,9 +494,9 @@ const getCoursesGiveTeachersOrTeacher = async (
                 "concat",
                 col("graduation_sections.teacher.name"),
                 " ",
-                col("graduation_sections.teacher.surname_f"),
+                col("graduation_sections.teacher.surname_m"),
                 " ",
-                col("graduation_sections.teacher.surname_m")
+                col("graduation_sections.teacher.surname_f")
               ),
               "teacher_name",
             ],

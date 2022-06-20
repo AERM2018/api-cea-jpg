@@ -111,9 +111,9 @@ const getTestInfo = async (
               "concat",
               col("name"),
               " ",
-              col("surname_f"),
+              col("surname_m"),
               " ",
-              col("surname_m")
+              col("surname_f")
             ),
             "teacher_name",
           ],

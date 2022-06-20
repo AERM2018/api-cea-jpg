@@ -454,9 +454,9 @@ const getExtraCoursesGradesStudent = async (id_student = "") => {
                 "concat",
                 col("extracurricular_course->teacher.name"),
                 " ",
-                col("extracurricular_course->teacher.surname_f"),
+                col("extracurricular_course->teacher.surname_m"),
                 " ",
-                col("extracurricular_course->teacher.surname_m")
+                col("extracurricular_course->teacher.surname_f")
               ),
               "teacher_name",
             ],
@@ -515,9 +515,9 @@ const getTesineGradeStudent = async (id_student = "") => {
                 "concat",
                 col("name"),
                 " ",
-                col("surname_f"),
+                col("surname_m"),
                 " ",
-                col("surname_m")
+                col("surname_f")
               ),
               "teacher_name",
             ],
@@ -603,9 +603,9 @@ const getCourseStudentIsTaking = async (id_group = 0) => {
               "concat",
               col("name"),
               " ",
-              col("surname_f"),
+              col("surname_m"),
               " ",
-              col("surname_m")
+              col("surname_f")
             ),
             "teacher_name",
           ],

@@ -16,9 +16,9 @@ const getLogInInfo = async (id_user, user_type) => {
               "concat",
               col("name"),
               " ",
-              col("surname_f"),
+              col("surname_m"),
               " ",
-              col("surname_m")
+              col("surname_f")
             ),
             "name",
           ],
