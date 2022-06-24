@@ -125,8 +125,8 @@ const createStudent = async (req, res = response) => {
         });
       } else {
         const { id_student, matricula } = student;
-        let currentStudentGroup = await Stu_gro.findOne({
-          where: { [Op.and]: [{ id_student }, { status: 1 }] },
+        let lastStudentGroup = await Stu_gro.findOne({
+          where: { [Op.and]: [{ id_student }] },
         });
         const group = await Group.findOne({
           where: { id_group },
@@ -138,21 +138,21 @@ const createStudent = async (req, res = response) => {
           });
         }
         // Cambiar de grupo al estudiante si es necesario
-        if (currentStudentGroup) {
-          if (currentStudentGroup.id_group !== id_group) {
+        if (lastStudentGroup) {
+          if (lastStudentGroup.id_group !== id_group) {
             if (!(await studentGroupBelongsSameMajor(id_student, id_group))) {
               return res.status(400).json({
                 ok: false,
                 msg: `No se puede cambiar al alumno con matricula ${matricula} a otro grupo que no pertence a su carrera.`,
               });
             }
-            await currentStudentGroup.update({ id_group });
+            // await lastStudentGroup.update({ id_group });
+            lastStudentGroup = await Stu_gro.create({ id_student, id_group });
           }
         } else {
-          currentStudentGroup = await Stu_gro.create({ id_student, id_group });
         }
         if (await isStudentGroupChiefOfGroup(id_student)) {
-          await removeStudentAsGroupChief(currentStudentGroup.id_group);
+          await removeStudentAsGroupChief(lastStudentGroup.id_group);
         }
 
         const campus = await Campus.findOne({
@@ -207,10 +207,10 @@ const createStudent = async (req, res = response) => {
           irregular,
         });
         // Asignar grupo al estudiante
-        await Stu_gro.create({
-          id_group: group.id_group,
-          id_student: student.id_student,
-        });
+        // await Stu_gro.create({
+        //   id_group: group.id_group,
+        //   id_student: student.id_student,
+        // });
         const studentUser = await User.findByPk(student.id_user);
         // Cambiar email del usuario si es necesario
         if (studentUser.email !== email) {
@@ -429,7 +429,10 @@ const deleteStudent = async (req, res) => {
     if (await isStudentGroupChiefOfGroup(student.id_student)) {
       await removeStudentAsGroupChief(stu_gro.id_group);
     }
-    await Stu_gro.destroy({ where: { id_student: student.id_student } });
+    await Stu_gro.update(
+      { status: 0 },
+      { where: { id_student: student.id_student } }
+    );
 
     res.status(200).json({
       ok: true,
@@ -467,7 +470,7 @@ const moveStudentFromGroup = async (req, res) => {
       ok: false,
       msg: `Accion denegada, no se puede cambiar al alumno con matricula ${matricula} a otro grupo que no pertence a su carrera.`,
     });
-  stu_gro.update({ status: 0 });
+  await stu_gro.update({ status: 0 });
   const new_stu_gro = new Stu_gro({ id_group, id_student });
   await new_stu_gro.save();
   if (await isStudentGroupChiefOfGroup(id_student)) {
