@@ -90,7 +90,8 @@ class AlePDFDocument {
     });
   };
 
-  writeHeader() {
+  writeHeader(opts = { y: this.marginYDocument }) {
+    this.PDFInstance.y = opts.y;
     this.PDFInstance.image(
       "types/icon.jpg",
       this.PDFInstance.x,
@@ -113,7 +114,7 @@ class AlePDFDocument {
       .text("Ayuntamiento No. 618 Nte, Durango,Dgo.")
       .moveUp()
       .text("Tel (618) 8 11 75 06", { align: "right" })
-      .moveDown(2);
+      .moveDown();
   }
 
   writeHeader2() {
@@ -144,7 +145,7 @@ class AlePDFDocument {
       .text("ATENTAMENTE", this.marginXDocument, this.PDFInstance.y, {
         align: "center",
       })
-      .moveDown(4)
+      .moveDown(1)
       .text(this.peopleToSign[2].name, { align: "center" })
       .text(this.peopleToSign[2].workstation, { align: "center" });
   }
