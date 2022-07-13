@@ -13,13 +13,13 @@ class ProofOfStudies extends AlePDFDocument {
   }
 
   fillDocument() {
-    super.writeHeader({ y: 20 });
+    super.writeHeader({ y: 15 });
     this.PDFInstance.font("regular-bold")
       .fontSize(12)
       .text(`Asunto: ${document_types[0].name}`, { align: "right" })
-      .moveDown(0.5)
+      .moveDown(0.3)
       .text("A quien corresponda:")
-      .moveDown(0.5)
+      .moveDown(0.3)
       .font("regular")
       .text(`${this.peopleToSign[2].article} que suscribe `, {
         continued: true,
@@ -69,7 +69,7 @@ class ProofOfStudies extends AlePDFDocument {
         width: 0.83,
         renderer: (tb, data, draw, column, pos) => {
           // Change the font size depending on the amount of grades from the student
-          tb.pdf.fontSize(this.student.grades.length > 15 ? 8 : 12);
+          tb.pdf.fontSize(this.student.grades.length > 15 ? 7 : 12);
           return data.courseName;
         },
       },
