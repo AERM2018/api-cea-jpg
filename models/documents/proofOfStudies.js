@@ -13,7 +13,7 @@ class ProofOfStudies extends AlePDFDocument {
   }
 
   fillDocument() {
-    super.writeHeader({ y: 15 });
+    super.writeHeader({ y: 20 });
     this.PDFInstance.font("regular-bold")
       .fontSize(12)
       .text(`Asunto: ${document_types[0].name}`, { align: "right" })
