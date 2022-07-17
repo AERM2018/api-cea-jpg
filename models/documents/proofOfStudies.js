@@ -69,7 +69,7 @@ class ProofOfStudies extends AlePDFDocument {
         width: 0.83,
         renderer: (tb, data, draw, column, pos) => {
           // Change the font size depending on the amount of grades from the student
-          tb.pdf.fontSize(this.student.grades.length > 15 ? 7 : 12);
+          tb.pdf.fontSize(this.student.grades.length > 15 ? 6 : 12);
           return data.courseName;
         },
       },
@@ -97,14 +97,14 @@ class ProofOfStudies extends AlePDFDocument {
 
   writeExpeditionDate() {
     this.PDFInstance.text("", this.marginDocument, this.PDFInstance.y);
-    this.PDFInstance.moveDown(this.student.grades.length < 16 ? 2 : 0.6);
+    this.PDFInstance.moveDown(this.student.grades.length < 16 ? 2 : 0.4);
     this.PDFInstance.text(
       `Se extiende la presente a solicitud del interesado en la ciudad de Durango, Dgo., a los ${this.dateDay} días del mes de ${this.dateMonth} de ${this.dateYear}. `,
       this.marginXDocument,
       this.PDFInstance.y,
       { align: "left" }
     );
-    this.PDFInstance.moveDown(this.student.grades.length < 16 ? 5 : 0.6);
+    this.PDFInstance.moveDown(this.student.grades.length < 16 ? 5 : 0.4);
   }
 }
 

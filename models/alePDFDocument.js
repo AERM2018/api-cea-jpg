@@ -112,12 +112,12 @@ class AlePDFDocument {
       0
     )
       .stroke()
-      .moveDown(0.5)
+      .moveDown(0.4)
       .fontSize(10)
       .text("Ayuntamiento No. 618 Nte, Durango,Dgo.")
       .moveUp()
       .text("Tel (618) 8 11 75 06", { align: "right" })
-      .moveDown();
+      .moveDown(0.5);
   }
 
   writeHeader2() {
@@ -148,7 +148,7 @@ class AlePDFDocument {
       .text("ATENTAMENTE", this.marginXDocument, this.PDFInstance.y, {
         align: "center",
       })
-      .moveDown(1)
+      .moveDown(0.5)
       .text(this.peopleToSign[2].name, { align: "center" })
       .text(this.peopleToSign[2].workstation, { align: "center" });
   }
