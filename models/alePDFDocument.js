@@ -39,7 +39,7 @@ class AlePDFDocument {
   pageWidthWithMargin = 0;
 
   constructor(student = {}) {
-    this.PDFInstance = new PDFKit({ size: [595.28, 841.89] });
+    this.PDFInstance = new PDFKit({ size: [612, 792] });
     this.student = student;
     // this.PDFInstance = new PDFKit({size:[612.00,936.00]})
     this.marginXDocument = this.PDFInstance.x;
@@ -97,24 +97,27 @@ class AlePDFDocument {
       this.PDFInstance.x,
       this.PDFInstance.y,
       { fit: [100, 100] }
-    )
-      .moveDown()
-      .fontSize(15)
+    );
+    // .moveDown()
+    this.PDFInstance.y = this.PDFInstance.y - 50;
+    this.PDFInstance.x = this.PDFInstance.x + 80; // Set the school name next to the logo
+    this.PDFInstance.fontSize(15)
       .text(`${this.schoolName}`, { align: "center" })
-      .moveDown()
-      .rect(
-        this.PDFInstance.x,
-        this.PDFInstance.y,
-        this.PDFInstance.options.size[0] - this.PDFInstance.x * 2,
-        0
-      )
+      .moveDown(3);
+    this.PDFInstance.x = this.PDFInstance.x - 80; // get back the pointer to the left marign in x
+    this.PDFInstance.rect(
+      this.PDFInstance.x,
+      this.PDFInstance.y,
+      this.PDFInstance.options.size[0] - this.PDFInstance.x * 2,
+      0
+    )
       .stroke()
-      .moveDown(0.5)
+      .moveDown(0.4)
       .fontSize(10)
       .text("Ayuntamiento No. 618 Nte, Durango,Dgo.")
       .moveUp()
       .text("Tel (618) 8 11 75 06", { align: "right" })
-      .moveDown();
+      .moveDown(0.5);
   }
 
   writeHeader2() {
@@ -145,7 +148,7 @@ class AlePDFDocument {
       .text("ATENTAMENTE", this.marginXDocument, this.PDFInstance.y, {
         align: "center",
       })
-      .moveDown(1)
+      .moveDown(0.5)
       .text(this.peopleToSign[2].name, { align: "center" })
       .text(this.peopleToSign[2].workstation, { align: "center" });
   }
