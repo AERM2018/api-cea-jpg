@@ -477,11 +477,11 @@ const getAllPaymentsByGroup = async (req, res = response) => {
           [
             fn(
               "concat",
-              col("name"),
-              " ",
               col("surname_m"),
               " ",
-              col("surname_f")
+              col("surname_f"),
+              " ",
+              col("name"),
             ),
             "student_name",
           ],

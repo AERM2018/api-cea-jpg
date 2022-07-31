@@ -50,7 +50,7 @@ const getAllGrades = async (req, res = response) => {
       return {
         id_student: student.id_student,
         matricula: student.matricula,
-        student_name: `${student.name} ${student.surname_m} ${student.surname_f}`,
+        student_name: `${student.surname_m} ${student.surname_f} ${student.name}`,
         campus_name: student.campus_name,
         group_name: student.name_group,
         major_name: `${student.educational_level} en ${student.major_name}`,
@@ -102,11 +102,11 @@ const getAllGradesByCourse = async (req, res = response) => {
             [
               fn(
                 "concat",
-                col("name"),
-                " ",
                 col("surname_m"),
                 " ",
-                col("surname_f")
+                col("surname_f"),
+                " ",
+                col("name"),
               ),
               "student_name",
             ],
@@ -163,11 +163,11 @@ const getExtraCourseGrades = async (req, res = response) => {
           [
             fn(
               "concat",
-              col("name"),
-              " ",
               col("surname_m"),
               " ",
-              col("surname_f")
+              col("surname_f"),
+              " ",
+              col("name"),
             ),
             "student_name",
           ],

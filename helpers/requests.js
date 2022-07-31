@@ -43,11 +43,11 @@ const getRequests = async (opts = { matricula: "", status: 0, date: "" }) => {
               [
                 fn(
                   "concat",
-                  col("name"),
-                  " ",
                   col("surname_m"),
                   " ",
-                  col("surname_f")
+                  col("surname_f"),
+                  " ",
+                  col("name"),
                 ),
                 "student_name",
               ],

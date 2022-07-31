@@ -8,9 +8,13 @@ const filterGradesStudent = ( gradesStudent = [], q = '') => {
         //     `${student.name}${student.surname_f}${student.surname_m}`.toLowerCase().includes(q) ||
         //     (student.matricula.toLowerCase().includes(q))
         // ) return gradeStudent
-        if(`${student.name}${student.surname_f}${student.surname_m}`.toLowerCase().includes(q)){
-            gradeStudent.q = 'student_name'
-            return gradeStudent
+        if (
+          `${student.surname_m}${student.surname_f}${student.name}`
+            .toLowerCase()
+            .includes(q)
+        ) {
+          gradeStudent.q = "student_name";
+          return gradeStudent;
         }
         if ((student.matricula.toLowerCase().includes(q))){
             gradeStudent.q = 'matricula'

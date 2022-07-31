@@ -133,11 +133,11 @@ const getDocuments = async (req, res) => {
           [
             fn(
               "concat",
-              col("name"),
-              " ",
               col("surname_m"),
               " ",
-              col("surname_f")
+              col("surname_f"),
+              " ",
+              col("name"),
             ),
             "student_name",
           ],

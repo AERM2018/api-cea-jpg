@@ -60,11 +60,11 @@ const getGroupInfo = async (id_group) => {
           [
             fn(
               "concat",
-              col("student.name"),
-              " ",
               col("student.surname_m"),
               " ",
-              col("student.surname_f")
+              col("student.surname_f"),
+              " ",
+              col("student.name"),
             ),
             "group_chief_student_name",
           ],
@@ -270,11 +270,11 @@ const getStudentsFromGroup = async (id_group) => {
           [
             fn(
               "concat",
-              col("name"),
-              " ",
               col("surname_m"),
               " ",
-              col("surname_f")
+              col("surname_f"),
+              " ",
+              col("name"),
             ),
             "student_name",
           ],
