@@ -85,16 +85,16 @@ const getGroupInfo = async (id_group) => {
   return groups;
 };
 
-const getTitularTeacherOfCourse = async (id_group = 0, id_course = 0) => {
+const getTitularTeacherOfCourse = async (id_gro_cou = 0) => {
   // Gro_cou.belongsTo(Course,{foreignKey:'id_course'})
   // Course.hasOne(Gro_cou,{foreignKey:'id_course'})
   // Cou_tea.belongsTo(Course,{foreignKey:'id_course'})
   // Course.hasOne(Cou_tea,{foreignKey:'id_course'})
-  const gro_cou = await Gro_cou.findOne({
-    where: { [Op.and]: [{ id_course }, { id_group }] },
-  });
+  // const gro_cou = await Gro_cou.findOne({
+  //   where: { [Op.and]: [{ id_course }, { id_group }] },
+  // });
   const gro_tea_cou = await Gro_tea_cou.findOne({
-    where: { id_gro_cou: gro_cou.id_gro_cou },
+    where: { id_gro_cou },
   });
   Cou_tea.belongsTo(Teacher, { foreignKey: "id_teacher" });
   Teacher.hasOne(Cou_tea, { foreignKey: "id_teacher" });

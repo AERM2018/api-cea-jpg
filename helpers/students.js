@@ -371,24 +371,44 @@ const getGradesStudent = async (
         gradeStudent.toJSON();
       const { id_course, course_name, clave, credits } = course;
       let testInfo;
-      const { id_group } = await Gro_cou.findOne({
-        where: where(
-          literal(`(
-                  ${
-                    moment(col("start_date")).month ==
-                      moment(creation_date).month &&
-                    moment(col("end_date")).month == moment(creation_date).month
-                  } AND ${
-            col("id_group").col
-          } IN (SELECT id_group FROM stu_gro WHERE id_student = '${id_student}')
-              )`),
-          true
-        ),
-      });
-      const courseTeacher = await getTitularTeacherOfCourse(
-        id_group,
-        id_course
-      );
+      const {id_gro_cou} = await Test.findOne({ where :{id_grade}})
+      // const { id_group } = await Gro_cou.findOne({
+      //   attributes: {
+      //     include: [
+      //       [fn("month", col("start_date")), "start_date_m"],
+      //       [fn("month", col("end_date")), "end_date_m"],
+      //     ],
+      //   },
+      //   where: {
+      //     [Op.and]: [
+            
+      //       where(
+      //         literal(`(
+      //            ${
+      //              col("id_group").col
+      //            } IN (SELECT id_group FROM stu_gro WHERE id_student = '${id_student}')
+      //         )`),
+      //         true
+      //       ),
+      //     ],
+      //   },
+      // });
+      // const { id_group } = await Gro_cou.findOne({
+      //   where: where(
+      //     literal(`(
+      //             ${
+      //               moment(col("start_date")).month ==
+      //                 moment(creation_date).month &&
+      //               moment(col("end_date")).month == moment(creation_date).month
+      //             } AND ${
+      //       col("id_group").col
+      //     } IN (SELECT id_group FROM stu_gro WHERE id_student = '${id_student}')
+      //         )`),
+      //     true
+      //   ),
+      // });
+      // console.log("group -->", id_group);
+      const courseTeacher = await getTitularTeacherOfCourse(id_gro_cou);
       //   Cou_tea.belongsTo(Teacher, {foreignKey: 'id_teacher'})
       //   Teacher.hasMany(Cou_tea, {foreignKey : 'id_teacher'})
       //   let courseTeacher = await Cou_tea.findOne({

@@ -485,8 +485,10 @@ const moveStudentFromGroup = async (req, res) => {
         where: { [Op.and]: [{ id_group }, { id_course }] },
       })) || { id_gro_cou: undefined };
       if (new_gro_cou) {
+        // Update test record of the grade in order to make the grade record appear as it was taken in the new group
         await Test.update({ id_gro_cou: new_gro_cou }, { where: { id_grade } });
       } else if (grade !== "NP") {
+        // Delete grade record with "-" in case the new group hasn't taken the course
         await Test.destroy({ where: { id_grade } });
         await Grades.destroy({ where: { id_grade } });
       }
