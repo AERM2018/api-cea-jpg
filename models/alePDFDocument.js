@@ -90,6 +90,14 @@ class AlePDFDocument {
     });
   };
 
+  writeHeaderOnlyImg() {
+    this.PDFInstance.image(
+      "types/icon.jpg",
+      this.PDFInstance.x,
+      this.PDFInstance.y,
+      { fit: [100, 100] }
+    );
+  }
   writeHeader(opts = { y: this.marginYDocument }) {
     this.PDFInstance.y = opts.y;
     this.PDFInstance.image(
