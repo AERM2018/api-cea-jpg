@@ -10,7 +10,7 @@ const Payment = db.define('payment',{
        
     },
     payment_type : {
-        type : DataTypes.ENUM('Documento','Inscripción','Materia'),
+        type : DataTypes.ENUM('Documento','Inscripción','Materia','Curso extracurricular'),
         allowNull : null,
         validate : {
             notEmpty : true

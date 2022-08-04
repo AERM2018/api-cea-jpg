@@ -10,6 +10,7 @@ const {
   getGradesStudent,
   getCourseStudentIsTaking,
   getStudentInfo,
+  getExtraCoursesGradesStudent,
 } = require("../helpers/students");
 const Document = require("../models/document");
 const Student = require("../models/student");
@@ -58,24 +59,29 @@ const createDocument = async (req, res = response) => {
     if (document_types.map((type) => type.id).includes(document_type)) {
       if (![11].includes(document_type)) {
         toolsForMakingDoc.student = await getStudentInfo(matricula);
-        if ([0, 1, 2, 10].includes(document_type)) {
+        if ([0, 1, 2,3, 10].includes(document_type)) {
           let { grades, generalAvg = 0 } =
             (await getGradesStudent(toolsForMakingDoc.student.id_student, {
               withAvg: true,
               forKardex: true,
             })) || [];
+            let extraGrades = await getExtraCoursesGradesStudent(
+              toolsForMakingDoc.student.id_student
+            );
           grades = grades.filter(
             ({ grade }) => grade !== "NP" && grade !== "-"
           );
-          if ([1, 2, 10].includes(document_type) && grades.length === 0)
+          extraGrades = extraGrades.filter( extra => extra.grade != 0)
+          if ([1, 2, 3,10].includes(document_type) && grades.length === 0)
             return res.status(400).json({
               ok: false,
               msg: `No se ha podido generar un documento con id ${document_type} debido a que el estudiante con matricula ${matricula} no tiene calificiaciones cargadas.`,
             });
           toolsForMakingDoc.student.grades = grades;
+          toolsForMakingDoc.student.extraGrades = extraGrades
           toolsForMakingDoc.student.generalAvg = generalAvg;
         }
-        if ([3, 4].includes(document_type)) {
+        if ([4, 5].includes(document_type)) {
           toolsForMakingDoc.student.worksFor = {
             person_name,
             person_workstation,

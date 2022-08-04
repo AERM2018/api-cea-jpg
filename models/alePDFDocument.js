@@ -90,7 +90,8 @@ class AlePDFDocument {
     });
   };
 
-  writeHeaderOnlyImg() {
+  writeHeaderOnlyImg(opts = { y: this.marginYDocument }) {
+    this.PDFInstance.y = opts.y;
     this.PDFInstance.image(
       "types/icon.jpg",
       this.PDFInstance.x,

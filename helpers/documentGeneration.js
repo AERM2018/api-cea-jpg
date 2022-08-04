@@ -7,7 +7,7 @@ const ServiceLetter = require("../models/documents/serviceLetter");
 const ProofOfStudies = require("../models/documents/proofOfStudies");
 const Kardex = require("../models/documents/kardex");
 const TestRecord = require("../models/documents/testRecord");
-const ProofOfStudiesQuarters = require("../models/documents/proofOfStudiesQuarters");
+const ProofOfStudiesSegmented = require("../models/documents/proofOfStudiesSegmented");
 
 const generateNewDoc = (tools, document_type, dataCallback, endCallback) => {
   let aleDocument;
@@ -19,12 +19,15 @@ const generateNewDoc = (tools, document_type, dataCallback, endCallback) => {
       aleDocument = new ProofOfStudies(tools.student, true);
       break;
     case 2:
-      aleDocument = new ProofOfStudiesQuarters(tools.student);
+      aleDocument = new ProofOfStudiesSegmented(tools.student,4);
       break;
     case 3:
-      aleDocument = new ServiceLetter(tools.student, "practicas");
+      aleDocument = new ProofOfStudiesSegmented(tools.student,6);
       break;
     case 4:
+      aleDocument = new ServiceLetter(tools.student, "practicas");
+      break;
+    case 5:
       aleDocument = new ServiceLetter(tools.student, "servicio");
       break;
     case 10:
