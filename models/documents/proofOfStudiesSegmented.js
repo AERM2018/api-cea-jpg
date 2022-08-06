@@ -116,7 +116,7 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
         gradesInParts.push(gradesInPart);
       }
     })
-    return gradesInParts;
+    return {gradesInParts : gradesInParts, numOfParts:part};
   }
 
   addGrades() {
@@ -124,19 +124,21 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
     let initColMarginY = this.PDFInstance.y;
     let maxColMarginY = 0
     let col = 0;
-    this.student.grades = this.splitGrades(this.coursesPerPart);
+    let maxGrades
+    const {gradesInParts,numOfParts} =this.splitGrades(this.coursesPerPart);
+    this.student.grades = gradesInParts
     let tableHeadersGrades = [
       {
         id: "courseName",
         header: "Materia",
-        width: 0.45,
+        width: this.student.grades.length >= 5 ? 0.45 : 0.7,
         renderer: (tb, data, draw, column, pos) => {
           // Change the font size depending on the amount of grades from the student
           tb.pdf.fontSize(7);
           return data.courseName;
         },
       },
-      { id: "grade", header: "Cal.", width: 0.05, align: "center" },
+      { id: "grade", header: this.student.grades.length >= 5 ? "Cal." : "Calificación", width: this.student.grades.length >= 5 ? 0.05 : 0.3, align: "center" },
     ];
     tableHeadersGrades = tableHeadersGrades.map((h) => ({
       ...h,
@@ -152,9 +154,7 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
         col = 0;
         continue;
       }
-      if(this.PDFInstance.y > maxColMarginY){
-        maxColMarginY = this.PDFInstance.y
-      }
+      
       // Adjust the pointer to start drawing the table
       colMarginX =
         this.marginXDocument + this.pageWidthWithMargin * 0.5 * (col - 1);
@@ -170,7 +170,7 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
           {
             id: "quarterName",
             header: quarter.quarterName,
-            width: 0.5,
+            width: this.student.grades.length >= 5 || col > 1 ? 0.5 : 1,
           },
         ];
         tableHeadersQuarter = tableHeadersQuarter.map((h) => ({
@@ -201,13 +201,16 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
           }))
         );
         this.PDFInstance.x = colMarginX;
+        if (this.PDFInstance.y > maxColMarginY) {
+          maxColMarginY = this.PDFInstance.y;
+        }
         // Insert new column when the space left is less than 150 px
         // The num of pixels can change in other scenarios
         if (
           this.PDFInstance.options.size[1] -
             this.marginYDocument -
             this.PDFInstance.y <=
-          200
+          150
         ) {
           break;
         }
@@ -216,6 +219,7 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
     // Set the pointer at the end of the table of the grades and adjust the font size
     this.PDFInstance.y = maxColMarginY
     this.PDFInstance.fontSize(12)
+    if(numOfParts < 5) this.PDFInstance.moveDown(3)
   }
 
   writeExpeditionDate() {

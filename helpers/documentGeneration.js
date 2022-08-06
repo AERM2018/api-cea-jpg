@@ -22,12 +22,9 @@ const generateNewDoc = (tools, document_type, dataCallback, endCallback) => {
       aleDocument = new ProofOfStudiesSegmented(tools.student,4);
       break;
     case 3:
-      aleDocument = new ProofOfStudiesSegmented(tools.student,6);
-      break;
-    case 4:
       aleDocument = new ServiceLetter(tools.student, "practicas");
       break;
-    case 5:
+    case 4:
       aleDocument = new ServiceLetter(tools.student, "servicio");
       break;
     case 10:

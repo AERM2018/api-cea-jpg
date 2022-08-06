@@ -1,7 +1,7 @@
 const document_types = [
   { id: 0, name: "Constancia de estudios.", price: 50 },
   { id: 1, name: "Constancia de estudios con calificaciones.", price: 100 },
-  { id: 2, name: "Constancia de estudios para beca.", price: 100 },
+  { id: 2, name: "Constancia de estudios por cuatrimestre.", price: 100 },
   { id: 3, name: "Carta maestrante.", price: 500 },
   { id: 4, name: "Carta de servicio social.", price: 500 },
   // { id:4,name: 'Carta pasante.', price: 500 },
