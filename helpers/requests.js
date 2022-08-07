@@ -32,30 +32,6 @@ const getRequests = async (opts = { matricula: "", status: 0, date: "" }) => {
     include: [
       {
         model: Payment,
-        required: true,
-        include: {
-          model: Stu_pay,
-          required: true,
-          include: {
-            model: Student,
-            required: true,
-            attributes: [
-              [
-                fn(
-                  "concat",
-                  col("surname_m"),
-                  " ",
-                  col("surname_f"),
-                  " ",
-                  col("name"),
-                ),
-                "student_name",
-              ],
-              "matricula",
-              "id_student",
-            ],
-          },
-        },
       },
       {
         model: Document,
@@ -91,7 +67,29 @@ const getRequests = async (opts = { matricula: "", status: 0, date: "" }) => {
           ? "No pagado"
           : `Adeudo: $${parseFloat(payment.amount - accumulate).toFixed(2)}`;
     }
-    const student = payment.stu_pay.student;
+    
+    const student_payment = await Stu_pay.findOne({
+      where: { id_payment: request.payment.id_payment },
+      include: {
+        model: Student,
+        attributes: [
+          [
+            fn(
+              "concat",
+              col("surname_m"),
+              " ",
+              col("surname_f"),
+              " ",
+              col("name")
+            ),
+            "student_name",
+          ],
+          "matricula",
+          "id_student",
+        ],
+      },
+    });
+    const student = student_payment.toJSON().student
     sanitazedRequests.push({
       ...restoRequest,
       status_request,
