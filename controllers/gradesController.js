@@ -371,7 +371,7 @@ const searchAverageByStudent = async (req, res = response) => {
 
 const getAllGradesByMatricula = async (req, res = response) => {
   const { id_student } = req;
-  const { page = 1 } = req.query;
+  const { page = 1, offset = 10} = req.query;
   try {
     let grades;
     const { grades: coursesGrades, generalAvg } = await getGradesStudent(
@@ -382,7 +382,7 @@ const getAllGradesByMatricula = async (req, res = response) => {
     const tesineGrade = await getTesineGradeStudent(id_student);
     grades = [...coursesGrades, ...extraCoursesGrades];
     if (tesineGrade) grades.push(tesineGrade);
-    grades = grades.filter((grade, i) => i >= 9 * page - 9 && i <= 9 * page);
+    grades = grades.filter((grade, i) => i >= (offset - 1) * page - (offset - 1) && i <= (offset - 1) * page);
     res.json({
       ok: true,
       grades,
