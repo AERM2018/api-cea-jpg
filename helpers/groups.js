@@ -155,7 +155,7 @@ const isStudentGroupChiefOfGroup = async (
 ) => {
   const { excludeCurrentStudentGroup } = opts;
   let currentStudentGroup = await Stu_gro.findOne({
-    where: { [Op.and]: [{ id_student }, { status: 1 }] },
+    where: { [Op.and]: [{ id_student }] },
   });
   const { id_group } = currentStudentGroup;
   const groupsStudentIsChief = await Group.findAndCountAll({
