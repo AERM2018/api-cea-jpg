@@ -495,22 +495,28 @@ const getCoursesGroupHasTaken = async (req, res = response) => {
     where: { id_group },
     order: [["start_date", "asc"]],
   });
-  const coursesId = await Promise.all(
+  const courses= await Promise.all(
     gro_cous.map(async (gro_cou) => {
       await setCourseInactivate(gro_cou);
-      return gro_cou.id_course;
+      gro_cou = gro_cou.toJSON();
+      return { id_course: gro_cou.id_course, id_gro_cou: gro_cou.id_gro_cou };
     })
   );
-  const coursesTakenByGroup = await Courses.findAll({
-    where: { id_course: { [Op.in]: coursesId } },
+  const coursesTakenByGroupInfo = await Courses.findAll({
+    where: { id_course: { [Op.in]: courses.map( cou => cou.id_course) } },
     raw: true,
     nest: true,
   });
+  // Combine the info of gro_cou with the table courses to get the course info
+  coursesWithTeacherId = courses.map( course => {
+    course_info = coursesTakenByGroupInfo.find( cou => cou.id_course === course.id_course)
+return {...course, ...course_info}
+  }
+    )
   groupInfo.courses_taken = await Promise.all(
-    coursesTakenByGroup.map(async (course) => {
+    coursesWithTeacherId.map(async (course) => {
       const { teacher } = await getTitularTeacherOfCourse(
-        id_group,
-        course.id_course
+        course.id_gro_cou
       );
       return { ...course, ...teacher };
     })
