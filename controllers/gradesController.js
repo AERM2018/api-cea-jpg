@@ -37,7 +37,7 @@ const Stu_info = require("../models/stu_info");
 
 const getAllGrades = async (req, res = response) => {
   let grades;
-  let { q = "", page = 1 } = req.query;
+  let { q = "", page = 1, offset = 10 } = req.query;
   try {
     q = q.toLowerCase().split(" ").join("");
     let students = await Stu_info.findAll({
@@ -60,7 +60,7 @@ const getAllGrades = async (req, res = response) => {
     students = await Promise.all(students);
     students = filterGradesStudent(students, q);
     students = students.filter(
-      (student, i) => i >= 9 * page - 9 && i <= 9 * page
+      (student, i) => i >= (offset -1) * page - (offset -1) && i <= (offset -1) * page
     );
     grades = [...students];
     res.json({
