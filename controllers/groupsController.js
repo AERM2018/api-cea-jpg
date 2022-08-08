@@ -33,6 +33,7 @@ const {
 const Grades = require("../models/grades");
 const Test = require("../models/test");
 const Gro_tea_cou = require("../models/gro_tea_cou");
+const Assit = require("../models/assit");
 
 const getAllGroups = async (req, res) => {
   try {
@@ -268,6 +269,8 @@ const deleteGroup = async (req, res) => {
 };
 
 const addCourseGroup = async (req, res) => {
+  Gro_tim.belongsTo(Time_tables, { foreignKey: "id_time_table" });
+  Time_tables.hasMany(Gro_tim, { foreignKey: "id_time_table" });
   const { id_group, id_course } = req.params;
   const { id_teacher } = req.body;
   let { start_date, end_date } = req.body;
@@ -327,6 +330,31 @@ const addCourseGroup = async (req, res) => {
       end_date,
     });
     await Gro_tea_cou.create({ id_gro_cou, id_cou_tea });
+    // ----- Find assistance days when the course is assigned to the group in order to take assistence automatically
+    // const group = await Gro_cou.findOne({ where: { id_gro_cou } });
+    // const { id_group } = group.toJSON();
+    let assistence_days = await Time_tables.findAll({
+      where: {
+        id_time_table: {
+          [Op.in]: literal(
+            `(SELECT id_time_table FROM gro_tim WHERE id_group = ${id_group})`
+          ),
+        },
+      },
+      attributes: ["day"],
+      order: [[col("day"), "asc"]],
+    });
+    assistence_days = assistence_days.map(({ day }) => day);
+    let { first_day, last_day } = await getGroupDaysAndOverdue(
+      id_group,
+      moment(start_date).month(),
+      moment(start_date).year()
+    );
+    let assistence_days_dates = findAssistenceDays(
+      assistence_days,
+      first_day,
+      last_day
+    );
     const studentsFromGroup = (await getStudentsFromGroup(id_group)).map(
       ({ id_student }) => id_student
     );
@@ -364,16 +392,29 @@ const addCourseGroup = async (req, res) => {
           { where: { id_grade: studentGradeWithCourse.id_grade } }
         );
       }
-    }
+      
+      // Llenar por defecto lista de asistencia
+      await Promise.all(assistence_days_dates.map( async (date_assistance) => {
 
-    res.status(200).json({
-      ok: true,
-      msg: "La materia se añadio al grupo correctamente",
-    });
-  } catch (error) {
+        const assit = new Assit({ attended:0, date_assistance });
+        const { id_assistance } = await assit.save();
+        // Guardado en gro_cou_ass
+        const gro_cou_ass = new Gro_cou_ass({
+          id_gro_cou,
+          id_assistance,
+          id_student,
+        });
+        await gro_cou_ass.save()
+      }))
+      res.status(200).json({
+        ok: true,
+        msg: "La materia se añadio al grupo correctamente",
+      });
+    }
+      } catch (error) {
     printAndSendError(res, error);
   }
-};
+}
 
 const removeCourseGroup = async (req, res) => {
   Test.belongsTo(Grades, { foreignKey: "id_grade" });
@@ -538,6 +579,106 @@ return {...course, ...course_info}
   });
 };
 
+
+const fillAssistaneForAllGroups = async(req, res = response) => {
+  try {
+    let {id_group} = req.params
+    let groups = [{id_group:id_group}]
+    // let groups = await Group.findAll()
+    for (const group of groups) {
+      // Get students from group
+      // group = group.toJSON()
+      let assistence_days = await Time_tables.findAll({
+      where: {
+        id_time_table: {
+          [Op.in]: literal(
+            `(SELECT id_time_table FROM gro_tim WHERE id_group = ${group.id_group})`
+          ),
+        },
+      },
+      attributes: ["day"],
+      order: [[col("day"), "asc"]],
+    });
+    
+    const studentsFromGroup = await Stu_gro.findAll({ where : {id_group:group.id_group}})
+    const coursesTakenByGroup = await Gro_cou.findAll({where:{id_group:group.id_group}})
+
+    for (const gro_cou of coursesTakenByGroup) {
+      assistence_days_cpy = assistence_days.map((days) => days.toJSON().day);
+      // console.log(assistence_days);
+      // throw Error("ahhh")
+      let { first_day, last_day } = await getGroupDaysAndOverdue(
+        group.id_group,
+        moment(gro_cou.start_date).month(),
+        moment(gro_cou.start_date).year()
+      );
+      let assistence_days_dates = findAssistenceDays(
+        assistence_days_cpy,
+        first_day,
+        last_day
+      );
+      // Llenar por defecto lista de asistencia
+      for (const student of studentsFromGroup) {
+        let {id_student} = student
+        let student_grade_course = {}
+        student_grade_course = await Grades.findOne({
+          where: {
+            [Op.and]: [{ id_student }, { id_course: gro_cou.id_course }],
+          },
+        });
+        if(!student_grade_course){
+
+          const { id_grade,grade } = await Grades.create({
+            id_course:gro_cou.id_course,
+            id_student,
+            grade: "NP",
+          });
+          const last_folio =
+            (
+              await Test.findOne({
+                order: [["folio", "desc"]],
+              })
+            )?.folio || 0;
+          const testGrade = await Test.create({
+            id_student,
+            id_gro_cou: gro_cou.id_gro_cou,
+            folio: last_folio + 1,
+            type: "Ordinario",
+            application_date: moment().format("YYYY-MM-DD"),
+            assigned_test_date: null,
+            applied: false,
+            id_grade: id_grade,
+          });
+        }
+        for (const date_assistance of assistence_days_dates) {
+            let assit
+            let grade = student_grade_course?.grade || "NP";
+            const isGradeNewOrFailed = ["-", "NP"].includes(grade);
+              assit = new Assit({
+                attended: isGradeNewOrFailed ? 0 : 1,
+                date_assistance,
+              });
+            const { id_assistance } = await assit.save();
+            // Guardado en gro_cou_ass
+            const gro_cou_ass = new Gro_cou_ass({
+              id_gro_cou:gro_cou.id_gro_cou,
+              id_assistance,
+              id_student,
+            });
+            await gro_cou_ass.save();
+          }
+          
+        };
+      }
+  }
+  res.status(200).json({
+    ok: true,
+    msg: "Seed insertado correctamente",
+  });
+} catch (error) {
+  printAndSendError(res, error);
+}
+}
 module.exports = {
   getAllGroups,
   createGroup,
@@ -549,4 +690,5 @@ module.exports = {
   removeGroupChief,
   getCoursesAGroupCanTake,
   getCoursesGroupHasTaken,
+  fillAssistaneForAllGroups,
 };

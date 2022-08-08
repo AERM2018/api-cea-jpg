@@ -90,7 +90,7 @@ const getRegularCourseInfo = async (
     ],
     where: { id_gro_cou },
   });
-  course = await setCourseInactivate(course, "regular");
+  await setCourseInactivate(course, "regular");
   course = course.toJSON();
   course.status = course.status === 1 ? "Activo" : "Inactivo";
   course.start_date = moment(course.start_date).format("D-MMM-YYYY");

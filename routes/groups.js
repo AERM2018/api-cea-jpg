@@ -13,6 +13,7 @@ const {
   assignGroupChief,
   removeGroupChief,
   getCoursesAGroupCanTake,
+  fillAssistaneForAllGroups,
 } = require("../controllers/groupsController");
 const {
   checkGroupExistence,
@@ -222,6 +223,11 @@ groupsRouter.delete(
     validateJWT,
   ],
   removeGroupChief
+);
+
+groupsRouter.post(
+  "/:id_group/fill",
+  fillAssistaneForAllGroups
 );
 
 module.exports = groupsRouter;

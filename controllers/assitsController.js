@@ -315,8 +315,6 @@ const getCourseAssistance = async (req, res) => {
       id_gro_cou,
       addTeacher: true,
     });
-    courseInfo.start_date = moment(courseInfo.start_date).format("D-MMM-YYYY");
-    courseInfo.end_date = moment(courseInfo.end_date).format("D-MMM-YYYY");
     let students_group_ass = await Gro_cou_ass.findAll({
       include: [
         {
@@ -331,7 +329,7 @@ const getCourseAssistance = async (req, res) => {
                 " ",
                 col("surname_f"),
                 " ",
-                col("name"),
+                col("name")
               ),
               "student_name",
             ],
@@ -339,9 +337,11 @@ const getCourseAssistance = async (req, res) => {
         },
         {
           model: Assit,
+          order: [["id_assistence", "asc"]],
         },
       ],
       where: { id_gro_cou },
+
       raw: true,
       nest: true,
     });
@@ -356,7 +356,8 @@ const getCourseAssistance = async (req, res) => {
               assistence.id_student ==
               studentAssistance[studentAssistance.length - 1].id_student
           )
-          .map((assistence) => assistence.assit),
+          .map((assistence) => assistence.assit)
+          .sort((a, b) => a.id_assistance-b.id_assistance),
       };
       students_group_ass = students_group_ass.filter(
         (assistence) =>
@@ -395,8 +396,8 @@ const getCourseAssistanceDays = async (req, res = response) => {
     assistence_days = assistence_days.map(({ day }) => day);
     let { first_day, last_day } = await getGroupDaysAndOverdue(
       id_group,
-      moment().month(),
-      moment().year()
+      moment(group.start_date).month(),
+      moment(group.start_date).year()
     );
     let assistence_days_dates = findAssistenceDays(
       assistence_days,
