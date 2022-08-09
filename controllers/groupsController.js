@@ -19,7 +19,7 @@ const {
   hasGroupAGroupChief,
   getStudentsFromGroup,
 } = require("../helpers/groups");
-const { setCourseInactivate } = require("../helpers/courses");
+const { setCourseInactivate, getRegularCourseInfo } = require("../helpers/courses");
 const Cam_gro = require("../models/cam_gro");
 const Campus = require("../models/campus");
 const {
@@ -34,6 +34,7 @@ const Grades = require("../models/grades");
 const Test = require("../models/test");
 const Gro_tea_cou = require("../models/gro_tea_cou");
 const Assit = require("../models/assit");
+const Course = require("../models/courses");
 
 const getAllGroups = async (req, res) => {
   try {
@@ -579,7 +580,172 @@ return {...course, ...course_info}
   });
 };
 
+const getInfoCourseTakenByGroup = async(req, res=response) => {
+  
+  try {
+    const { id_course, id_group } = req.params;
+    Grades.belongsTo(Course, { foreignKey: "id_course" });
+    Course.hasMany(Grades, { foreignKey: "id_course" });
 
+    Grades.belongsTo(Student, { foreignKey: "id_student" });
+    Student.hasMany(Grades, { foreignKey: "id_student" });
+
+    Test.belongsTo(Grades, { foreignKey: "id_grade" });
+    Grades.hasOne(Test, { foreignKey: "id_grade" });
+
+    const gro_cou = await Gro_cou.findOne({
+      where: { [Op.and]: [{ id_course }, { id_group }] },
+      raw: true,
+    });
+    let {id_gro_cou} = gro_cou
+    let courseInfo = await getRegularCourseInfo({
+      id_gro_cou: gro_cou.id_gro_cou,
+      addTeacher:true
+    });
+    let grades = await Grades.findAll({
+      include: [
+        {
+          model: Student,
+          attributes: [
+            "id_student",
+            "matricula",
+            [
+              fn(
+                "concat",
+                col("surname_m"),
+                " ",
+                col("surname_f"),
+                " ",
+                col("name"),
+              ),
+              "student_name",
+            ],
+          ],
+        },
+        {
+          model: Test,
+          attributes: [],
+        },
+      ],
+      attributes: { exclude: ["id_course"] },
+      where: {
+        id_course,
+        id_student: {
+          [Op.in]: literal(
+            `(SELECT id_student FROM stu_gro WHERE id_group = ${id_group})`
+          ),
+        },
+        [Op.or]: [
+          { "$test.id_gro_cou$": gro_cou.id_gro_cou },
+          // { grade: { [Op.eq]: "NP" } },
+        ],
+      },
+    });
+    grades = grades.map((grade) => {
+      const { student, ...restoGrade } = grade.toJSON();
+      return {
+        ...restoGrade,
+        ...student,
+      };
+    });
+    console.log(grades);
+    // ASSISTENCE DAYS
+    Gro_tim.belongsTo(Time_tables, { foreignKey: "id_time_table" });
+  Time_tables.hasMany(Gro_tim, { foreignKey: "id_time_table" });
+
+    const group = await Gro_cou.findOne({ where: { id_gro_cou } });
+    // const { id_group } = group.toJSON();
+    let assistence_days = await Time_tables.findAll({
+      where: {
+        id_time_table: {
+          [Op.in]: literal(
+            `(SELECT id_time_table FROM gro_tim WHERE id_group = ${id_group})`
+          ),
+        },
+      },
+      attributes: ["day"],
+      order: [[col("day"), "asc"]],
+    });
+    assistence_days = assistence_days.map(({ day }) => day);
+    let { first_day, last_day } = await getGroupDaysAndOverdue(
+      id_group,
+      moment(group.start_date).month(),
+      moment(group.start_date).year()
+    );
+    let assistence_days_dates = findAssistenceDays(
+      assistence_days,
+      first_day,
+      last_day
+    );
+    // ASSISTENCES
+    Gro_cou_ass.belongsTo(Student, { foreignKey: "id_student" });
+    Student.hasMany(Gro_cou_ass, { foreignKey: "id_student" });
+
+    Gro_cou_ass.belongsTo(Assit, { foreignKey: "id_assistance" });
+    Assit.hasOne(Gro_cou_ass, { foreignKey: "id_assistance" });
+    let students_group_ass = await Gro_cou_ass.findAll({
+      include: [
+        {
+          model: Student,
+          attributes: [
+            "id_student",
+            "matricula",
+            [
+              fn(
+                "concat",
+                col("surname_m"),
+                " ",
+                col("surname_f"),
+                " ",
+                col("name")
+              ),
+              "student_name",
+            ],
+          ],
+        },
+        {
+          model: Assit,
+          order: [["id_assistence", "asc"]],
+        },
+      ],
+      where: { id_gro_cou },
+
+      raw: true,
+      nest: true,
+    });
+    let studentAssistance = [];
+    while (students_group_ass.length > 0) {
+      studentAssistance.push(students_group_ass[0].student);
+      studentAssistance[studentAssistance.length - 1] = {
+        ...studentAssistance[studentAssistance.length - 1],
+        assistences: students_group_ass
+          .filter(
+            (assistence) =>
+              assistence.id_student ==
+              studentAssistance[studentAssistance.length - 1].id_student
+          )
+          .map((assistence) => assistence.assit)
+          .sort((a, b) => a.id_assistance - b.id_assistance),
+      };
+      students_group_ass = students_group_ass.filter(
+        (assistence) =>
+          assistence.id_student !=
+          studentAssistance[studentAssistance.length - 1].id_student
+      );
+    }
+    finalStudentInfoAboutCourse = studentAssistance.map( record => {
+      if(!grades.find((grade) => grade.id_student == record.id_student)) return null;
+      return {...record,...grades.find( grade => grade.id_student == record.id_student)}
+    }).filter(record => record)
+    res.json({
+      ...courseInfo,
+      assistence_days_dates: assistence_days_dates,
+      students: finalStudentInfoAboutCourse,
+    });
+}catch(error){
+printAndSendError(res, error);
+}
+}
 const fillAssistaneForAllGroups = async(req, res = response) => {
   try {
     let {id_group} = req.params
@@ -691,4 +857,5 @@ module.exports = {
   getCoursesAGroupCanTake,
   getCoursesGroupHasTaken,
   fillAssistaneForAllGroups,
+  getInfoCourseTakenByGroup,
 };

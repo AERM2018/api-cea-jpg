@@ -14,6 +14,7 @@ const {
   removeGroupChief,
   getCoursesAGroupCanTake,
   fillAssistaneForAllGroups,
+  getInfoCourseTakenByGroup,
 } = require("../controllers/groupsController");
 const {
   checkGroupExistence,
@@ -230,4 +231,5 @@ groupsRouter.post(
   fillAssistaneForAllGroups
 );
 
+groupsRouter.get("/:id_group/courses/:id_course/mix", getInfoCourseTakenByGroup);
 module.exports = groupsRouter;
