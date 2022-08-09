@@ -350,15 +350,13 @@ const getGradesStudent = async (
 
   if (opts.onlyAvg || opts.withAvg) {
     const gradesNoNP = gradesStudent.filter(
-      (grade) => grade !== "NP" || grade !== "-"
+      (grade) => grade.toJSON().grade !== "NP" && grade.toJSON().grade !== "-"
     );
     gradesNoNP.forEach((grade) => {
       avgStudent += parseFloat(grade.toJSON().grade);
     });
-
     avgStudent = gradesNoNP.length > 0 ? avgStudent / gradesNoNP.length : 0;
     avgStudent = avgStudent > 0 ? avgStudent.toFixed(1) : 0;
-
     if (opts.onlyAvg) return avgStudent;
   }
   gradesStudentPaidCourses = await Promise.all(gradesStudentPaidCourses);

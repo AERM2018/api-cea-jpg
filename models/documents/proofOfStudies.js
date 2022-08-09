@@ -62,6 +62,7 @@ class ProofOfStudies extends AlePDFDocument {
 
   addGrades() {
     // let pageWidthWithMargin = this.PDFInstance.options.size[0] - (this.PDFInstance.x * 2)
+    let colMarginX = this.PDFInstance.x
     let tableHeaders = [
       {
         id: "courseName",
@@ -75,10 +76,13 @@ class ProofOfStudies extends AlePDFDocument {
       },
       { id: "grade", header: "Calificación", width: 0.17, align: "center" },
     ];
+   
+    // Set the width accoriding to the page's size
     tableHeaders = tableHeaders.map((h) => ({
       ...h,
       width: this.pageWidthWithMargin * h.width,
     }));
+    
     this.createTable(tableHeaders, {
       headerBorder: ["T", "R", "B", "L"],
       cellBorder: ["T", "R", "B", "L"],
@@ -93,6 +97,77 @@ class ProofOfStudies extends AlePDFDocument {
         courseName,
       }))
     );
+    // Set the cursor at the beaginnig of the page
+    this.PDFInstance.x = colMarginX
+    // Put extracurricular courses when it's needed
+    if(this.student.extraGrades.length > 0){
+      let firstExtraGrade = this.student.extraGrades.shift();
+      tableHeaders = [
+        {
+          id: "courseName",
+          header: firstExtraGrade.ext_cou_name,
+          width: 0.83,
+          renderer: (tb, data, draw, column, pos) => {
+            // Change the font size depending on the amount of grades from the student
+            tb.pdf.fontSize(this.student.extraGrades.length > 15 ? 6 : 12);
+            return data.extracurricular_courses;
+          },
+        },
+        {
+          id: "grade",
+          header: firstExtraGrade.grade,
+          width: 0.17,
+          align: "center",
+        },
+      ];
+      tableHeaders = tableHeaders.map((h) => ({
+        ...h,
+        width: this.pageWidthWithMargin * h.width,
+      }));
+      // Extracurricular courses hearder config
+      let tableExtraGradesHeader = [
+        {
+          id: "extra_grades",
+          header: "Curos extracurriculares",
+          width: 1,
+          renderer: (tb, data, draw, column, pos) => {
+            // Change the font size depending on the amount of grades from the student
+            tb.pdf.fontSize(this.student.grades.length > 15 ? 6 : 12);
+            return data.extracurricular_courses;
+          },
+        },
+      ];
+      tableExtraGradesHeader = tableExtraGradesHeader.map((h) => ({
+        ...h,
+        width: this.pageWidthWithMargin * h.width,
+      }));
+      // Draw Extracurricular courses hearder
+      this.createTable(tableExtraGradesHeader, {
+        headerBorder: ["T", "R", "B", "L"],
+        cellBorder: ["T", "R", "B", "L"],
+        headerPadding: [5, 5, 5, 5],
+        padding: [1.2, 1.2, 1.2, 1.2],
+      });
+      this.PDFInstance.fontSize(this.student.extraGrades.length > 15 ? 6 : 12);
+      this.tableDocument.addBody([]);
+      // Set the cursor at the beaginnig of the page
+      // Draw Extracurricular courses grades
+      this.PDFInstance.fontSize(this.student.grades.length > 15 ? 6 : 12);
+      this.PDFInstance.x = colMarginX;
+      this.createTable(tableHeaders, {
+        headerBorder: ["T", "R", "B", "L"],
+        cellBorder: ["T", "R", "B", "L"],
+        headerPadding: [1.2, 1.2, 1.2, 1.2],
+        padding: [1.2, 1.2, 1.2, 1.2],
+      });
+      this.tableDocument.addBody(
+        this.student.extraGrades.map(({ grade, ext_cou_name: courseName }) => ({
+          grade,
+          courseName,
+        }))
+      );
+    }
+
   }
 
   writeExpeditionDate() {
@@ -106,6 +181,8 @@ class ProofOfStudies extends AlePDFDocument {
     );
     this.PDFInstance.moveDown(this.student.grades.length < 16 ? 5 : 0.4);
   }
+
+  
 }
 
 module.exports = ProofOfStudies;

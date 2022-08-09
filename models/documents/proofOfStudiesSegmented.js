@@ -4,15 +4,16 @@ const { AlePDFDocument } = require("../alePDFDocument");
 class ProofOfStudiesSegmented extends AlePDFDocument {
   constructor(student = {}, coursesPerPart) {
     super(student);
-    this.coursesPerPart = coursesPerPart
+    this.coursesPerPart = coursesPerPart;
     this.fillDocument();
     this.writeExpeditionDate();
     this.writeFooter();
+    this.writeFooterInfo();
     super.endDocument();
   }
 
   fillDocument() {
-    super.writeHeaderOnlyImg({y:35});
+    super.writeHeaderOnlyImg({ y: 35 });
     this.PDFInstance.y -= 100;
     this.PDFInstance.x += 130;
     this.PDFInstance.font("regular-bold")
@@ -79,22 +80,30 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
       "Decimo",
     ];
     const partDenomination = [
-      {num:4, name:"Cuatrimestre"},
-      {num:6, name:"Semestre"}
-    ]
+      { num: 4, name: "Cuatrimestre" },
+      { num: 6, name: "Semestre" },
+    ];
     let gradesInParts = [];
     let gradesInPart = { grades: [], average: 0 };
     this.student.grades.forEach(({ grade, course }, index) => {
       gradesInPart.grades = [...gradesInPart.grades, { course, grade }]; // Insert grades of the quarter
       gradesInPart.average = gradesInPart.average + parseFloat(grade); // Make the sum of the grades when they're being added
-      if (index + 1 === coursesPerPart * part || index + 1 === this.student.grades.length) {
+      if (
+        index + 1 === coursesPerPart * part ||
+        index + 1 === this.student.grades.length
+      ) {
         // Insert quarter into the array when I accomulate the number of courses per quarter
         // Or when the num of courses left is less than the courses per quarter
-        gradesInPart.quarterName = `${partNames[part - 1]} ${partDenomination.find(denomination => denomination.num === coursesPerPart).name}`;
+        gradesInPart.quarterName = `${partNames[part - 1]} ${
+          partDenomination.find(
+            (denomination) => denomination.num === coursesPerPart
+          ).name
+        }`;
         if (gradesInPart.grades.length < coursesPerPart) {
           gradesInPart.average /= gradesInPart.grades.length;
-          while(gradesInPart.grades.length < coursesPerPart){ // Fill with  blank spaces the num of courses missing to complete the num needed
-            gradesInPart.grades.push({course:"\n",grade:"\n"})
+          while (gradesInPart.grades.length < coursesPerPart) {
+            // Fill with  blank spaces the num of courses missing to complete the num needed
+            gradesInPart.grades.push({ course: "\n", grade: "\n" });
           }
         } else {
           gradesInPart.average /= coursesPerPart;
@@ -115,30 +124,35 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
         gradesInPart.quarterName = `Cursos extracurriculares`;
         gradesInParts.push(gradesInPart);
       }
-    })
-    return {gradesInParts : gradesInParts, numOfParts:part};
+    });
+    return { gradesInParts: gradesInParts, numOfParts: part };
   }
 
   addGrades() {
     let colMarginX = this.PDFInstance.x;
     let initColMarginY = this.PDFInstance.y;
-    let maxColMarginY = 0
+    let maxColMarginY = 0;
     let col = 0;
-    let maxGrades
-    const {gradesInParts,numOfParts} =this.splitGrades(this.coursesPerPart);
-    this.student.grades = gradesInParts
+    let maxGrades;
+    const { gradesInParts, numOfParts } = this.splitGrades(this.coursesPerPart);
+    this.student.grades = gradesInParts;
     let tableHeadersGrades = [
       {
         id: "courseName",
         header: "Materia",
-        width: this.student.grades.length >= 5 ? 0.45 : 0.7,
+        width: numOfParts > 6 ? 0.45 : 0.85,
         renderer: (tb, data, draw, column, pos) => {
           // Change the font size depending on the amount of grades from the student
           tb.pdf.fontSize(7);
           return data.courseName;
         },
       },
-      { id: "grade", header: this.student.grades.length >= 5 ? "Cal." : "Calificación", width: this.student.grades.length >= 5 ? 0.05 : 0.3, align: "center" },
+      {
+        id: "grade",
+        header: numOfParts > 6 ? "Cal." : "Calificación",
+        width: numOfParts > 6 ? 0.05 : 0.15,
+        align: "center",
+      },
     ];
     tableHeadersGrades = tableHeadersGrades.map((h) => ({
       ...h,
@@ -149,12 +163,12 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
       col++;
       if (col > 2) {
         this.PDFInstance.addPage();
-        this.PDFInstance.y = this.marginYDocument
+        this.PDFInstance.y = this.marginYDocument;
         this.maxColMarginY = 0;
         col = 0;
         continue;
       }
-      
+
       // Adjust the pointer to start drawing the table
       colMarginX =
         this.marginXDocument + this.pageWidthWithMargin * 0.5 * (col - 1);
@@ -170,7 +184,7 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
           {
             id: "quarterName",
             header: quarter.quarterName,
-            width: this.student.grades.length >= 5 || col > 1 ? 0.5 : 1,
+            width: numOfParts > 6 ? 0.5 : 1,
           },
         ];
         tableHeadersQuarter = tableHeadersQuarter.map((h) => ({
@@ -217,9 +231,9 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
       }
     }
     // Set the pointer at the end of the table of the grades and adjust the font size
-    this.PDFInstance.y = maxColMarginY
-    this.PDFInstance.fontSize(12)
-    if(numOfParts < 5) this.PDFInstance.moveDown(3)
+    this.PDFInstance.y = maxColMarginY;
+    this.PDFInstance.fontSize(12);
+    if (numOfParts <= 5) this.PDFInstance.moveDown(3);
   }
 
   writeExpeditionDate() {
@@ -232,6 +246,36 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
       { align: "left" }
     );
     this.PDFInstance.moveDown(1);
+  }
+
+  writeFooterInfo() {
+    this.PDFInstance.rect(
+      this.marginXDocument,
+      this.PDFInstance.options.size[1] - 43,
+      this.PDFInstance.options.size[0] - this.PDFInstance.x * 2,
+      0.05
+    )
+      .stroke('gray')
+      .moveDown(0.4);
+    this.PDFInstance.fontSize(9)
+    .fillColor("gray")
+      .text(
+        "Ayuntamiento No. 618 Nte, Durango,Dgo.",
+        this.marginXDocument,
+        this.PDFInstance.options.size[1] - 40,
+        {
+          lineBreak: false,
+        }
+      )
+      .text(
+        "Tel (618) 8 11 75 06",
+        this.PDFInstance.options.size[0] - this.marginXDocument - 100,
+        this.PDFInstance.options.size[1] - 40,
+        {
+          lineBreak: false,
+        }
+      )
+      .fillColor("gray");
   }
 }
 module.exports = ProofOfStudiesSegmented;
