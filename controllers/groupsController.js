@@ -398,24 +398,23 @@ const addCourseGroup = async (req, res) => {
       }
 
       // Llenar por defecto lista de asistencia
-      await Promise.all(
-        assistence_days_dates.map(async (date_assistance) => {
-          const assit = new Assit({ attended: 0, date_assistance });
-          const { id_assistance } = await assit.save();
+        await Promise.all(assistence_days_dates.map( async (date_assistance)=> {
+          const { id_assistance } = await Assit.create({
+            attended: 0,
+            date_assistance,
+          });
           // Guardado en gro_cou_ass
-          const gro_cou_ass = new Gro_cou_ass({
+          await Gro_cou_ass.create({
             id_gro_cou,
             id_assistance,
             id_student,
           });
-          await gro_cou_ass.save();
-        })
-      );
+        }));
+      }
       res.status(200).json({
         ok: true,
         msg: "La materia se añadio al grupo correctamente",
       });
-    }
   } catch (error) {
     printAndSendError(res, error);
   }
