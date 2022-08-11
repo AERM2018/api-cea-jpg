@@ -231,5 +231,5 @@ groupsRouter.post(
   fillAssistaneForAllGroups
 );
 
-groupsRouter.get("/:id_group/courses/:id_course/mix", getInfoCourseTakenByGroup);
+groupsRouter.get("/:id_group/courses/:id_course/mix",checkGroupCourseExistence, getInfoCourseTakenByGroup);
 module.exports = groupsRouter;

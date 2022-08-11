@@ -19,6 +19,11 @@ class AlePDFDocument {
       article: "El",
     },
     {
+      name: "Ing. Ernesto Pruneda Mar",
+      workstation: "Jefe de servicios escolares",
+      article: "El",
+    },
+    {
       name: "Lic. Edna García Herrera",
       workstation: "Directora escolar",
       article: "La",

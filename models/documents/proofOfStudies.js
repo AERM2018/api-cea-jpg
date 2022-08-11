@@ -36,7 +36,7 @@ class ProofOfStudies extends AlePDFDocument {
       .text(`${this.schoolKey} `, { continued: true })
       .font("regular")
       .text(
-        `hace constar que ${this.student.gendre == "F" ? "la" : "el"} C. `,
+        `hace constar que ${this.student.gender == "F" ? "la" : "el"} C. `,
         { continued: true }
       )
       .font("regular-bold")
@@ -47,8 +47,8 @@ class ProofOfStudies extends AlePDFDocument {
       .text(`${this.student.matricula} `, { continued: true })
       .font("regular")
       .text(
-        `es ${this.student.gendre == "F" ? "alumna" : "alumno"} y está ${
-          this.student.gendre == "F" ? "inscrita" : "inscrito"
+        `es ${this.student.gender == "F" ? "alumna" : "alumno"} y está ${
+          this.student.gender == "F" ? "inscrita" : "inscrito"
         } en la `,
         { continued: true }
       )
@@ -179,7 +179,12 @@ class ProofOfStudies extends AlePDFDocument {
       this.PDFInstance.y,
       { align: "left" }
     );
-    this.PDFInstance.moveDown(this.student.grades.length < 16 ? 5 : 0.4);
+    if(!this.hasGrades){
+      this.PDFInstance.y = this.PDFInstance.options.size[0] - this.marginYDocument
+    }else{
+      this.PDFInstance.moveDown(this.student.grades.length < 16 ? 5 : 0.5);
+
+    }
   }
 
   

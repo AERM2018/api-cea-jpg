@@ -38,27 +38,28 @@ class ProofOfStudiesSegmented extends AlePDFDocument {
       .text(`${this.schoolKey} `, { continued: true })
       .font("regular")
       .text(
-        `hace constar que ${this.student.gendre == "F" ? "la" : "el"} C. `,
+        `hace constar que ${this.student.gender == "F" ? "la" : "el"} C. `,
         { continued: true }
       )
       .font("regular-bold")
       .text(`${this.student.student_name} `, { continued: true })
       .font("regular")
-      .text("con número de matricula: ", { continued: true })
-      .font("regular-bold")
-      .text(`${this.student.matricula} `, { continued: true })
-      .font("regular")
       .text(
-        `es ${this.student.gendre == "F" ? "alumna" : "alumno"} y está ${
-          this.student.gendre == "F" ? "inscrita" : "inscrito"
-        } en la `,
+        `es ${this.student.gender == "F" ? "alumna" : "alumno"} y está ${
+          this.student.gender == "F" ? "inscrita" : "inscrito"
+        } en el cuatrimestre`,
         { continued: true }
       )
+      .text(` ${this.splitGrades(this.coursesPerPart).gradesInParts.length} de la `, {
+        continued: true,
+      })
       .font("regular-bold")
       .text(`${this.student.major_name} `, { continued: true })
       .font("regular")
-      .text("en esta Institución.", { continued: this.hasGrades })
-      .text("Y ha cursado las siguientes materias: ")
+      .text(
+        `en esta Institución. Con un promedio general de ${this.student.generalAvg} y ha cursado las siguientes materias: `,
+        { continued: this.hasGrades }
+      )
       .moveDown(1);
 
     this.PDFInstance.x = this.marginXDocument;
