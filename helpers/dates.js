@@ -48,7 +48,14 @@ const getGroupDaysAndOverdue = async (
   );
 
   // Find the last day in which the stdent attends class
-  last_day_date = first_day_date.clone().add(weeks_missing_month, "weeks");
+   last_day_date = first_day_date
+      .clone()
+     .day(time_table_days[time_table_days.length - 1])
+     .add(weeks_missing_month, "weeks");
+    //  throw Error("asas")
+  if (last_day_date.month !== first_day_date.month){
+
+    last_day_date = first_day_date.clone().add(weeks_missing_month, "weeks");
   if (last_day_date.day() !== end_of_month.day()) {
     if (time_table_days.length > 1) {
       // const pre_last_day = first_day_date.clone().add(weeks_missing_month, "weeks");
@@ -70,6 +77,7 @@ const getGroupDaysAndOverdue = async (
         .sort((a, b) => a.diffFromEndMonth - b.diffFromEndMonth);
       last_day_date = date;
     }
+  }
   }
   first_day_date = first_day_date.format().slice(0, 10);
   last_day_date = last_day_date.format().slice(0, 10);
