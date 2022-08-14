@@ -3,7 +3,7 @@ const createJWT = (id_user, email, user_type, roles) => {
     return new Promise((resolve, reject) => {
         const payload = { id_user, email, user_type, roles }
         sign(payload, process.env.SECRET_JWT, {
-            expiresIn: '2h'
+            expiresIn: '24h'
         }, (err, token) => {
             if (err) {
                 console.log(err)
