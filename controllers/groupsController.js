@@ -398,7 +398,8 @@ const addCourseGroup = async (req, res) => {
       }
 
       // Llenar por defecto lista de asistencia
-        await Promise.all(assistence_days_dates.map( async (date_assistance)=> {
+      await Promise.all(
+        assistence_days_dates.map(async (date_assistance) => {
           const { id_assistance } = await Assit.create({
             attended: 0,
             date_assistance,
@@ -409,12 +410,13 @@ const addCourseGroup = async (req, res) => {
             id_assistance,
             id_student,
           });
-        }));
-      }
-      res.status(200).json({
-        ok: true,
-        msg: "La materia se añadio al grupo correctamente",
-      });
+        })
+      );
+    }
+    res.status(200).json({
+      ok: true,
+      msg: "La materia se añadio al grupo correctamente",
+    });
   } catch (error) {
     printAndSendError(res, error);
   }
@@ -763,9 +765,12 @@ const getInfoCourseTakenByGroup = async (req, res = response) => {
       })
       .filter((record) => record);
     res.json({
-      ...courseInfo,
-      assistence_days_dates: assistence_days_dates,
-      students: finalStudentInfoAboutCourse,
+      ok: true,
+      course: {
+        ...courseInfo,
+        assistence_days_dates: assistence_days_dates,
+        students: finalStudentInfoAboutCourse,
+      },
     });
   } catch (error) {
     printAndSendError(res, error);
