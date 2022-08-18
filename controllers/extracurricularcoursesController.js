@@ -9,7 +9,10 @@ const { printAndSendError } = require("../helpers/responsesOfReq");
 const ExtraCurricularCourses = require("../models/extracurricularcourses");
 const Stu_extracou = require("../models/stu_extracou");
 const Student = require("../models/student");
-const { getExtraCourseInfo } = require("../helpers/courses");
+const {
+  getExtraCourseInfo,
+  getExtraCourseInfoForTeacher,
+} = require("../helpers/courses");
 const Time_tables = require("../models/time_tables");
 const { findAssistenceDays } = require("../helpers/dates");
 const {
@@ -142,7 +145,7 @@ const getStudentsFromExtraCourse = async (req, res = response) => {
             " ",
             col("surname_f"),
             " ",
-            col("name"),
+            col("name")
           ),
           "student_name",
         ],
@@ -159,10 +162,24 @@ const getStudentsFromExtraCourse = async (req, res = response) => {
   });
 };
 
+const getExtraCourseInfoMix = async (req, res = response) => {
+  try {
+    const { id_ext_cou } = req.params;
+    const extraCourseInfo = await getExtraCourseInfoForTeacher(id_ext_cou);
+    console.log(extraCourseInfo);
+    res.json({
+      ok: true,
+      course: extraCourseInfo,
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 module.exports = {
   getAllExtraCurricularCourses,
   createExtraCurricularCourse,
   updateExtraCurricularCourse,
   deleteExtraCurricularCourse,
   getStudentsFromExtraCourse,
+  getExtraCourseInfoMix,
 };

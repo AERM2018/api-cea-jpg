@@ -11,6 +11,11 @@ const Gro_cou = require("../models/gro_cou");
 const Major = require("../models/major");
 const Teacher = require("../models/teacher");
 const Time_tables = require("../models/time_tables");
+const { findAssistenceDays } = require("./dates");
+const Stu_extracou = require("../models/stu_extracou");
+const Extracurricularcourse_ass = require("../models/extracurricularcourse_ass");
+const Assit = require("../models/assit");
+const Stu_info = require("../models/stu_info");
 
 const getRegularCourseInfo = async (
   opts = { id_gro_cou: 0, addTeacher: false }
@@ -227,11 +232,14 @@ const getExtraCourseInfo = async (
       ],
     },
   });
-  extraCourses = Promise.all(
+  extraCourses = await Promise.all(
     extraCourses.map(async (extraCourse) => {
       extraCourse = await setCourseInactivate(extraCourse, "extracurricular");
       extraCourse = extraCourse.toJSON();
       extraCourse.status = extraCourse.status === 1 ? "Activo" : "Inactivo";
+      extraCourse.end_date = moment(extraCourse.start_date)
+        .clone()
+        .day(moment(extraCourse.start_date).clone().day() + 7);
       if (applyFormatToDate) {
         extraCourse.start_date = moment(extraCourse.start_date).format(
           "D-MMM-YYYY"
@@ -568,6 +576,109 @@ const getCoursesGiveTeachersOrTeacher = async (
   ];
 };
 
+const getExtraCourseInfoForTeacher = async (id_ext_cou = 0) => {
+  Extracurricularcourse_ass.belongsTo(Assit, { foreignKey: "id_assistance" });
+  Assit.hasOne(Extracurricularcourse_ass, { foreignKey: "id_assistance" });
+  let [extraCourseBasicInfo] = await getExtraCourseInfo({
+    id_ext_cou,
+    addTeacher: false,
+    applyFormatToDate: true,
+  });
+  // Find assistance dates to build the table
+  const assistenceDates = findAssistenceDays(
+    [moment(extraCourseBasicInfo.start_date).clone().day()],
+    moment(extraCourseBasicInfo.start_date).clone(),
+    moment(extraCourseBasicInfo.end_date).clone()
+  );
+  // Find grades and assistences of students signed up to the extra course
+  const studentsGradesExtraCou = await Stu_extracou.findAll({
+    where: { id_ext_cou },
+  });
+  const studentsAssitsExtraCou = await Extracurricularcourse_ass.findAll({
+    where: { id_ext_cou },
+    include: { model: Assit },
+  });
+
+  const studentExtraCouDetailed = await Promise.all(
+    studentsGradesExtraCou.map(async (studentAssistences) => {
+      const studentAssistencesDetails = studentsAssitsExtraCou
+        .filter(
+          (studentAssitsExtraCou) =>
+            studentAssitsExtraCou.id_ext_cou == id_ext_cou &&
+            studentAssitsExtraCou.id_student == studentAssistences.id_student
+        )
+        .map((studentExtraCou) => studentExtraCou.toJSON().assit);
+      const { matricula, student_name } = await Stu_info.findOne({
+        where: { id_student: studentAssistences.id_student },
+        attributes: { exclude: ["id"] },
+      });
+      return {
+        matricula,
+        student_name,
+        assistences: studentAssistencesDetails,
+        ...studentAssistences.toJSON(),
+      };
+    })
+  );
+  return (extraCourseBasicInfo = {
+    ...extraCourseBasicInfo,
+    students: studentExtraCouDetailed,
+  });
+};
+
+const enrollStudentIntoExtraCou = async (
+  id_ext_cou = 0,
+  opts = { id_student: "", id_stu_pay: 0 }
+) => {
+  const { id_student, id_stu_pay } = opts;
+  const [extraCourseBasicInfo] = await getExtraCourseInfo({
+    id_ext_cou,
+    addTeacher: false,
+    applyFormatToDate: true,
+  });
+  await Stu_extracou.create({
+    id_student,
+    id_ext_cou,
+    grade: "-",
+    id_stu_pay,
+  });
+  const assistenceDates = findAssistenceDays(
+    [moment(extraCourseBasicInfo.start_date).clone().day()],
+    moment(extraCourseBasicInfo.start_date).clone(),
+    moment(extraCourseBasicInfo.end_date).clone()
+  );
+  await Promise.all(
+    assistenceDates.map(async (assistenceDate) => {
+      const { id_assistance } = await Assit.create({
+        date_assistance: assistenceDate,
+        attended: 0,
+      });
+      await Extracurricularcourse_ass.create({
+        id_ext_cou,
+        id_student,
+        id_assistance,
+      });
+    })
+  );
+};
+
+const unrollStudentOfExtraCou = async (id_stu_pay = 0) => {
+  const [studentExtraCou] = await Stu_extracou.findAll({
+    where: { id_stu_pay: id_stu_pay },
+  });
+  const { id_ext_cou, id_student } = studentExtraCou;
+  const studentAssitsExtraCou = await Extracurricularcourse_ass.findAll({
+    where: { id_ext_cou, id_student },
+  });
+  await Promise.all(
+    studentAssitsExtraCou.map(async (extraCouAssistence) => {
+      const { id_assistance } = extraCouAssistence;
+      await extraCouAssistence.destroy();
+      await Assit.destroy({ where: { id_assistance } });
+    })
+  );
+  await studentExtraCou.destroy();
+};
 module.exports = {
   getRegularCourseInfo,
   getExtraCourseInfo,
@@ -576,4 +687,7 @@ module.exports = {
   setCourseInactivate,
   setSectionInactivate,
   getCoursesGiveTeachersOrTeacher,
+  getExtraCourseInfoForTeacher,
+  enrollStudentIntoExtraCou,
+  unrollStudentOfExtraCou,
 };

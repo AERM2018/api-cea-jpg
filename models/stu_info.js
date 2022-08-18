@@ -124,6 +124,19 @@ const Stu_info = db.define(
   {
     freezeTableName: true,
     timestamps: false,
+    hooks: {
+      afterFind: (record, options) => {
+        if (record.constructor === Array) {
+          for (var i = 0; i < record.length; i++) {
+            record[
+              i
+            ].student_name = `${record[i].surname_m} ${record[i].surname_f} ${record[i].name}`;
+          }
+        } else {
+          record.student_name = `${record.surname_m} ${record.surname_f} ${record.name}`;
+        }
+      },
+    },
   }
 );
 

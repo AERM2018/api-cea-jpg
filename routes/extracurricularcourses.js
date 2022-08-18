@@ -9,6 +9,7 @@ const {
   getStudentFromExtraCour,
   StudentFromExtraCour,
   getExtraCurricularCourseAssistanceDays,
+  getExtraCourseInfoMix,
 } = require("../controllers/extracurricularcoursesController");
 const {
   checkMajorExistence,
@@ -26,6 +27,21 @@ extraCurricularCoursesRouter.get(
   getAllExtraCurricularCourses
 );
 
+extraCurricularCoursesRouter.get(
+  "/:id_ext_cou/mix",
+  [
+    validateJWT,
+    check(
+      "id_ext_cou",
+      "El id del curso extracurricular es obligatorio y es número"
+    )
+      .notEmpty()
+      .isNumeric(),
+    validateFields,
+    checkExtraCurCourExistence,
+  ],
+  getExtraCourseInfoMix
+);
 extraCurricularCoursesRouter.get(
   "/:id_ext_cou/students",
   [

@@ -31,7 +31,11 @@ const Partial_pay = require("../models/partial_pay");
 const { getGroupDaysAndOverdue } = require("../helpers/dates");
 const Educational_level = require("../models/educational_level");
 const ExtraCurricularCourses = require("../models/extracurricularcourses");
-const { getExtraCourseInfo } = require("../helpers/courses");
+const {
+  getExtraCourseInfo,
+  enrollStudentIntoExtraCou,
+  unrollStudentOfExtraCou,
+} = require("../helpers/courses");
 const Stu_extracou = require("../models/stu_extracou");
 
 const getAllPayments = async (req, res = response) => {
@@ -389,7 +393,7 @@ const createPayment = async (req, res = response) => {
         const timesStudentInCourse = await Stu_extracou.count({
           where: { [Op.and]: [{ id_ext_cou }, { id_student }] },
         });
-        if (timesStudentInCourse > 1)
+        if (timesStudentInCourse >= 1)
           return res.status(400).json({
             ok: false,
             msg: `El alumno ya se encuentra inscrito al curso extra curricular con id ${id_ext_cou}.`,
@@ -416,13 +420,7 @@ const createPayment = async (req, res = response) => {
     const { id_stu_pay } = await stu_pay.save();
     if (payment_type.toLowerCase() == "curso extracurricular") {
       msg = "";
-      const student_extra = new Stu_extracou({
-        id_student,
-        id_ext_cou,
-        grade: 0,
-        id_stu_pay,
-      });
-      await student_extra.save();
+      await enrollStudentIntoExtraCou(id_ext_cou, { id_student, id_stu_pay });
     }
 
     const partial_pay = new Partial_pay({
@@ -481,7 +479,7 @@ const getAllPaymentsByGroup = async (req, res = response) => {
               " ",
               col("surname_f"),
               " ",
-              col("name"),
+              col("name")
             ),
             "student_name",
           ],
@@ -558,7 +556,7 @@ const deletePayment = async (req, res = response) => {
       where: { id_payment },
     });
     if (payment_type == "Curso extracurricular") {
-      await Stu_extracou.destroy({ where: { id_stu_pay: stu_pay.id_stu_pay } });
+      await unrollStudentOfExtraCou(stu_pay.id_stu_pay);
     }
     await stu_pay.destroy();
 
