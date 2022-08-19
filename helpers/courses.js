@@ -16,6 +16,10 @@ const Stu_extracou = require("../models/stu_extracou");
 const Extracurricularcourse_ass = require("../models/extracurricularcourse_ass");
 const Assit = require("../models/assit");
 const Stu_info = require("../models/stu_info");
+const { printAndSendError } = require("./responsesOfReq");
+const Stu_gro = require("../models/stu_gro");
+const Stu_gracou = require("../models/stu_gracou");
+const Gra_sec_ass = require("../models/gra_sec_ass");
 
 const getRegularCourseInfo = async (
   opts = { id_gro_cou: 0, addTeacher: false }
@@ -553,8 +557,8 @@ const getCoursesGiveTeachersOrTeacher = async (
       coursesInfoJSON.status =
         coursesInfoJSON.status === 1 ? "Activo" : "Inactivo";
       coursesInfoJSON.teacher_name = teacher.teacher_name;
-      coursesInfoJSON.isTeacherTitular =
-        coursesInfoJSON.id_teacher == id_teacher ? 1 : 0;
+      coursesInfoJSON.is_teacher_titular =
+        coursesInfoJSON.id_teacher == id_teacher;
       coursesInfoJSON.start_date = moment(coursesInfoJSON.start_date).format(
         "D-MMM-YYYY"
       );
@@ -679,6 +683,122 @@ const unrollStudentOfExtraCou = async (id_stu_pay = 0) => {
   );
   await studentExtraCou.destroy();
 };
+
+const assignGradCouToStudentsGroup = async (
+  id_group = 0,
+  id_graduation_course = 0
+) => {
+  const studentsFromGroup = await Stu_gro.findAll({
+    where: { [Op.and]: [{ id_group }, { status: 1 }] },
+  });
+  // Sing up students who belong to the group at the moment
+  await Promise.all(
+    studentsFromGroup.map(async (stu_gro) => {
+      const { id_student } = stu_gro;
+      Stu_gracou.create({ id_student, id_graduation_course, grade: "-" });
+    })
+  );
+  // Get sections from graduation course
+  const graduationCourseSections = await Graduation_section.findAll({
+    where: { id_graduation_course },
+  });
+
+  // Register assistence to the graduation course
+  await Promise.all(
+    graduationCourseSections.map(async (graduationSection) => {
+      const { start_date, end_date, id_graduation_section } = graduationSection;
+      // Get assistence dates of graduation course
+      const assistenceDateForSection = findAssistenceDays(
+        [],
+        start_date,
+        end_date,
+        { sequential_days: true }
+      );
+      await Promise.all(
+        studentsFromGroup.map(async (stu_gro) => {
+          const { id_student } = stu_gro;
+          let assitences = await Assit.bulkCreate(
+            assistenceDateForSection.map((assistenceDate) => ({
+              date_assistance: assistenceDate,
+              attended: 0,
+            }))
+          );
+          assitences = assitences
+            .map((assist) => assist.toJSON().id_assistance)
+            .map((id_assistance) => ({
+              id_student,
+              id_graduation_section,
+              id_assistance,
+            }));
+          await Gra_sec_ass.bulkCreate(assitences);
+        })
+      );
+    })
+  );
+  await Group.update({ id_graduation_course }, { where: { id_group } });
+};
+
+const unAssingGradCouToStudentsGroup = async (
+  id_group = 0,
+  id_graduation_course = 0
+) => {
+  const studentsFromGroup = await Stu_gro.findAll({
+    where: { [Op.and]: [{ id_group }, { status: 1 }] },
+  });
+  // Get sections from graduation course
+  const graduationCourseSections = await Graduation_section.findAll({
+    where: {
+      id_graduation_course,
+    },
+  });
+  // Find assistences of each graduation section and delete them
+  await Promise.all(
+    graduationCourseSections.map(async (graduationSection) => {
+      const { id_graduation_section } = graduationSection;
+      const graduationSectionAssistences = await Gra_sec_ass.findAll({
+        where: {
+          [Op.and]: [
+            { id_graduation_section },
+            {
+              id_student: {
+                [Op.in]: [
+                  studentsFromGroup.map(
+                    (studentGroup) => studentGroup.toJSON().id_student
+                  ),
+                ],
+              },
+            },
+          ],
+        },
+      });
+      await Promise.all(
+        graduationSectionAssistences.map(async (sectionAssistence) => {
+          const { id_assistance } = sectionAssistence;
+          await sectionAssistence.destroy();
+          await Assit.destroy({ where: { id_assistance } });
+        })
+      );
+    })
+  );
+  // Find student assosiation with graduation course and delete them
+  await Stu_gracou.destroy({
+    where: {
+      [Op.and]: [
+        { id_graduation_course },
+        {
+          id_student: {
+            [Op.in]: [
+              studentsFromGroup.map(
+                (studentGroup) => studentGroup.toJSON().id_student
+              ),
+            ],
+          },
+        },
+      ],
+    },
+  });
+  await Group.update({ id_graduation_course: null }, { where: { id_group } });
+};
 module.exports = {
   getRegularCourseInfo,
   getExtraCourseInfo,
@@ -690,4 +810,6 @@ module.exports = {
   getExtraCourseInfoForTeacher,
   enrollStudentIntoExtraCou,
   unrollStudentOfExtraCou,
+  assignGradCouToStudentsGroup,
+  unAssingGradCouToStudentsGroup,
 };

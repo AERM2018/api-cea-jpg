@@ -105,7 +105,12 @@ const getGroupDaysAndOverdue = async (
   return { first_day: first_day_date, last_day: last_day_date, overdue };
 };
 
-const findAssistenceDays = (days, first_day, last_day) => {
+const findAssistenceDays = (
+  days,
+  first_day,
+  last_day,
+  opts = { sequential_days: false }
+) => {
   const first_day_date = moment(first_day);
   const last_day_date = moment(last_day);
   let assistence_days_dates = [];
@@ -119,7 +124,9 @@ const findAssistenceDays = (days, first_day, last_day) => {
       if (nextDay === undefined) nextDay = days[0];
       daysToAdd = nextDay < moment(current_date).day() ? nextDay + 7 : nextDay;
     }
-    current_date = moment(current_date).day(daysToAdd);
+    current_date = !opts.sequential_days
+      ? moment(current_date).day(daysToAdd)
+      : moment(current_date).add(1, "day");
   }
   return assistence_days_dates;
 };

@@ -31,6 +31,10 @@ const Group = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    id_graduation_course: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     timestamps: false,

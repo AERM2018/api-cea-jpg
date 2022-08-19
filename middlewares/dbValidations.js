@@ -588,6 +588,31 @@ const isUserAllowedToUpdateGrade = async (req, res, next) => {
     printAndSendError(res, error);
   }
 };
+
+const isGroupTakingGraduationCourse = async (req, res, next) => {
+  try {
+    const { id_group } = req.params;
+    const { id_graduation_course } = await Group.findByPk(id_group);
+    if (id_graduation_course) {
+      if (req.method === "POST") {
+        return res.json({
+          ok: false,
+          msg: `El grupo con id ${id_group} ya se encuentra cursando un curso de graduación.`,
+        });
+      }
+    } else {
+      if (req.method === "DELETE") {
+        return res.json({
+          ok: false,
+          msg: `El grupo con id ${id_group} no se ha empezado un curso de graduación aún.`,
+        });
+      }
+    }
+    next();
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 module.exports = {
   checkCampusExistence,
   checkStudentExistence,
@@ -625,4 +650,5 @@ module.exports = {
   isValidRestrictionCourseOrExtraCourse,
   isStudentPartOfAGroup,
   isUserAllowedToUpdateGrade,
+  isGroupTakingGraduationCourse,
 };

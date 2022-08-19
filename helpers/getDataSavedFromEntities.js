@@ -345,8 +345,8 @@ const getExtraCoursesWithTimeTable = async (
 
 const getGraduationCourseInfoWithSections = async (
   id_graduation_course,
-  courseGradName,
-  statusCondition
+  courseGradName = undefined,
+  statusCondition = undefined
 ) => {
   Graduation_section.belongsTo(Graduation_courses, {
     foreignKey: "id_graduation_course",
@@ -466,7 +466,7 @@ const getSchoolarshipsInfo = async (id_scholarship) => {
               " ",
               col("surname_f"),
               " ",
-              col("name"),
+              col("name")
             ),
             "student_name",
           ],

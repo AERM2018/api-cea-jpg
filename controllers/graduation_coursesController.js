@@ -11,6 +11,8 @@ const Student = require("../models/student");
 const {
   setSectionInactivate,
   setCourseInactivate,
+  assignGradCouToStudentsGroup,
+  unAssingGradCouToStudentsGroup,
 } = require("../helpers/courses");
 const Group = require("../models/group");
 const Gro_cou = require("../models/gro_cou");
@@ -60,9 +62,7 @@ const createGraduationCourses = async (req, res = response) => {
       sections.shift();
     }
     const result = await getGraduationCourseInfoWithSections(
-      id_graduation_course,
-      undefined,
-      undefined
+      id_graduation_course
     );
     res.status(201).json({
       ok: true,
@@ -215,7 +215,7 @@ const getStudentsFromGradCourse = async (req, res) => {
                 " ",
                 col("surname_f"),
                 " ",
-                col("name"),
+                col("name")
               ),
               "student_name",
             ],
@@ -243,10 +243,37 @@ const getStudentsFromGradCourse = async (req, res) => {
   }
 };
 
+const assignGradCouToGroup = async (req, res = response) => {
+  const { id_graduation_course, id_group } = req.params;
+  try {
+    await assignGradCouToStudentsGroup(id_group, id_graduation_course);
+    res.json({
+      ok: true,
+      msg: "Curso de graduación asignado a grupo correctamente.",
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
+
+const unAssignGradCouToGroup = async (req, res = response) => {
+  const { id_graduation_course, id_group } = req.params;
+  try {
+    await unAssingGradCouToStudentsGroup(id_group, id_graduation_course);
+    res.json({
+      ok: true,
+      msg: "Curso de graduación desaginado correctamente.",
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 module.exports = {
   getAllGraduationCourses,
   createGraduationCourses,
   updateGraduationCourses,
   deleteGraduationCourses,
   getStudentsFromGradCourse,
+  assignGradCouToGroup,
+  unAssignGradCouToGroup,
 };

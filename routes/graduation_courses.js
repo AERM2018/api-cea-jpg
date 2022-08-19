@@ -7,10 +7,13 @@ const {
   deleteGraduationCourses,
   getStudentsFromGradCourse,
   getGraduationCourseAssistanceDays,
+  assignGradCouToGroup,
+  unAssignGradCouToGroup,
 } = require("../controllers/graduation_coursesController");
 const {
   checkGraduationCourseExistence,
   checkTeacherExistence,
+  isGroupTakingGraduationCourse,
 } = require("../middlewares/dbValidations");
 const validateJWT = require("../middlewares/validar-jwt");
 const { validateFields } = require("../middlewares/validateFields");
@@ -127,4 +130,15 @@ Graduation_courses_Router.get(
   getStudentsFromGradCourse
 );
 
+Graduation_courses_Router.post(
+  "/:id_graduation_course/groups/:id_group",
+  [validateJWT, isGroupTakingGraduationCourse, checkGraduationCourseExistence],
+  assignGradCouToGroup
+);
+
+Graduation_courses_Router.delete(
+  "/:id_graduation_course/groups/:id_group",
+  [validateJWT, isGroupTakingGraduationCourse],
+  unAssignGradCouToGroup
+);
 module.exports = Graduation_courses_Router;
