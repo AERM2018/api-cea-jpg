@@ -109,7 +109,7 @@ const findAssistenceDays = (
   days,
   first_day,
   last_day,
-  opts = { sequential_days: false }
+  opts = { sequential_days: false, omitWeekend: false }
 ) => {
   const first_day_date = moment(first_day);
   const last_day_date = moment(last_day);
@@ -126,6 +126,8 @@ const findAssistenceDays = (
     }
     current_date = !opts.sequential_days
       ? moment(current_date).day(daysToAdd)
+      : moment(current_date).clone().day() == 5 && opts.omitWeekend
+      ? moment(current_date).add(3, "day")
       : moment(current_date).add(1, "day");
   }
   return assistence_days_dates;

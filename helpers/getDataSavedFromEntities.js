@@ -343,105 +343,6 @@ const getExtraCoursesWithTimeTable = async (
   return id_ext_cou ? extracurricular_courses[0] : extracurricular_courses;
 };
 
-const getGraduationCourseInfoWithSections = async (
-  id_graduation_course,
-  courseGradName = undefined,
-  statusCondition = undefined
-) => {
-  Graduation_section.belongsTo(Graduation_courses, {
-    foreignKey: "id_graduation_course",
-  });
-  Graduation_courses.hasMany(Graduation_section, {
-    foreignKey: "id_graduation_course",
-  });
-  Graduation_section.belongsTo(Teacher, { foreignKey: "id_teacher" });
-  Teacher.hasOne(Graduation_section, { foreignKey: "id_teacher" });
-  Graduation_courses.belongsTo(Teacher, { foreignKey: "id_teacher" });
-  Teacher.hasOne(Graduation_courses, { foreignKey: "id_teacher" });
-  const condition =
-    id_graduation_course !== undefined ? { id_graduation_course } : undefined;
-  let graduation_courses = await Graduation_courses.findAll({
-    where: {
-      [courseGradName !== undefined && statusCondition !== undefined
-        ? Op.and
-        : Op.or]: [
-        courseGradName !== undefined
-          ? { course_grad_name: { [Op.like]: `%${courseGradName}%` } }
-          : undefined,
-        statusCondition,
-        condition,
-      ],
-    },
-    include: [
-      {
-        model: Graduation_section,
-        attributes: { exclude: ["id_graduation_course"] },
-        required: false,
-        include: {
-          model: Teacher,
-          attributes: [
-            "id_teacher",
-            [
-              fn(
-                "concat",
-                col("graduation_sections.teacher.name"),
-                " ",
-                col("graduation_sections.teacher.surname_m"),
-                " ",
-                col("graduation_sections.teacher.surname_f")
-              ),
-              "teacher_name",
-            ],
-          ],
-        },
-      },
-      {
-        model: Teacher,
-        attributes: [
-          "id_teacher",
-          [
-            fn(
-              "concat",
-              col("teacher.name"),
-              " ",
-              col("teacher.surname_m"),
-              " ",
-              col("teacher.surname_f")
-            ),
-            "teacher_name",
-          ],
-        ],
-      },
-    ],
-  });
-  graduation_courses = await Promise.all(
-    graduation_courses.map(async (course) => {
-      let { teacher, ...coursesInfoJSON } = course.toJSON();
-      coursesInfoJSON.graduation_sections = await Promise.all(
-        course.graduation_sections.map(async (section) => {
-          section = await setSectionInactivate(section);
-          const { teacher, ...sectionInfo } = section.toJSON();
-          return { ...sectionInfo, ...teacher };
-        })
-      );
-      coursesInfoJSON.graduation_sections =
-        coursesInfoJSON.graduation_sections.filter((section) => section);
-      course = await setCourseInactivate(course);
-      if (!course.status && statusCondition?.status == 1) return;
-      coursesInfoJSON.teacher_name = teacher.teacher_name;
-      console.log(coursesInfoJSON.id_graduation_course, coursesInfoJSON.status);
-      console.log(coursesInfoJSON.status === 1 ? "Activo" : "Inactivo");
-      coursesInfoJSON.status =
-        coursesInfoJSON.status === 1 ? "Activo" : "Inactivo";
-      return coursesInfoJSON;
-    })
-  );
-  graduation_courses = graduation_courses.filter(
-    (graduation_course) => graduation_course
-  );
-  return id_graduation_course ? graduation_courses[0] : graduation_courses;
-};
-
 const getSchoolarshipsInfo = async (id_scholarship) => {
   const condition =
     id_scholarship !== undefined ? { id_scholarship } : undefined;
@@ -553,7 +454,6 @@ module.exports = {
   getCoursesInfoWithRestrinctions,
   getMajorsInfo,
   getExtraCoursesWithTimeTable,
-  getGraduationCourseInfoWithSections,
   getExpensesInfo,
 };
 // employees, courses

@@ -13,6 +13,7 @@ const {
   setCourseInactivate,
   assignGradCouToStudentsGroup,
   unAssingGradCouToStudentsGroup,
+  getGraduationCourseInfoForTeacher,
 } = require("../helpers/courses");
 const Group = require("../models/group");
 const Gro_cou = require("../models/gro_cou");
@@ -23,9 +24,7 @@ const {
   findAssistenceDays,
 } = require("../helpers/dates");
 const Stu_gro = require("../models/stu_gro");
-const {
-  getGraduationCourseInfoWithSections,
-} = require("../helpers/getDataSavedFromEntities");
+const { getGraduationCourseInfoWithSections } = require("../helpers/courses");
 const Gra_sec_ass = require("../models/gra_sec_ass");
 
 const getAllGraduationCourses = async (req = request, res = response) => {
@@ -268,6 +267,21 @@ const unAssignGradCouToGroup = async (req, res = response) => {
     printAndSendError(res, err);
   }
 };
+
+const getGraduationCourseInfoMix = async (req, res = response) => {
+  const { id_graduation_course } = req.params;
+  try {
+    const graduationCourseInfoMix = await getGraduationCourseInfoForTeacher(
+      id_graduation_course
+    );
+    res.json({
+      ok: true,
+      course: graduationCourseInfoMix,
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 module.exports = {
   getAllGraduationCourses,
   createGraduationCourses,
@@ -276,4 +290,5 @@ module.exports = {
   getStudentsFromGradCourse,
   assignGradCouToGroup,
   unAssignGradCouToGroup,
+  getGraduationCourseInfoMix,
 };

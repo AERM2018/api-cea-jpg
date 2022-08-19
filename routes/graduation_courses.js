@@ -9,6 +9,7 @@ const {
   getGraduationCourseAssistanceDays,
   assignGradCouToGroup,
   unAssignGradCouToGroup,
+  getGraduationCourseInfoMix,
 } = require("../controllers/graduation_coursesController");
 const {
   checkGraduationCourseExistence,
@@ -140,5 +141,11 @@ Graduation_courses_Router.delete(
   "/:id_graduation_course/groups/:id_group",
   [validateJWT, isGroupTakingGraduationCourse],
   unAssignGradCouToGroup
+);
+
+Graduation_courses_Router.get(
+  "/:id_graduation_course/mix",
+  [validateJWT],
+  getGraduationCourseInfoMix
 );
 module.exports = Graduation_courses_Router;
