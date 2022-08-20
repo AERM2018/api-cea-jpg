@@ -18,7 +18,10 @@ const {
   getFeeCourseByMajor,
   getFeeSchoolByMajor,
 } = require("../types/dictionaries");
-const { getPaymentStudent } = require("../helpers/students");
+const {
+  getPaymentStudent,
+  isStudentPaidCourseOfMonth,
+} = require("../helpers/students");
 const { db } = require("../database/connection");
 const { getReqPay, getStuInfo } = require("../queries/queries");
 const Emp_dep = require("../models/emp_dep");
@@ -258,11 +261,16 @@ const createPayment = async (req, res = response) => {
         }
         // Parsing to JSON the database's result
         const courses_already_paid = pays_courses.map((pays) => pays.toJSON());
-        const course_already_paid = courses_already_paid.find(
-          (paysJSON) =>
-            paysJSON.payment_type === "Materia" &&
-            moment(paysJSON.start_date).month() === moment(start_date).month()
+        // Find if there's a course of this month that is already paid
+        const course_already_paid = await isStudentPaidCourseOfMonth(
+          id_student,
+          courses_already_paid
         );
+        // courses_already_paid.find(
+        //   (paysJSON) =>
+        //     paysJSON.payment_type === "Materia" &&
+        //     moment(paysJSON.start_date).month() === moment(start_date).month()
+        // );
         if (course_already_paid) {
           if (
             moment(course_already_paid["start_date"]).year() === moment().year()
@@ -285,7 +293,6 @@ const createPayment = async (req, res = response) => {
         } else {
           // Set to the start date the inscription's year if any payment of the specified month is found
           // Avoid payments with date before inscription's date
-          console.log("ins-date--------", ins_date);
           start_date = moment({
             month: moment(start_date).month(),
             year: moment(ins_date).year(),

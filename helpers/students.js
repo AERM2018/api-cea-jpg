@@ -47,7 +47,7 @@ const getStudentInfo = async (matricula = "") => {
             " ",
             col("surname_f"),
             " ",
-            col("name"),
+            col("name")
           ),
           "student_name",
         ],
@@ -269,6 +269,22 @@ const getPaymentStudent = async (
       case "Inscripción":
         extra = { name: `Inscripción a ${edu_level} en ${major_name}` };
         break;
+      case "Curso extracurricular":
+        Stu_extracou.belongsTo(ExtraCurricularCourses, {
+          foreignKey: "id_ext_cou",
+        });
+        ExtraCurricularCourses.hasOne(Stu_extracou, {
+          foreignKey: "id_ext_cou",
+        });
+        const studentPayment = await Stu_pay.findOne({ where: { id_payment } });
+        const studentExtraCou = await Stu_extracou.findOne({
+          where: { id_stu_pay: studentPayment.id_stu_pay },
+          include: { model: ExtraCurricularCourses },
+        });
+        extra = {
+          name: `${payment_type} : ${studentExtraCou.extracurricular_course.ext_cou_name}`,
+        };
+        break;
     }
 
     extra = {
@@ -369,7 +385,7 @@ const getGradesStudent = async (
         gradeStudent.toJSON();
       const { id_course, course_name, clave, credits } = course;
       let testInfo;
-      const {id_gro_cou} = await Test.findOne({ where :{id_grade}})
+      const { id_gro_cou } = await Test.findOne({ where: { id_grade } });
       // const { id_group } = await Gro_cou.findOne({
       //   attributes: {
       //     include: [
@@ -379,7 +395,7 @@ const getGradesStudent = async (
       //   },
       //   where: {
       //     [Op.and]: [
-            
+
       //       where(
       //         literal(`(
       //            ${
@@ -640,6 +656,17 @@ const getCourseStudentIsTaking = async (id_group = 0) => {
 
   return course;
 };
+
+const isStudentPaidCourseOfMonth = async (
+  id_student = "",
+  coursePayments = []
+) => {
+  coursePayments.find(
+    (coursePayment) =>
+      coursePayment.payment_type === "Materia" &&
+      moment(coursePayment.start_date).month() === moment(start_date).month()
+  );
+};
 module.exports = {
   getPaymentStudent,
   getGradesStudent,
@@ -648,4 +675,5 @@ module.exports = {
   filterGradesStudent,
   getCourseStudentIsTaking,
   getStudentInfo,
+  isStudentPaidCourseOfMonth,
 };

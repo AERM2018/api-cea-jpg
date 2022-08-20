@@ -60,7 +60,8 @@ const getAllGrades = async (req, res = response) => {
     students = await Promise.all(students);
     students = filterGradesStudent(students, q);
     students = students.filter(
-      (student, i) => i >= (offset -1) * page - (offset -1) && i <= (offset -1) * page
+      (student, i) =>
+        i >= (offset - 1) * page - (offset - 1) && i <= (offset - 1) * page
     );
     grades = [...students];
     res.json({
@@ -106,7 +107,7 @@ const getAllGradesByCourse = async (req, res = response) => {
                 " ",
                 col("surname_f"),
                 " ",
-                col("name"),
+                col("name")
               ),
               "student_name",
             ],
@@ -167,7 +168,7 @@ const getExtraCourseGrades = async (req, res = response) => {
               " ",
               col("surname_f"),
               " ",
-              col("name"),
+              col("name")
             ),
             "student_name",
           ],
@@ -371,7 +372,7 @@ const searchAverageByStudent = async (req, res = response) => {
 
 const getAllGradesByMatricula = async (req, res = response) => {
   const { id_student } = req;
-  const { page = 1, offset = 10} = req.query;
+  const { page = 1, offset = 10 } = req.query;
   try {
     let grades;
     const { grades: coursesGrades, generalAvg } = await getGradesStudent(
@@ -382,7 +383,10 @@ const getAllGradesByMatricula = async (req, res = response) => {
     const tesineGrade = await getTesineGradeStudent(id_student);
     grades = [...coursesGrades, ...extraCoursesGrades];
     if (tesineGrade) grades.push(tesineGrade);
-    grades = grades.filter((grade, i) => i >= (offset - 1) * page - (offset - 1) && i <= (offset - 1) * page);
+    grades = grades.filter(
+      (grade, i) =>
+        i >= (offset - 1) * page - (offset - 1) && i <= (offset - 1) * page
+    );
     res.json({
       ok: true,
       grades,
@@ -646,16 +650,20 @@ const updateExtraCurCourGrades = async (req, res) => {
   }
 };
 
-const updateTesineGrades = async (req, res) => {
-  const { id_tesine } = req.params;
+const updateGraduationCourseGrade = async (req, res) => {
+  const { id_graduation_course } = req.params;
   const { grade } = req.body;
+  const { id_student } = req;
 
   try {
-    await Tesine.update({ grade }, { where: { id_tesine } });
+    await Stu_gracou.update(
+      { grade },
+      { where: { [Op.and]: [{ id_student }, { id_graduation_course }] } }
+    );
 
     res.json({
       ok: true,
-      msg: "Calificación de tesina actualizada correctamente.",
+      msg: "Calificación de curso de gracuación actualizada correctamente.",
     });
   } catch (err) {
     printAndSendError(res, err);
@@ -733,7 +741,7 @@ module.exports = {
   getAllGrades,
   getAllGradesByMatricula,
   updateExtraCurCourGrades,
-  updateTesineGrades,
+  updateGraduationCourseGrade,
   uploadExtraCurCourGrades,
   // uploadTesineGrade
   deleteGrade,

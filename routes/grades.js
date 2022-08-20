@@ -12,13 +12,13 @@ const {
   uploadTesineGrade,
   uploadExtraCurCourGrades,
   updateExtraCurCourGrades,
-  updateTesineGrades,
   getAllGradesByCourse,
   getExtraCourseGrades,
   getGraduationSectionGrades,
   getGraduationCourseGrades,
   updateGradeByTest,
   deleteGrade,
+  updateGraduationCourseGrade,
 } = require("../controllers/gradesController");
 const {
   checkStudentExistence,
@@ -161,6 +161,7 @@ gradesRouter.put(
     check("grade", "La calificación es obligatoria")
       .notEmpty()
       .customSanitizer((grade) => {
+        if (typeof grade == "number") return grade;
         return grade.toLowerCase() === "np" ? "NP" : grade;
       }),
     validateFields,
@@ -200,13 +201,16 @@ gradesRouter.put(
       .isInt(),
     param("matricula", "La matricula del estudiante es obligatorio ")
       .not()
-      .isEmpty()
-      .isInt(),
-    check("grade", "Calificación es de tipo float obligatoria")
-      .isFloat()
-      .notEmpty(),
+      .isEmpty(),
+    check("grade", "La calificación es obligatoria")
+      .notEmpty()
+      .customSanitizer((grade) => {
+        if (typeof grade == "number") return grade;
+        return grade.toLowerCase() === "np" ? "NP" : grade;
+      }),
     checkExtraCurCourExistence,
     checkStudentExistence,
+    checkGradeOrGrades,
     validateFields,
     validateJWT,
   ],
@@ -214,20 +218,33 @@ gradesRouter.put(
 );
 
 gradesRouter.put(
-  "/tesine/:id_tesine",
+  "/graduation_courses/:id_graduation_course/students/:matricula",
   [
-    param("id_tesine", "Llave ").not().isEmpty().isInt(),
+    check(
+      "id_graduation_course",
+      "El id del curso de graduación es obligatorio."
+    )
+      .not()
+      .isEmpty()
+      .isInt(),
+    check("matricula", "La matricula del estudiante es obligatoria.")
+      .not()
+      .isEmpty(),
     // check('id_course','El id del curso es un numero entero y es obligatorio').isNumeric().exists({checkNull:true}),
     // check('id_group',"El id del grupo es obligatorio").isNumeric().exists({checkNull:true}),
     // check('students',"Las calificaciones de los estudiantes deben estar contenidas en un arreglo").isArray({ min:1 }),
-    check("grade", "Calificación es de tipo float obligatoria")
-      .isFloat()
-      .notEmpty(),
-    checkGradeTesineExistence,
+    check("grade", "La calificación es obligatoria")
+      .notEmpty()
+      .customSanitizer((grade) => {
+        if (typeof grade == "number") return grade;
+        return grade.toLowerCase() === "np" ? "NP" : grade;
+      }),
     validateFields,
     validateJWT,
+    checkGradeOrGrades,
+    checkStudentExistence,
   ],
-  updateTesineGrades
+  updateGraduationCourseGrade
 );
 
 gradesRouter.delete(
