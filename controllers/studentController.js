@@ -51,6 +51,8 @@ const {
 const Rol_use = require("../models/rol_use");
 const Grades = require("../models/grades");
 const Test = require("../models/test");
+const { createGoogleAccount } = require("../helpers/googleAccounts");
+const { createMoodleAccount } = require("../helpers/moodleAccounts");
 
 const getAllStudents = async (req, res) => {
   let { irregular = "" } = req.query;
@@ -500,6 +502,27 @@ const moveStudentFromGroup = async (req, res) => {
   });
 };
 
+const createStudentSchoolAccounts = async (req, res) => {
+  const { id_student } = req;
+  try {
+    const student = await Stu_info.findOne({
+      where: { id_student },
+      attributes: { exclude: ["id"] },
+    });
+    const response = await createGoogleAccount(student);
+    // if (!response.ok) {
+    //   return res.json({ ok: false, msg: response.err.errors[0].message });
+    // }
+    const moodleResponse = await createMoodleAccount(student, response.email);
+    console.log(moodleResponse.data.warnings);
+    res.json({
+      ok: true,
+      msg: "Cuentas creadas exitosamente",
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 module.exports = {
   getAllStudents,
   getStudentByMatricula,
@@ -507,4 +530,5 @@ module.exports = {
   updateStudent,
   moveStudentFromGroup,
   deleteStudent,
+  createStudentSchoolAccounts,
 };

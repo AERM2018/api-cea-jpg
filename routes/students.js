@@ -7,6 +7,7 @@ const {
   deleteStudent,
   getStudentByMatricula,
   moveStudentFromGroup,
+  createStudentSchoolAccounts,
 } = require("../controllers/studentController");
 const {
   checkStudentExistence,
@@ -265,4 +266,9 @@ studentsRouter.delete(
   deleteStudent
 );
 
+studentsRouter.post(
+  "/:matricula/school_accounts",
+  [checkStudentExistence, validateFields, validateJWT],
+  createStudentSchoolAccounts
+);
 module.exports = studentsRouter;
