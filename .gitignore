@@ -5,3 +5,5 @@ node_modules/
 .vscode/
 
 queries/.sql
+
+api-cea-key-file.json

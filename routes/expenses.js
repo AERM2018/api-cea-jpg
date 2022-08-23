@@ -1,6 +1,6 @@
 const { Router, request } = require('express');
 const { check, param } = require('express-validator');
-const {createExpense ,getAllTheExpenses ,deleteExpense  ,updateExpense  } = require('../controllers/expensesController');
+const {createExpense ,getAllTheExpenses ,deleteExpense  ,updateExpense, createExpensesReport  } = require('../controllers/expensesController');
 const {checkEmployeeExistence } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -34,5 +34,6 @@ expenseRouter.delete('/:id', [
     validateJWT
 ], deleteExpense)
 
+expenseRouter.post("/report", [validateJWT], createExpensesReport);
 
 module.exports = expenseRouter

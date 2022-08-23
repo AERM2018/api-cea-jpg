@@ -8,6 +8,7 @@ const ProofOfStudies = require("../models/documents/proofOfStudies");
 const Kardex = require("../models/documents/kardex");
 const TestRecord = require("../models/documents/testRecord");
 const ProofOfStudiesSegmented = require("../models/documents/proofOfStudiesSegmented");
+const ExpensesReport = require("../models/documents/expensesReport");
 
 const generateNewDoc = (tools, document_type, dataCallback, endCallback) => {
   let aleDocument;
@@ -42,6 +43,12 @@ const generateNewDoc = (tools, document_type, dataCallback, endCallback) => {
   aleDocument.PDFInstance.on("end", endCallback);
 };
 
+const generateExpensesDoc = (expenses,dateRange,dataCallback,endCallback) => {
+  const aleDocument = new ExpensesReport(expenses, dateRange);
+  aleDocument.PDFInstance.on("data", dataCallback);
+  aleDocument.PDFInstance.on("end", endCallback);
+}
 module.exports = {
   generateNewDoc,
+  generateExpensesDoc,
 };
