@@ -59,13 +59,13 @@ const login = async (req, res = response) => {
         passValidation = bcrypt.compareSync(password, user.password)
     }
     if (!passValidation) {
-        await FailedLoginAttemps.create({
-          ip_address: req.ip,
-          date: moment({}).unix(),
-        });
+        // await FailedLoginAttemps.create({
+        //   ip_address: req.ip,
+        //   date: moment({}).unix(),
+        // });
         return res.status(400).json({
           ok: false,
-          msg: `Datos de acceso erroneos, verifiquelos por favor. ${req.numFailedAttemps} intentos restantes`,
+          msg: `Datos de acceso erroneos, verifiquelos por favor.`,
         });
     }
     // get data and create token
@@ -74,7 +74,7 @@ const login = async (req, res = response) => {
     roles = roles.map(({id_role}) => id_role)
     const token = await createJWT(id_user, email, user_type, roles)
     const userEntityInfo = await getLogInInfo(id_user,user_type)
-    FailedLoginAttemps.destroy({where:{ip_address:req.ip}})
+    // FailedLoginAttemps.destroy({where:{ip_address:req.ip}})
     res.status(200).json({
         ok: true,
         token,

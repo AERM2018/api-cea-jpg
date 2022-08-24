@@ -15,7 +15,7 @@ const authRouter = Router();
 //     message : "El numero de intentos de inicio de sesión fue superado, espere 5 minutos y vuelva a intarlo"
 // })
 
-authRouter.post('/login',loginFailedAttempsLimiter,login)
+authRouter.post('/login',login)
 authRouter.post('/forgotPassword',
     [
         checkUserExistance,
