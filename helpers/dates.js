@@ -132,7 +132,19 @@ const findAssistenceDays = (
   }
   return assistence_days_dates;
 };
+
+const secondsToString = (seconds) => {
+  // const hour = Math.floor(seconds / 3600);
+  // hour = hour < 10 ? "0" + hour : hour;
+  let minute = Math.floor((seconds / 60) % 60);
+  minute = minute < 10 ? "0" + minute : minute;
+  let second = seconds % 60;
+  second = second < 10 ? "0" + second : second;
+  if (minute > 0) return `${minute} minutos y ${second} segundos`
+  return `${second} segundos`;
+}
 module.exports = {
   getGroupDaysAndOverdue,
   findAssistenceDays,
+  secondsToString,
 };

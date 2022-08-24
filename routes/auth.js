@@ -2,7 +2,7 @@ const {Router} = require('express');
 const rateLimit = require('express-rate-limit');
 const { check } = require('express-validator');
 const { login, revalidateJWT, signup, sendForgotPassCode, verifyForgotPassCode, changePassword } = require('../controllers/auth');
-const { loginRateLimit } = require('../middlewares/auth');
+const { loginRateLimit, loginFailedAttempsLimiter } = require('../middlewares/auth');
 const { checkUserExistance } = require('../middlewares/dbValidations');
 const validateJWT = require('../middlewares/validar-jwt');
 const { validateFields } = require('../middlewares/validateFields');
@@ -15,7 +15,7 @@ const authRouter = Router();
 //     message : "El numero de intentos de inicio de sesión fue superado, espere 5 minutos y vuelva a intarlo"
 // })
 
-authRouter.post('/login',loginRateLimit,login)
+authRouter.post('/login',loginFailedAttempsLimiter,login)
 authRouter.post('/forgotPassword',
     [
         checkUserExistance,

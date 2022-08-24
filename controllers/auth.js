@@ -13,6 +13,7 @@ const Forgot_pass_code = require("../models/forgot_pass_code");
 const Rol_use = require("../models/rol_use");
 const { verify } = require("jsonwebtoken");
 const { printAndSendError } = require("../helpers/responsesOfReq");
+const FailedLoginAttemps = require("../models/failed_login_attemps");
 
 const signup = async (req, res = response) => {
     const { id, user_type, email, password } = req.body
@@ -49,7 +50,6 @@ const login = async (req, res = response) => {
             type: QueryTypes.SELECT
         });
         user = normalUser[0]
-        console.log(user)
         if (!user) {
             return res.status(404).json({
                 ok: false,
@@ -59,17 +59,22 @@ const login = async (req, res = response) => {
         passValidation = bcrypt.compareSync(password, user.password)
     }
     if (!passValidation) {
+        await FailedLoginAttemps.create({
+          ip_address: req.ip,
+          date: moment({}).unix(),
+        });
         return res.status(400).json({
-            ok: false,
-            msg: `Datos de acceso erroneos, verifiquelos por favor.`
-        })
+          ok: false,
+          msg: `Datos de acceso erroneos, verifiquelos por favor. ${req.numFailedAttemps} intentos restantes`,
+        });
     }
     // get data and create token
-    const { id_user, user_type, id_role, email } = user
+    const { id_user, user_type, id_role, email } = user 
     let roles = await Rol_use.findAll({where : {id_user},attributes:['id_role']})
     roles = roles.map(({id_role}) => id_role)
     const token = await createJWT(id_user, email, user_type, roles)
     const userEntityInfo = await getLogInInfo(id_user,user_type)
+    FailedLoginAttemps.destroy({where:{ip_address:req.ip}})
     res.status(200).json({
         ok: true,
         token,
