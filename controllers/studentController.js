@@ -306,10 +306,13 @@ const createStudent = async (req, res = response) => {
     const cam_use = new Cam_use({ id_campus, id_user });
     await cam_use.save();
     const result = await getStudentInfo(matricula);
-    console.log(result);
     const response = await createGoogleAccount(result);
     if (!response.ok) {
-      return res.json({ ok: false, msg: response.err.errors[0].message });
+      return res.json({
+        ok: true,
+        msg: `Estudiante creado correctamente, pero no se ha podido generar su correo institucional debido a: ${response.err.errors[0].message}`,
+        result,
+      });
     }
     await createMoodleAccount(result, response.email);
     return res.status(201).json({
