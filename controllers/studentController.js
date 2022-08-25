@@ -51,6 +51,8 @@ const {
 const Rol_use = require("../models/rol_use");
 const Grades = require("../models/grades");
 const Test = require("../models/test");
+const { createGoogleAccount, changeGoogleAcountStatus } = require("../helpers/googleAccounts");
+const { createMoodleAccount } = require("../helpers/moodleAccounts");
 
 const getAllStudents = async (req, res) => {
   let { irregular = "" } = req.query;
@@ -217,6 +219,10 @@ const createStudent = async (req, res = response) => {
           studentUser.update({ email });
         }
         const result = await getStudentInfo(matricula);
+        await changeGoogleAcountStatus(
+          `${student.matricula}@alejandria.edu.mx`,
+          false
+        );
         return res.status(200).json({
           ok: true,
           msg: "El estudiante se creo correctamente",
@@ -300,6 +306,15 @@ const createStudent = async (req, res = response) => {
     const cam_use = new Cam_use({ id_campus, id_user });
     await cam_use.save();
     const result = await getStudentInfo(matricula);
+    const response = await createGoogleAccount(result);
+    if (!response.ok) {
+      return res.json({
+        ok: true,
+        msg: `Estudiante creado correctamente, pero no se ha podido generar su correo institucional debido a: ${response.err.errors[0].message}`,
+        result,
+      });
+    }
+    await createMoodleAccount(result, response.email);
     return res.status(201).json({
       ok: true,
       msg: "Estudiante creado correctamente",
@@ -433,7 +448,7 @@ const deleteStudent = async (req, res) => {
       { status: 0 },
       { where: { id_student: student.id_student } }
     );
-
+      await changeGoogleAcountStatus(`${student.matricula}@alejandria.edu.mx`,true)
     res.status(200).json({
       ok: true,
       msg: "El alumno se elimino correctamente",
@@ -500,6 +515,26 @@ const moveStudentFromGroup = async (req, res) => {
   });
 };
 
+const createStudentSchoolAccounts = async (req, res) => {
+  const { id_student } = req;
+  try {
+    const student = await Stu_info.findOne({
+      where: { id_student },
+      attributes: { exclude: ["id"] },
+    });
+    const response = await createGoogleAccount(student);
+    if (!response.ok) {
+      return res.json({ ok: false, msg: response.err.errors[0].message });
+    }
+    await createMoodleAccount(student, response.email);
+    res.json({
+      ok: true,
+      msg: "Cuentas creadas exitosamente",
+    });
+  } catch (err) {
+    printAndSendError(res, err);
+  }
+};
 module.exports = {
   getAllStudents,
   getStudentByMatricula,
@@ -507,4 +542,5 @@ module.exports = {
   updateStudent,
   moveStudentFromGroup,
   deleteStudent,
+  createStudentSchoolAccounts,
 };
