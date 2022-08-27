@@ -364,7 +364,7 @@ const updateEmployee = async (req, res) => {
     // Asignar rol al usuario
     await Rol_use.update(
       { id_role: rol_department.id_role },
-      { where: { id_user } }
+      { where: { id_user: employee.id_user } }
     );
     // Actualizar el horario del trabajador
     const employeeTimeTable = await Time_tables.findAll({
