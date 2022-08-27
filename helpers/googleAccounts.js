@@ -1,4 +1,4 @@
-const keys = require("api-cea-key-file.json");
+const keys = require("../api-cea-key-file.json");
 const { JWT } = require("google-auth-library");
 
 const client = new JWT({
