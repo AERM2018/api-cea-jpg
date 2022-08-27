@@ -1,4 +1,4 @@
-const keys = require(process.env.GCLOUD_KEY_FILE_PATH);
+const keys = require("api-cea-key-file.json");
 const { JWT } = require("google-auth-library");
 
 const client = new JWT({
@@ -35,11 +35,11 @@ const createGoogleAccount = async (student) => {
   }
 };
 
-const changeGoogleAcountStatus = async(email, isSuspensd) => {
+const changeGoogleAcountStatus = async (email, isSuspensd) => {
   try {
     let body = {
-      suspended:isSuspensd
-    }
+      suspended: isSuspensd,
+    };
     body = JSON.stringify(body);
     const url = `https://admin.googleapis.com/admin/directory/v1/users/${email}`;
     const res = await client.request({
@@ -53,7 +53,7 @@ const changeGoogleAcountStatus = async(email, isSuspensd) => {
     console.error("ERROR:", err);
     return { ok: false, err };
   }
-}
+};
 module.exports = {
   createGoogleAccount,
   changeGoogleAcountStatus,
