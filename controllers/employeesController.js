@@ -353,6 +353,19 @@ const updateEmployee = async (req, res) => {
     if (employeeDepartment.id_department !== body.id_department) {
       employeeDepartment.update({ id_department: body.id_department });
     }
+    // Buscar el departamento
+    const department = await Department.findOne({
+      where: { id_department: body.id_department },
+    });
+    // Buscar el rol dependiendo del departamento
+    const rol_department = await Role.findOne({
+      where: { role_type: department.department_name },
+    });
+    // Asignar rol al usuario
+    await Rol_use.update(
+      { id_role: rol_department.id_role },
+      { where: { id_user } }
+    );
     // Actualizar el horario del trabajador
     const employeeTimeTable = await Time_tables.findAll({
       where: {
