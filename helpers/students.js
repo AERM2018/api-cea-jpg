@@ -664,7 +664,7 @@ const isStudentPaidCourseOfMonth = async (
   coursePayments.find(
     (coursePayment) =>
       coursePayment.payment_type === "Materia" &&
-      moment(coursePayment.start_date).month() === moment(start_date).month()
+      moment(coursePayment.start_date).month() === moment().month()
   );
 };
 module.exports = {
