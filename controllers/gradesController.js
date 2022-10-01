@@ -34,6 +34,8 @@ const {
 const ExtraCurricularCourses = require("../models/extracurricularcourses");
 const Test = require("../models/test");
 const Stu_info = require("../models/stu_info");
+const Gro_cou_ass = require("../models/gro_cou_ass");
+const Assit = require("../models/assit");
 
 const getAllGrades = async (req, res = response) => {
   let grades;
@@ -718,12 +720,34 @@ const deleteGradeByStudentId = async (req, res = response) => {
 const deleteGrade = async (req, res) => {
   const { id_grade } = req.params;
   try {
-    await Test.destroy({ where: { id_grade } });
-    await Grades.destroy({ where: { id_grade } });
-    res.json({
-      ok: true,
-      msg: "Califcación del curso eliminada correctamente.",
-    });
+    try {
+      await db.transaction(async (t) => {
+        const test = await Test.findOne({ where : { id_grade}, transaction:t})
+        const grade = await Grades.findByPk(id_grade,{transaction:t})
+        const {id_gro_cou} = test
+        const {id_student} = grade
+        await test.destroy({transaction : t});
+        await grade.destroy({ transaction: t});
+        const assistences = await Gro_cou_ass.findAll({where:{ id_gro_cou, id_student}, transaction : t})
+        const  assistence_ids = assistences.map( assistence => assistence.id_assistance)
+        await Promise.all(assistences.map(async (assistance) => {
+          await assistance.destroy({transaction:t})
+        }))
+        await Assit.destroy({ where:{id_assistance : {[Op.in]:assistence_ids}}, transaction: t})
+  
+      })
+      res.json({
+        ok: true,
+        msg: "Califcación del curso eliminada correctamente.",
+      });
+      
+    } catch (error) {
+      console.log(error);
+      res.json({
+        ok: false,
+        msg: "Ocurrio un error al tratar de eliminar la calificación del curso.",
+      });
+    }
   } catch (error) {
     printAndSendError(res, error);
   }
