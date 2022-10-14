@@ -166,7 +166,7 @@ gradesRouter.put(
       }),
     validateFields,
     checkGradeCourseExistence,
-    isUserAllowedToUpdateGrade,
+    // isUserAllowedToUpdateGrade,
     checkGradeOrGrades,
   ],
   updateGrades

@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const https = require("https");
 const statesRouter = require("../routes/states");
 const municipalitiesRouter = require("../routes/municipalities");
 const campusRouter = require("../routes/campus");
@@ -106,7 +107,17 @@ class Server {
     });
   }
   listen() {
-    this.app.listen(this.port, () => {
+    const options = {
+      ca: [
+        fs.readFileSync(process.env.PATH_TO_BUNDLE_CERT_1),
+        fs.readFileSync(process.env.PATH_TO_BUNDLE_CERT_2),
+      ],
+      cert: fs.readFileSync(process.env.PATH_TO_CERT),
+      key: fs.readFileSync(process.env.PATH_TO_KEY),
+    };
+
+    const httpsServer = https.createServer(options,this.app)
+    httpsServer.listen(this.port, () => {
       console.log(`server listening on the port ${this.port}`);
     });
   }
