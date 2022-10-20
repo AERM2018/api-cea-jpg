@@ -613,6 +613,7 @@ const getInfoCourseTakenByGroup = async (req, res = response) => {
     Test.belongsTo(Grades, { foreignKey: "id_grade" });
     Grades.hasOne(Test, { foreignKey: "id_grade" });
 
+
     const gro_cou = await Gro_cou.findOne({
       where: { [Op.and]: [{ id_course }, { id_group }] },
       raw: true,
@@ -780,6 +781,9 @@ const fillAssistaneForAllGroups = async (req, res = response) => {
   try {
     let { id_group, id_course } = req.params;
     let groups = [{ id_group: id_group }];
+    
+    Gro_cou_ass.belongsTo(Assit, { foreignKey: "id_assistance" });
+    Assit.hasOne(Gro_cou_ass, { foreignKey: "id_assistance" });
     // let groups = await Group.findAll()
     for (const group of groups) {
       // Get students from group
@@ -850,11 +854,16 @@ const fillAssistaneForAllGroups = async (req, res = response) => {
             });
           }
           for (const date_assistance of assistence_days_dates) {
-            const assitAlreadySaved = await Assit.findOne({
+            const assitAlreadySaved = await Gro_cou_ass.findOne({
               where: {
                 id_gro_cou: gro_cou.id_gro_cou,
                 id_student,
               },
+              include: {
+                model: Assit,
+                required: true,
+                where: { date_assistance }
+              }
             });
             if (!assitAlreadySaved) {
               let assit;
