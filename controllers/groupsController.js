@@ -497,7 +497,6 @@ const getCoursesAGroupCanTake = async (req, res) => {
   const { id_group } = req.params;
   try {
     const [groupInfo] = await getGroupInfo(id_group);
-    console.log(groupInfo);
     let coursesCanTake = await Courses.findAll({
       where: { id_major: groupInfo.id_major },
     });
@@ -669,7 +668,7 @@ const getInfoCourseTakenByGroup = async (req, res = response) => {
         ...student,
       };
     });
-    console.log(grades);
+    // console.log(grades);
     // ASSISTENCE DAYS
     Gro_tim.belongsTo(Time_tables, { foreignKey: "id_time_table" });
     Time_tables.hasMany(Gro_tim, { foreignKey: "id_time_table" });
@@ -754,6 +753,7 @@ const getInfoCourseTakenByGroup = async (req, res = response) => {
           studentAssistance[studentAssistance.length - 1].id_student
       );
     }
+
     finalStudentInfoAboutCourse = studentAssistance
       .map((record) => {
         if (!grades.find((grade) => grade.id_student == record.id_student))
@@ -778,7 +778,7 @@ const getInfoCourseTakenByGroup = async (req, res = response) => {
 };
 const fillAssistaneForAllGroups = async (req, res = response) => {
   try {
-    let { id_group } = req.params;
+    let { id_group, id_course } = req.params;
     let groups = [{ id_group: id_group }];
     // let groups = await Group.findAll()
     for (const group of groups) {
@@ -800,7 +800,7 @@ const fillAssistaneForAllGroups = async (req, res = response) => {
         where: { id_group: group.id_group },
       });
       const coursesTakenByGroup = await Gro_cou.findAll({
-        where: { id_group: group.id_group },
+        where: { id_course, id_group},
       });
 
       for (const gro_cou of coursesTakenByGroup) {
