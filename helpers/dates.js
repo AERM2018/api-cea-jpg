@@ -59,7 +59,7 @@ const getGroupDaysAndOverdue = async (
     if (last_day_date.day() !== end_of_month.day()) {
       if (time_table_days.length > 1) {
         // const pre_last_day = first_day_date.clone().add(weeks_missing_month, "weeks");
-        const [{ date }] = time_table_days
+        const possibleEndOfCourse = time_table_days
           .map((day) =>
             last_day_date
               .clone()
@@ -76,7 +76,20 @@ const getGroupDaysAndOverdue = async (
                 moment(first_day_date).month()
           )
           .sort((a, b) => a.diffFromEndMonth - b.diffFromEndMonth);
-        last_day_date = date;
+        if (possibleEndOfCourse.length == 0) {
+          // Check day by day of the last week if the day was not found in the previous check
+          const lastWeekOfCourse = time_table_days
+            .map((day) =>
+              moment(first_day_date).add(weeks_missing_month, "weeks").day(day)
+            )
+            .filter(
+              (date) => moment(date).month() === moment(first_day_date).month()
+            )
+            .sort((a, b) => b - a);
+          last_day_date = lastWeekOfCourse[0];
+        } else {
+          last_day_date = possibleEndOfCourse[0].date;
+        }
       }
     }
   }
@@ -140,9 +153,9 @@ const secondsToString = (seconds) => {
   minute = minute < 10 ? "0" + minute : minute;
   let second = seconds % 60;
   second = second < 10 ? "0" + second : second;
-  if (minute > 0) return `${minute} minutos y ${second} segundos`
+  if (minute > 0) return `${minute} minutos y ${second} segundos`;
   return `${second} segundos`;
-}
+};
 module.exports = {
   getGroupDaysAndOverdue,
   findAssistenceDays,
