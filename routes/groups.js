@@ -227,7 +227,7 @@ groupsRouter.delete(
 );
 
 groupsRouter.post(
-  "/:id_group/fill",
+  "/:id_group/courses/:id_course/fill",
   fillAssistaneForAllGroups
 );
 
