@@ -800,7 +800,7 @@ const fillAssistaneForAllGroups = async (req, res = response) => {
         where: { id_group: group.id_group },
       });
       const coursesTakenByGroup = await Gro_cou.findAll({
-        where: { id_course, id_group},
+        where: { id_course, id_group },
       });
 
       for (const gro_cou of coursesTakenByGroup) {
@@ -850,21 +850,29 @@ const fillAssistaneForAllGroups = async (req, res = response) => {
             });
           }
           for (const date_assistance of assistence_days_dates) {
-            let assit;
-            let grade = student_grade_course?.grade || "NP";
-            const isGradeNewOrFailed = ["-", "NP"].includes(grade);
-            assit = new Assit({
-              attended: isGradeNewOrFailed ? 0 : 1,
-              date_assistance,
+            const assitAlreadySaved = await Assit.findOne({
+              where: {
+                id_gro_cou: gro_cou.id_gro_cou,
+                id_student,
+              },
             });
-            const { id_assistance } = await assit.save();
-            // Guardado en gro_cou_ass
-            const gro_cou_ass = new Gro_cou_ass({
-              id_gro_cou: gro_cou.id_gro_cou,
-              id_assistance,
-              id_student,
-            });
-            await gro_cou_ass.save();
+            if (!assitAlreadySaved) {
+              let assit;
+              let grade = student_grade_course?.grade || "NP";
+              const isGradeNewOrFailed = ["-", "NP"].includes(grade);
+              assit = new Assit({
+                attended: isGradeNewOrFailed ? 0 : 1,
+                date_assistance,
+              });
+              const { id_assistance } = await assit.save();
+              // Guardado en gro_cou_ass
+              const gro_cou_ass = new Gro_cou_ass({
+                id_gro_cou: gro_cou.id_gro_cou,
+                id_assistance,
+                id_student,
+              });
+              await gro_cou_ass.save();
+            }
           }
         }
       }
