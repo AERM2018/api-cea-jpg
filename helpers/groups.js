@@ -177,7 +177,7 @@ const studentGroupBelongsSameMajor = async (id_student, id_group) => {
   // Find student's current group and major
   const stu_gro = await Stu_gro.findOne({
     include: { model: Group, attributes: ["id_major", "id_group"] },
-    where: { [Op.and]: [{ id_student }, { status: 1 }] },
+    where: { [Op.and]: [{ id_student }] },
     order: [["id_stu_gro", "desc"]],
   });
   const {
