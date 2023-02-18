@@ -166,7 +166,7 @@ const checkGroupExistence = async (req, res = response, next) => {
 const isValidCard = async (id_card = null, req) => {
   const { payment_method } = req.body;
   if (
-    payment_method.toLowerCase() === "tarjeta" ||
+    // payment_method.toLowerCase() === "tarjeta" ||
     payment_method.toLowerCase() === "depósito"
   ) {
     if (!id_card)
