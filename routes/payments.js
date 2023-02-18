@@ -75,8 +75,8 @@ paymentsRouter.post(
     check("payment_type", "El tipo de pago es obligatorio")
       .exists({ checkNull: true })
       .custom(isValidPaymentType),
-    check("amount", "El monto del pago es obligatorio")
-      .isFloat()
+    check("amount", "El monto del pago es obligatorio y debe ser mayor a 0")
+      .isFloat({ gt: 0 })
       .exists({ checkNull: true }),
     check("id_card", "La tarjeta a la cual va dirigo el pago es necesario.")
       .exists({ checkNull: false })
