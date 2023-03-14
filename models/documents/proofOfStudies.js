@@ -62,7 +62,7 @@ class ProofOfStudies extends AlePDFDocument {
 
   addGrades() {
     // let pageWidthWithMargin = this.PDFInstance.options.size[0] - (this.PDFInstance.x * 2)
-    let colMarginX = this.PDFInstance.x
+    let colMarginX = this.PDFInstance.x;
     let tableHeaders = [
       {
         id: "courseName",
@@ -76,13 +76,13 @@ class ProofOfStudies extends AlePDFDocument {
       },
       { id: "grade", header: "Calificación", width: 0.17, align: "center" },
     ];
-   
+
     // Set the width accoriding to the page's size
     tableHeaders = tableHeaders.map((h) => ({
       ...h,
       width: this.pageWidthWithMargin * h.width,
     }));
-    
+
     this.createTable(tableHeaders, {
       headerBorder: ["T", "R", "B", "L"],
       cellBorder: ["T", "R", "B", "L"],
@@ -98,9 +98,9 @@ class ProofOfStudies extends AlePDFDocument {
       }))
     );
     // Set the cursor at the beaginnig of the page
-    this.PDFInstance.x = colMarginX
+    this.PDFInstance.x = colMarginX;
     // Put extracurricular courses when it's needed
-    if(this.student.extraGrades.length > 0){
+    if (this.student.extraGrades.length > 0) {
       let firstExtraGrade = this.student.extraGrades.shift();
       tableHeaders = [
         {
@@ -167,27 +167,28 @@ class ProofOfStudies extends AlePDFDocument {
         }))
       );
     }
-
   }
 
   writeExpeditionDate() {
     this.PDFInstance.text("", this.marginDocument, this.PDFInstance.y);
     this.PDFInstance.moveDown(this.student.grades.length < 16 ? 2 : 0.4);
     this.PDFInstance.text(
-      `Se extiende la presente a solicitud del interesado en la ciudad de Durango, Dgo., a los ${this.dateDay} días del mes de ${this.dateMonth} de ${this.dateYear}. `,
+      `Se extiende la presente a solicitud de ${
+        this.student.gender == "F" ? "la interesada" : "el interesado"
+      } en la ciudad de Durango, Dgo., a los ${this.dateDay} días del mes de ${
+        this.dateMonth
+      } de ${this.dateYear}. `,
       this.marginXDocument,
       this.PDFInstance.y,
       { align: "left" }
     );
-    if(!this.hasGrades){
-      this.PDFInstance.y = this.PDFInstance.options.size[0] - this.marginYDocument
-    }else{
+    if (!this.hasGrades) {
+      this.PDFInstance.y =
+        this.PDFInstance.options.size[0] - this.marginYDocument;
+    } else {
       this.PDFInstance.moveDown(this.student.grades.length < 16 ? 5 : 0.5);
-
     }
   }
-
-  
 }
 
 module.exports = ProofOfStudies;
