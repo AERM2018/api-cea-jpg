@@ -88,6 +88,9 @@ const getAllGradesByCourse = async (req, res = response) => {
     Test.belongsTo(Grades, { foreignKey: "id_grade" });
     Grades.hasOne(Test, { foreignKey: "id_grade" });
 
+    Test.belongsTo(Student, { foreignKey: "id_student" });
+    Student.hasMany(Test, { foreignKey: "id_student" });
+
     const gro_cou = await Gro_cou.findOne({
       where: { [Op.and]: [{ id_course }, { id_group }] },
       raw: true,
@@ -95,13 +98,23 @@ const getAllGradesByCourse = async (req, res = response) => {
     let courseInfo = await getRegularCourseInfo({
       id_gro_cou: gro_cou.id_gro_cou,
     });
-    let grades = await Grades.findAll({
+    let grades = await Test.findAll({
+      attributes: {
+        exclude: [
+          "id_test",
+          "id_gro_cou",
+          "application_date",
+          "assigned_test_date",
+          "applied",
+        ],
+      },
       include: [
         {
           model: Student,
           attributes: [
             "id_student",
             "matricula",
+            "surname_m",
             [
               fn(
                 "concat",
@@ -116,28 +129,24 @@ const getAllGradesByCourse = async (req, res = response) => {
           ],
         },
         {
-          model: Test,
-          attributes: [],
+          model: Grades,
+          attributes: { exclude: ["id_course"] },
         },
       ],
-      attributes: { exclude: ["id_course"] },
       where: {
-        id_course,
+        id_gro_cou: gro_cou.id_gro_cou,
         id_student: {
           [Op.in]: literal(
             `(SELECT id_student FROM stu_gro WHERE id_group = ${id_group})`
           ),
         },
-        [Op.or]: [
-          { "$test.id_gro_cou$": gro_cou.id_gro_cou },
-          // { grade: { [Op.eq]: "NP" } },
-        ],
       },
+      order: [[col("student.surname_m", "DESC")]],
     });
-    grades = grades.map((grade) => {
-      const { student, ...restoGrade } = grade.toJSON();
+    grades = grades.map((gradeData) => {
+      const { student, grade } = gradeData.toJSON();
       return {
-        ...restoGrade,
+        ...grade,
         ...student,
       };
     });
@@ -722,25 +731,36 @@ const deleteGrade = async (req, res) => {
   try {
     try {
       await db.transaction(async (t) => {
-        const test = await Test.findOne({ where : { id_grade}, transaction:t})
-        const grade = await Grades.findByPk(id_grade,{transaction:t})
-        const {id_gro_cou} = test
-        const {id_student} = grade
-        await test.destroy({transaction : t});
-        await grade.destroy({ transaction: t});
-        const assistences = await Gro_cou_ass.findAll({where:{ id_gro_cou, id_student}, transaction : t})
-        const  assistence_ids = assistences.map( assistence => assistence.id_assistance)
-        await Promise.all(assistences.map(async (assistance) => {
-          await assistance.destroy({transaction:t})
-        }))
-        await Assit.destroy({ where:{id_assistance : {[Op.in]:assistence_ids}}, transaction: t})
-  
-      })
+        const test = await Test.findOne({
+          where: { id_grade },
+          transaction: t,
+        });
+        const grade = await Grades.findByPk(id_grade, { transaction: t });
+        const { id_gro_cou } = test;
+        const { id_student } = grade;
+        await test.destroy({ transaction: t });
+        await grade.destroy({ transaction: t });
+        const assistences = await Gro_cou_ass.findAll({
+          where: { id_gro_cou, id_student },
+          transaction: t,
+        });
+        const assistence_ids = assistences.map(
+          (assistence) => assistence.id_assistance
+        );
+        await Promise.all(
+          assistences.map(async (assistance) => {
+            await assistance.destroy({ transaction: t });
+          })
+        );
+        await Assit.destroy({
+          where: { id_assistance: { [Op.in]: assistence_ids } },
+          transaction: t,
+        });
+      });
       res.json({
         ok: true,
         msg: "Califcación del curso eliminada correctamente.",
       });
-      
     } catch (error) {
       console.log(error);
       res.json({
