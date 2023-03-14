@@ -61,10 +61,10 @@ const getAllGrades = async (req, res = response) => {
     });
     students = await Promise.all(students);
     students = filterGradesStudent(students, q);
-    students = students.filter(
-      (student, i) =>
-        i >= (offset - 1) * page - (offset - 1) && i <= (offset - 1) * page
-    );
+    // students = students.filter(
+    //   (student, i) =>
+    //     i >= (offset - 1) * page - (offset - 1) && i <= (offset - 1) * page
+    // );
     grades = [...students];
     res.json({
       ok: true,
