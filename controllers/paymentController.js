@@ -415,10 +415,13 @@ const createPayment = async (req, res = response) => {
     const payment_date =
       status_payment === 1 ? moment().local().format().substr(0, 10) : null;
     change = amount - total_to_pay > 0 ? amount - total_to_pay : 0;
+    console.log("tipo", payment_type.toLowerCase());
+    console.log({ discountForScholarship });
     if (payment_type.toLowerCase() != "documento") {
       if (discountForScholarship !== 0) {
         total_to_pay = total_to_pay * (1 - discountForScholarship / 100);
         total_to_pay = parseFloat(total_to_pay.toFixed(2));
+        console.log({ total_to_pay });
       }
     }
     const new_payment = new Payment({
