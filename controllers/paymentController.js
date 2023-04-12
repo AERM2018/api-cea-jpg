@@ -171,6 +171,7 @@ const createPayment = async (req, res = response) => {
   let change = 0;
   let total_to_pay = 0;
   let msg = "Pago adelentado de materia.";
+  let discountForScholarship = req.scholarshipPercentage ?? 0;
 
   try {
     const [student] = await db.query(getStuInfo, {
@@ -194,6 +195,7 @@ const createPayment = async (req, res = response) => {
       case "documento":
         // Verify if the doc_type was sent
         total_to_pay = document_types[document_type]["price"];
+
         const doc_info = new Document({
           document_type,
           cost: total_to_pay,
@@ -413,6 +415,12 @@ const createPayment = async (req, res = response) => {
     const payment_date =
       status_payment === 1 ? moment().local().format().substr(0, 10) : null;
     change = amount - total_to_pay > 0 ? amount - total_to_pay : 0;
+    if (payment_type.toLowerCase() != "documento") {
+      if (discountForScholarship !== 0) {
+        total_to_pay = total_to_pay * (1 - discountForScholarship / 100);
+        total_to_pay = parseFloat(total_to_pay.toFixed(2));
+      }
+    }
     const new_payment = new Payment({
       cutoff_date,
       start_date,
@@ -754,7 +762,7 @@ const checkPricePayment = async (req, res = response) => {
   const { matricula } = req.params;
   let { start_date } = req.body;
   const { id_student, enroll } = req;
-
+  let discountForScholarship = req.scholarshipPercentage ?? 0;
   try {
     const [student] = await db.query(getStuInfo, {
       replacements: { id: id_student },
@@ -794,6 +802,9 @@ const checkPricePayment = async (req, res = response) => {
         }
 
         total_to_pay = getFeeSchoolByMajor(educational_level);
+        if (discountForScholarship !== 0) {
+          total_to_pay = total_to_pay * (1 - discountForScholarship / 100);
+        }
         break;
       case "materia":
         const pays_courses = await Pay_info.findAll({
@@ -883,8 +894,12 @@ const checkPricePayment = async (req, res = response) => {
         ) {
           total_to_pay = getFeeCourseByMajor(educational_level) + overdue;
         }
+        if (discountForScholarship !== 0) {
+          total_to_pay = total_to_pay * (1 - discountForScholarship / 100);
+        }
         break;
     }
+    total_to_pay = parseFloat(total_to_pay.toFixed(2));
     return res.status(200).json({
       ok: true,
       total_to_pay,

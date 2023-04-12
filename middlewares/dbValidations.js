@@ -636,6 +636,7 @@ const studentHasScholarship = (reason) => async (req, res, next) => {
     where: { id_student },
     include: { model: Scholarship },
   });
+  console.log({ json: studentScholarhip.toJSON().scholarship.percentage });
   if (studentScholarhip !== null) {
     if (reason == "creation") {
       return res.status(400).json({
@@ -643,7 +644,8 @@ const studentHasScholarship = (reason) => async (req, res, next) => {
         msg: `El estudiante ya cuenta con una beca.`,
       });
     }
-    req.scholarship = studentScholarhip;
+    req.scholarshipPercentage =
+      studentScholarhip.toJSON().scholarship.percentage;
   }
   next();
 };

@@ -95,6 +95,7 @@ paymentsRouter.post(
     checkStudentEnroll,
     checkCardExistence,
     isValidDocumentType,
+    studentHasScholarship("query"),
   ],
   createPayment
 );
