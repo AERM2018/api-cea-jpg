@@ -38,6 +38,9 @@ scholarshipRouter.post(
       "percentage",
       "El porcentaje de la beca es obligatorio y debe ser numero flotante"
     )
+      .customSanitizer((value) => {
+        return parseFloat(value.slice(0, -1));
+      })
       .isFloat()
       .exists({ checkNull: true }),
     check(
@@ -88,6 +91,9 @@ scholarshipRouter.put(
       "percentage",
       "El porcentaje de la beca es obligatorio y debe ser numero con decimales"
     )
+      .customSanitizer((value) => {
+        return parseFloat(value.slice(0, -1));
+      })
       .isFloat()
       .exists({ checkNull: true }),
     check(
