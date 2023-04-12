@@ -29,6 +29,8 @@ const { document_types } = require("../types/dictionaries");
 const Stu_gro = require("../models/stu_gro");
 const { printAndSendError } = require("../helpers/responsesOfReq");
 const Rol_use = require("../models/rol_use");
+const Scholarship = require("../models/scholarship");
+const Sch_stu = require("../models/sch_stu");
 
 const checkCampusExistence = async (req, res, next) => {
   const id_campus = req.body.id_campus | req.params.id_campus;
@@ -613,6 +615,31 @@ const isGroupTakingGraduationCourse = async (req, res, next) => {
     printAndSendError(res, err);
   }
 };
+
+const checkScholarshipExistence = async (req, res, next) => {
+  const { id_scholarship } = req.params;
+  const scholarship = await Scholarship.findByPk(id_scholarship);
+  if (!scholarship) {
+    return res.status(404).json({
+      ok: false,
+      msg: `La beca con id ${id_scholarship} no existe.`,
+    });
+  }
+  next();
+};
+
+const studentHasScholarship = async (req, res, next) => {
+  const { id_student } = req;
+  Sch_stu.belongsTo(Scholarship, { foreignKey: "id_scholarship" });
+  Scholarship.hasOne(Sch_stu, { foreignKey: "id_scholarship" });
+  const studentScholarhip = await Sch_stu.findOne({
+    where: { id_student },
+    include: { model: Scholarship },
+  });
+  if (studentHasScholarship) {
+    req.scholarship = studentScholarhip;
+  }
+};
 module.exports = {
   checkCampusExistence,
   checkStudentExistence,
@@ -651,4 +678,5 @@ module.exports = {
   isStudentPartOfAGroup,
   isUserAllowedToUpdateGrade,
   isGroupTakingGraduationCourse,
+  checkScholarshipExistence,
 };

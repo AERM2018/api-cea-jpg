@@ -24,22 +24,10 @@ const getAllScholarships = async (req, res = response) => {
 };
 
 const createScholarship = async (req, res = response) => {
-  const { body } = req;
-  const { matricula, scholarship_name, percentage, reason, observations } =
-    body;
+  const { body, id_student } = req;
+  const { scholarship_name, percentage, reason, observations } = body;
 
   try {
-    // check if the student exists
-    const student = await Student.findOne({
-      where: { matricula: matricula },
-    });
-    if (!student) {
-      return res.status(404).json({
-        ok: false,
-        msg: `El estudiante con id ${matricula} no existe, verifiquelo por favor.`,
-      });
-    }
-
     const { id_scholarship } = await Scholarship.create({
       scholarship_name,
       percentage,
@@ -47,9 +35,9 @@ const createScholarship = async (req, res = response) => {
       observations,
     });
 
-    const sch_stu = await Sch_stu.create({
+    await Sch_stu.create({
       id_scholarship,
-      id_student: student.id_student,
+      id_student,
     });
 
     const result = await getSchoolarshipsInfo(id_scholarship);
