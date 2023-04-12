@@ -24,6 +24,7 @@ const {
   isValidPaymentMethod,
   isValidStartDate,
   isValidDocumentType,
+  studentHasScholarship,
 } = require("../middlewares/dbValidations");
 const validateJWT = require("../middlewares/validar-jwt");
 const { validateFields } = require("../middlewares/validateFields");
@@ -165,6 +166,7 @@ paymentsRouter.post(
     validateJWT,
     checkStudentExistence,
     checkStudentEnroll,
+    studentHasScholarship("query"),
   ],
   checkPricePayment
 );

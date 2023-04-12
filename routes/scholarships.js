@@ -8,7 +8,10 @@ const {
 } = require("../controllers/scholarshipsController");
 const validateJWT = require("../middlewares/validar-jwt");
 const { validateFields } = require("../middlewares/validateFields");
-const { checkStudentExistence } = require("../middlewares/dbValidations");
+const {
+  checkStudentExistence,
+  studentHasScholarship,
+} = require("../middlewares/dbValidations");
 
 const scholarshipRouter = Router();
 
@@ -53,6 +56,7 @@ scholarshipRouter.post(
     validateFields,
     validateJWT,
     checkStudentExistence,
+    studentHasScholarship("creation"),
   ],
   createScholarship
 );

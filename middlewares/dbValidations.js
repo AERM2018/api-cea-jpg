@@ -628,7 +628,7 @@ const checkScholarshipExistence = async (req, res, next) => {
   next();
 };
 
-const studentHasScholarship = async (req, res, next) => {
+const studentHasScholarship = (reason) => async (req, res, next) => {
   const { id_student } = req;
   Sch_stu.belongsTo(Scholarship, { foreignKey: "id_scholarship" });
   Scholarship.hasOne(Sch_stu, { foreignKey: "id_scholarship" });
@@ -636,9 +636,16 @@ const studentHasScholarship = async (req, res, next) => {
     where: { id_student },
     include: { model: Scholarship },
   });
-  if (studentHasScholarship) {
+  if (studentScholarhip !== null) {
+    if (reason == "creation") {
+      return res.status(400).json({
+        ok: false,
+        msg: `El estudiante ya cuenta con una beca.`,
+      });
+    }
     req.scholarship = studentScholarhip;
   }
+  next();
 };
 module.exports = {
   checkCampusExistence,
@@ -679,4 +686,5 @@ module.exports = {
   isUserAllowedToUpdateGrade,
   isGroupTakingGraduationCourse,
   checkScholarshipExistence,
+  studentHasScholarship,
 };
