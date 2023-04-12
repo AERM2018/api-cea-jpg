@@ -80,13 +80,13 @@ scholarshipRouter.put(
       .notEmpty()
       .isString()
       .isLength({ max: 15 }),
-    check(
-      "scholarship_name",
-      "El nombre de la beca es obligatorio y debe tener como máximo 15 caracteres"
-    )
-      .notEmpty()
-      .isString()
-      .isLength({ max: 15 }),
+    // check(
+    //   "scholarship_name",
+    //   "El nombre de la beca es obligatorio y debe tener como máximo 15 caracteres"
+    // )
+    //   .notEmpty()
+    //   .isString()
+    //   .isLength({ max: 15 }),
     check(
       "percentage",
       "El porcentaje de la beca es obligatorio y debe ser numero con decimales"
