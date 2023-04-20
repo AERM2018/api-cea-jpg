@@ -64,7 +64,7 @@ const getGroupInfo = async (id_group) => {
               " ",
               col("student.surname_f"),
               " ",
-              col("student.name"),
+              col("student.name")
             ),
             "group_chief_student_name",
           ],
@@ -157,6 +157,7 @@ const isStudentGroupChiefOfGroup = async (
   let currentStudentGroup = await Stu_gro.findOne({
     where: { [Op.and]: [{ id_student }] },
   });
+  if (!currentStudentGroup) return false;
   const { id_group } = currentStudentGroup;
   const groupsStudentIsChief = await Group.findAndCountAll({
     where: {
@@ -274,7 +275,7 @@ const getStudentsFromGroup = async (id_group) => {
               " ",
               col("surname_f"),
               " ",
-              col("name"),
+              col("name")
             ),
             "student_name",
           ],
