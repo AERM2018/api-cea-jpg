@@ -105,8 +105,8 @@ const getPaymentStudent = async (
       current,
       educational_level,
     } = pay_info;
-    let { amount, status_payment, cutoff_date } = pay_info;
-    expected = amount;
+    let { total, status_payment, cutoff_date } = pay_info;
+    expected = total;
     const partial_pays_payment = await Partial_pay.findAll({
       where: {
         id_payment,
@@ -204,7 +204,7 @@ const getPaymentStudent = async (
             (status_payment === 2 &&
               moment().month() != moment(cutoff_date).month())
           ) {
-            if (amount_origin + overdue != amount) {
+            if (amount_origin + overdue != total) {
               await Payment.update(
                 { amount: amount_origin + overdue },
                 {
@@ -215,7 +215,7 @@ const getPaymentStudent = async (
             }
           }
         } else {
-          expected = amount;
+          expected = total;
         }
         // Get the course's name which the student's taking now
         Gro_cou.belongsTo(Course, { foreignKey: "id_course" });

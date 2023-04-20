@@ -51,6 +51,7 @@ paymentsRouter.get(
     validateFields,
     validateJWT,
     checkStudentExistence,
+    studentHasScholarship("query"),
   ],
   getAllPaymentsByStudent
 );

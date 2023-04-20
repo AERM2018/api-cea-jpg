@@ -412,14 +412,17 @@ const createPayment = async (req, res = response) => {
         break;
     }
 
+    let discount_amount;
+
     const payment_date =
       status_payment === 1 ? moment().local().format().substr(0, 10) : null;
     change = amount - total_to_pay > 0 ? amount - total_to_pay : 0;
     console.log("tipo", payment_type.toLowerCase());
     console.log({ discountForScholarship });
     if (payment_type.toLowerCase() != "documento") {
+      discount_amount = total_to_pay * (discountForScholarship / 100);
       if (discountForScholarship !== 0) {
-        total_to_pay = total_to_pay * (1 - discountForScholarship / 100);
+        total_to_pay = total_to_pay - discount_amount;
         total_to_pay = parseFloat(total_to_pay.toFixed(2));
         console.log({ total_to_pay });
       }
@@ -429,6 +432,7 @@ const createPayment = async (req, res = response) => {
       start_date,
       payment_date,
       amount: total_to_pay,
+      discount: discount_amount,
       status_payment,
       payment_type,
     });
@@ -630,7 +634,7 @@ const payForPayment = async (req, res = response) => {
     });
     const {
       payment_type,
-      amount,
+      total,
       current,
       status_payment,
       cutoff_date,
@@ -663,18 +667,18 @@ const payForPayment = async (req, res = response) => {
         msg: `La fecha de corte del pago con id ${id_payment} expiró.`,
       });
     }
-    missing = amount - current;
+    missing = total - current;
     change = pay_amount > missing ? pay_amount - missing : 0;
     pay = pay_amount - change;
     switch (payment_type) {
       case "Documento":
-        if (current + pay === amount) {
+        if (current + pay === total) {
           new_status = 1;
         }
         break;
 
       case "Materia":
-        if (current + pay === amount) {
+        if (current + pay === total) {
           new_status = 1;
         } else {
           new_cutoff_date = moment()
