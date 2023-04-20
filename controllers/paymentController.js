@@ -226,6 +226,9 @@ const createPayment = async (req, res = response) => {
         }
 
         total_to_pay = getFeeSchoolByMajor(educational_level);
+        if (discountForScholarship != 0) {
+          total_to_pay = total_to_pay * (1 - discountForScholarship / 100);
+        }
         if (amount < total_to_pay) {
           return res.status(400).json({
             ok: false,
