@@ -41,6 +41,7 @@ const Payment = db.define(
     discount: {
       type: DataTypes.DOUBLE,
       allowNull: false,
+      defaultValue: 0,
     },
     start_date: {
       type: DataTypes.DATEONLY,
