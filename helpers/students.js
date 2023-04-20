@@ -104,6 +104,7 @@ const getPaymentStudent = async (
       start_date,
       current,
       educational_level,
+      discount,
     } = pay_info;
     let { total, status_payment, cutoff_date } = pay_info;
     expected = total;
@@ -135,7 +136,7 @@ const getPaymentStudent = async (
         const { first_day, last_day, overdue } = await getGroupDaysAndOverdue(
           id_group
         );
-        const amount_origin = getFeeCourseByMajor(educational_level);
+        const amount_origin = getFeeCourseByMajor(educational_level) - discount;
         // Change the payment's amount in case it's necessary
         if (status_payment != 1) {
           // Change the status if the date is overdue
