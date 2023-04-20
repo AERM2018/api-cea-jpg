@@ -421,11 +421,11 @@ const createPayment = async (req, res = response) => {
     console.log({ discountForScholarship });
     if (payment_type.toLowerCase() != "documento") {
       discount_amount = total_to_pay * (discountForScholarship / 100);
-      if (discountForScholarship !== 0) {
-        total_to_pay = total_to_pay - discount_amount;
-        total_to_pay = parseFloat(total_to_pay.toFixed(2));
-        console.log({ total_to_pay });
-      }
+      // if (discountForScholarship !== 0) {
+      //   total_to_pay = total_to_pay - discount_amount;
+      //   total_to_pay = parseFloat(total_to_pay.toFixed(2));
+      //   console.log({ total_to_pay });
+      // }
     }
     const new_payment = new Payment({
       cutoff_date,
