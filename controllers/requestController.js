@@ -163,7 +163,7 @@ const completeARequest = async (req, res = response) => {
         process.env.NODE_ENV === "production"
           ? "api.alejandria.edu.mx"
           : "localhost"
-      }:3005/api-ale/v1/documents/${document_type}/students/${matricula}`
+      }/api-ale/v1/documents/${document_type}/students/${matricula}`
     );
   } catch (error) {
     console.log(error);
