@@ -229,7 +229,7 @@ const deleteGroup = async (req, res) => {
   try {
     const group = await Group.findByPk(id_group);
     const studentFromGroup = await Stu_gro.findAndCountAll({
-      where: { [Op.and]: [{ id_group }] },
+      where: { [Op.and]: [{ id_group, status: 1 }] },
     });
     if (studentFromGroup.count > 0) {
       return res.status(400).json({
@@ -613,7 +613,6 @@ const getInfoCourseTakenByGroup = async (req, res = response) => {
     Test.belongsTo(Grades, { foreignKey: "id_grade" });
     Grades.hasOne(Test, { foreignKey: "id_grade" });
 
-
     const gro_cou = await Gro_cou.findOne({
       where: { [Op.and]: [{ id_course }, { id_group }] },
       raw: true,
@@ -781,7 +780,7 @@ const fillAssistaneForAllGroups = async (req, res = response) => {
   try {
     let { id_group, id_course } = req.params;
     let groups = [{ id_group: id_group }];
-    
+
     Gro_cou_ass.belongsTo(Assit, { foreignKey: "id_assistance" });
     Assit.hasOne(Gro_cou_ass, { foreignKey: "id_assistance" });
     // let groups = await Group.findAll()
@@ -862,8 +861,8 @@ const fillAssistaneForAllGroups = async (req, res = response) => {
               include: {
                 model: Assit,
                 required: true,
-                where: { date_assistance }
-              }
+                where: { date_assistance },
+              },
             });
             if (!assitAlreadySaved) {
               let assit;
