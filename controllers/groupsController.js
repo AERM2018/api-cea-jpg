@@ -247,7 +247,12 @@ const deleteGroup = async (req, res) => {
     const gro_cous = await Gro_cou.findAll({ where: { id_group } });
     await Promise.all(
       gro_cous.map(async (gro_cou) => {
-        await Cou_tea.destroy({
+        await Gro_tea_cou.destroy({
+          where: {
+            id_gro_cou: gro_cou.id_gro_cou,
+          },
+        });
+        await Cou_tea.findOne({
           where: {
             [Op.and]: [
               { start_date: gro_cou.start_date },
