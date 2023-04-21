@@ -159,7 +159,7 @@ const completeARequest = async (req, res = response) => {
     const { matricula, document_type } = request.document;
     res.redirect(
       307,
-      `http://${
+      `https://${
         process.env.NODE_ENV === "production"
           ? "api.alejandria.edu.mx"
           : "localhost"
