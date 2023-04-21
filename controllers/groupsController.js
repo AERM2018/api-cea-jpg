@@ -267,6 +267,7 @@ const deleteGroup = async (req, res) => {
         await gro_cou.destroy();
       })
     );
+    await Stu_gro.destroy({ where: { id_group } });
     await group.destroy();
     res.status(200).json({
       ok: true,
