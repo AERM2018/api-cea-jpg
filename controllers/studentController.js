@@ -51,7 +51,10 @@ const {
 const Rol_use = require("../models/rol_use");
 const Grades = require("../models/grades");
 const Test = require("../models/test");
-const { createGoogleAccount, changeGoogleAcountStatus } = require("../helpers/googleAccounts");
+const {
+  createGoogleAccount,
+  changeGoogleAcountStatus,
+} = require("../helpers/googleAccounts");
 const { createMoodleAccount } = require("../helpers/moodleAccounts");
 
 const getAllStudents = async (req, res) => {
@@ -328,7 +331,7 @@ const createStudent = async (req, res = response) => {
 const updateStudent = async (req, res) => {
   const { id } = req.params;
   const { body } = req;
-  const { curp, id_group, group_chief, email, irregular } = body;
+  const { curp, id_group, group_chief, email, irregular, id_campus } = body;
   try {
     const student = await Student.findByPk(id);
     if (!student) {
@@ -402,6 +405,8 @@ const updateStudent = async (req, res) => {
     } else {
       await removeStudentAsGroupChief(id_group);
     }
+    // Move student from campus
+    Cam_use.update({ id_campus }, { where: { id_user } });
     await student.update(body);
     await User.update({ email }, { where: { id_user } });
     const result = await getStudentInfo(student.matricula);
@@ -448,7 +453,10 @@ const deleteStudent = async (req, res) => {
       { status: 0 },
       { where: { id_student: student.id_student } }
     );
-      await changeGoogleAcountStatus(`${student.matricula}@alejandria.edu.mx`,true)
+    await changeGoogleAcountStatus(
+      `${student.matricula}@alejandria.edu.mx`,
+      true
+    );
     res.status(200).json({
       ok: true,
       msg: "El alumno se elimino correctamente",

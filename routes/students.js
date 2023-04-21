@@ -12,6 +12,7 @@ const {
 const {
   checkStudentExistence,
   checkGroupExistence,
+  checkCampusExistence,
 } = require("../middlewares/dbValidations");
 const validateJWT = require("../middlewares/validar-jwt");
 const { validateFields } = require("../middlewares/validateFields");
@@ -232,6 +233,7 @@ studentsRouter.put(
     // check('complete_documents','Falta el campo de los documentos del alumno').isInt().exists({checkNull:true}),
     validateFields,
     validateJWT,
+    checkCampusExistence,
   ],
   updateStudent
 );
