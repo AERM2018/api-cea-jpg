@@ -11,6 +11,7 @@ const client = new JWT({
 const createGoogleAccount = async (student) => {
   // Makes an authenticated API request.
   let body;
+  console.log("aaaaa this is the scope",{process: process.env.GCLOUD_USERS_SCOPE});
   try {
     body = {
       name: {
