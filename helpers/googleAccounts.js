@@ -21,7 +21,7 @@ const createGoogleAccount = async (student) => {
       primaryEmail: `${student.matricula}@alejandria.edu.mx`,
     };
     body = JSON.stringify(body);
-    const url = `https://admin.googleapis.com/admin/directory/v1/users`;
+    const url = `https://www.googleapis.com/auth/admin.directory.user`;
     const res = await client.request({
       url,
       body,
@@ -41,7 +41,7 @@ const changeGoogleAcountStatus = async (email, isSuspensd) => {
       suspended: isSuspensd,
     };
     body = JSON.stringify(body);
-    const url = `https://admin.googleapis.com/admin/directory/v1/users/${email}`;
+    const url = `https://www.googleapis.com/auth/admin.directory.user/${email}`;
     const res = await client.request({
       url,
       body,
