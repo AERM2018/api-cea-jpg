@@ -11,7 +11,7 @@ const client = new JWT({
 const createGoogleAccount = async (student) => {
   // Makes an authenticated API request.
   let body;
-  console.log("aaaaa this is the scope",{process: process.env.GCLOUD_USERS_SCOPE});
+  console.log("GSCOPE",{process: process.env.GCLOUD_USERS_SCOPE});
   try {
     body = {
       name: {
@@ -22,7 +22,7 @@ const createGoogleAccount = async (student) => {
       primaryEmail: `${student.matricula}@alejandria.edu.mx`,
     };
     body = JSON.stringify(body);
-    const url = `https://www.googleapis.com/auth/admin.directory.user`;
+    const url = `https://admin.googleapis.com/admin/directory/v1/users`;
     const res = await client.request({
       url,
       body,

@@ -531,6 +531,7 @@ const createStudentSchoolAccounts = async (req, res) => {
       attributes: { exclude: ["id"] },
     });
     const response = await createGoogleAccount(student);
+    // // console.log({ response });
     if (!response.ok) {
       return res.json({ ok: false, msg: response.err.errors[0].message });
     }
