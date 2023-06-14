@@ -58,6 +58,8 @@ const getStudentInfo = async (matricula = "") => {
       ],
     },
     raw: true,
+    limit: 1,
+    order: [["cont", "DESC"]],
   });
   // Checar si es jefe de grupo del grupo donde está actualmente
   const is_group_chief = await Stu_gro.findOne({

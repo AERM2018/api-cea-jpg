@@ -120,6 +120,10 @@ const Stu_info = db.define(
       type: DataTypes.BOOLEAN,
       allowNull: false,
     },
+    cont: {
+      type: DataTypes.NUMBER,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,
