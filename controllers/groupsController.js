@@ -227,6 +227,10 @@ const updateGroup = async (req, res) => {
 const deleteGroup = async (req, res) => {
   const { id_group } = req.params;
   try {
+    return res.status(400).json({
+      ok:false,
+      msg: "No se puede eliminar el grupo por el momento, intentelo más tarde."
+    })
     const group = await Group.findByPk(id_group);
     const studentFromGroup = await Stu_gro.findAndCountAll({
       where: { [Op.and]: [{ id_group, status: 1 }] },
