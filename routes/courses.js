@@ -45,11 +45,11 @@ coursesRouter.post(
       .isFloat(),
     check(
       "clave",
-      "La clave del curso es obligatoria y debe tener como máximo 5 caracteres"
+      "La clave del curso es obligatoria y debe tener como máximo 10 caracteres"
     )
       .not()
       .isEmpty()
-      .isLength({ max: 5 }),
+      .isLength({ max: 10 }),
     checkMajorExistence,
     validateFields,
     checkCourseExistence,
@@ -106,11 +106,11 @@ coursesRouter.put(
       .isFloat(),
     check(
       "clave",
-      "La clave del curso es obligatoria y debe tener como máximo 5 caracteres"
+      "La clave del curso es obligatoria y debe tener como máximo 10 caracteres"
     )
       .not()
       .isEmpty()
-      .isLength({ max: 5 }),
+      .isLength({ max: 10 }),
     checkMajorExistence,
     validateFields,
     validateJWT,
