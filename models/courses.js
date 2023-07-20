@@ -21,7 +21,7 @@ const Course = db.define(
       },
     },
     clave: {
-      type: DataTypes.STRING(5),
+      type: DataTypes.STRING(10),
       allowNull: false,
       validate: {
         notEmpty: true,
